@@ -8,283 +8,245 @@
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-        /* ===== 全局背景：深紫星空（与首页一致） ===== */
         body {
             background: #0D0620;
             margin: 0;
             font-family: -apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif;
             min-height: 100vh;
         }
+
+        /* 星空背景 */
         .ambient-bg {
             position: fixed; inset: 0; z-index: 0; pointer-events: none;
             background:
-                radial-gradient(ellipse 80% 60% at 20% 10%, rgba(124,58,237,0.22) 0%, transparent 60%),
-                radial-gradient(ellipse 60% 50% at 80% 80%, rgba(45,27,105,0.3) 0%, transparent 55%),
-                radial-gradient(ellipse 40% 40% at 60% 30%, rgba(168,85,247,0.1) 0%, transparent 50%);
+                radial-gradient(ellipse 80% 60% at 20% 10%, rgba(124,58,237,0.2) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 80% 80%, rgba(45,27,105,0.28) 0%, transparent 55%),
+                radial-gradient(ellipse 40% 40% at 60% 30%, rgba(168,85,247,0.09) 0%, transparent 50%);
         }
-        /* 星星粒子 */
-        .stars {
-            position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
-        }
+        .stars { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
         .star {
-            position: absolute;
-            background: white;
-            border-radius: 50%;
-            animation: twinkle var(--d, 3s) ease-in-out infinite var(--delay, 0s);
+            position: absolute; background: white; border-radius: 50%;
+            animation: twinkle var(--d,3s) ease-in-out infinite var(--delay,0s);
         }
         @keyframes twinkle {
-            0%,100% { opacity: var(--min-op, 0.15); transform: scale(1); }
-            50% { opacity: var(--max-op, 0.7); transform: scale(1.3); }
+            0%,100% { opacity: var(--min-op,0.12); transform: scale(1); }
+            50% { opacity: var(--max-op,0.65); transform: scale(1.3); }
         }
 
         .container {
-            max-width: 480px;
-            margin: 0 auto;
+            max-width: 480px; margin: 0 auto;
             background: transparent;
             min-height: 100vh;
             padding-bottom: 80px;
-            position: relative;
-            z-index: 1;
+            position: relative; z-index: 1;
         }
 
-        /* ===== 顶部导航栏 ===== */
+        /* ===== 顶部导航 ===== */
         .im-navbar {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 14px 20px 12px;
-            background: rgba(13,6,32,0.85);
+            position: sticky; top: 0; z-index: 100;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 16px 12px;
+            background: rgba(13,6,32,0.88);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(124,58,237,0.2);
+            border-bottom: 1px solid rgba(124,58,237,0.18);
         }
-        .im-navbar-left { width: 36px; }
         .im-navbar-title {
-            font-size: 1.1rem;
-            font-weight: 800;
+            font-size: 1.1rem; font-weight: 800;
             background: linear-gradient(135deg, #E9D5FF, #C4B5FD, #A78BFA);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             letter-spacing: 0.3px;
         }
         .plus-btn {
-            width: 34px; height: 34px;
+            width: 32px; height: 32px;
             display: flex; align-items: center; justify-content: center;
-            border-radius: 10px;
-            background: rgba(124,58,237,0.2);
-            border: 1px solid rgba(124,58,237,0.35);
-            cursor: pointer;
-            transition: all 0.2s;
+            border-radius: 9px;
+            background: rgba(124,58,237,0.18);
+            border: 1px solid rgba(124,58,237,0.3);
+            cursor: pointer; transition: all 0.2s;
         }
-        .plus-btn:active { background: rgba(124,58,237,0.4); transform: scale(0.94); }
-        .plus-btn svg { width: 18px; height: 18px; color: #C4B5FD; }
+        .plus-btn:active { background: rgba(124,58,237,0.38); transform: scale(0.93); }
+        .plus-btn svg { width: 17px; height: 17px; color: #C4B5FD; }
 
         /* ===== 搜索栏 ===== */
-        .im-search-bar {
-            padding: 12px 16px 8px;
-        }
+        .im-search-bar { padding: 10px 16px 6px; }
         .im-search-inner {
             display: flex; align-items: center; gap: 8px;
-            background: rgba(255,255,255,0.07);
-            border: 1px solid rgba(124,58,237,0.2);
-            border-radius: 14px;
-            padding: 9px 14px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(124,58,237,0.18);
+            border-radius: 12px; padding: 8px 13px;
             backdrop-filter: blur(10px);
             transition: border-color 0.2s;
         }
         .im-search-inner:focus-within {
-            border-color: rgba(124,58,237,0.5);
-            background: rgba(255,255,255,0.1);
+            border-color: rgba(124,58,237,0.45);
+            background: rgba(255,255,255,0.09);
         }
-        .im-search-inner svg { width: 14px; height: 14px; color: rgba(196,181,253,0.6); flex-shrink: 0; }
+        .im-search-inner svg { width: 13px; height: 13px; color: rgba(196,181,253,0.5); flex-shrink: 0; }
         .im-search-inner input {
             border: none; background: transparent; outline: none;
-            font-size: 0.85rem; color: rgba(255,255,255,0.85); width: 100%;
+            font-size: 0.84rem; color: rgba(255,255,255,0.82); width: 100%;
         }
-        .im-search-inner input::placeholder { color: rgba(196,181,253,0.4); }
+        .im-search-inner input::placeholder { color: rgba(196,181,253,0.38); }
 
-        /* ===== 分组标题 ===== */
+        /* ===== 分组标题：贴左，极小上下间距 ===== */
         .chat-section-title {
-            padding: 14px 20px 6px;
-            font-size: 0.7rem;
-            color: rgba(196,181,253,0.5);
-            font-weight: 600;
-            letter-spacing: 1px;
+            padding: 16px 16px 4px;
+            font-size: 0.68rem;
+            color: rgba(196,181,253,0.42);
+            font-weight: 700;
+            letter-spacing: 1.2px;
             text-transform: uppercase;
         }
 
-        /* ===== 对话列表容器 ===== */
-        .chat-list {
-            padding: 0 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
+        /* ===== 对话列表：无左右 padding，贴满屏幕 ===== */
+        .chat-list { padding: 0; }
+
+        /* ===== 对话行：全宽，仅底部细线分隔，无圆角无卡片感 ===== */
+        .chat-item {
+            display: flex; align-items: center;
+            padding: 11px 16px;
+            gap: 12px;
+            cursor: pointer; position: relative;
+            background: transparent;
+            border-bottom: 1px solid rgba(124,58,237,0.08);
+            transition: background 0.15s;
+            border-radius: 0;
+        }
+        .chat-item:last-child { border-bottom: none; }
+        .chat-item:active { background: rgba(124,58,237,0.1); }
+
+        /* 官方频道行：左侧紫色细线强调 */
+        .chat-item.official {
+            border-left: 3px solid rgba(167,139,250,0.5);
+            padding-left: 13px;
+            background: rgba(124,58,237,0.04);
         }
 
-        /* ===== 对话卡片（玻璃拟态） ===== */
-        .chat-item-v3 {
-            display: flex;
-            align-items: center;
-            padding: 13px 14px;
-            gap: 13px;
-            cursor: pointer;
-            position: relative;
-            border-radius: 18px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(124,58,237,0.12);
-            backdrop-filter: blur(12px);
-            transition: all 0.2s;
-        }
-        .chat-item-v3:active {
-            background: rgba(124,58,237,0.15);
-            border-color: rgba(124,58,237,0.35);
-            transform: scale(0.985);
-        }
-        /* 官方频道卡片加强光晕 */
-        .chat-item-v3.official-card {
-            background: rgba(124,58,237,0.1);
-            border-color: rgba(124,58,237,0.25);
-        }
-        .chat-item-v3.official-card:active {
-            background: rgba(124,58,237,0.22);
-        }
-
-        /* ===== H 字母头像体系 ===== */
+        /* ===== H 字母头像 ===== */
         .h-avatar {
-            width: 50px; height: 50px;
-            border-radius: 14px;
+            width: 48px; height: 48px;
+            border-radius: 13px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.4rem; font-weight: 900; color: white;
+            font-size: 1.35rem; font-weight: 900; color: white;
             flex-shrink: 0; position: relative;
-            font-family: 'SF Pro Display', 'Inter', system-ui, sans-serif;
             letter-spacing: -1px;
         }
-        .h-avatar.official {
+        .h-avatar.official-purple {
             background: linear-gradient(135deg, #2D1B69 0%, #7C3AED 60%, #A855F7 100%);
-            box-shadow: 0 4px 16px rgba(124,58,237,0.5), inset 0 1px 0 rgba(255,255,255,0.15);
+            box-shadow: 0 3px 12px rgba(124,58,237,0.45);
         }
-        .h-avatar.system {
+        .h-avatar.official-blue {
             background: linear-gradient(135deg, #1E3A5F 0%, #1D4ED8 60%, #3B82F6 100%);
-            box-shadow: 0 4px 16px rgba(29,78,216,0.45), inset 0 1px 0 rgba(255,255,255,0.15);
+            box-shadow: 0 3px 12px rgba(29,78,216,0.4);
         }
-        .h-avatar.ai {
+        .h-avatar.official-red {
             background: linear-gradient(135deg, #7C2D12 0%, #DC2626 50%, #F97316 100%);
-            box-shadow: 0 4px 16px rgba(220,38,38,0.4), inset 0 1px 0 rgba(255,255,255,0.15);
+            box-shadow: 0 3px 12px rgba(220,38,38,0.38);
         }
-        .h-avatar.staked {
+        .h-avatar.group-gold {
+            background: linear-gradient(135deg, #92400E 0%, #D97706 50%, #FCD34D 100%);
+            box-shadow: 0 3px 10px rgba(217,119,6,0.38);
+        }
+        .h-avatar.group-blue {
+            background: linear-gradient(135deg, #1E3A5F 0%, #1D4ED8 60%, #60A5FA 100%);
+            box-shadow: 0 3px 10px rgba(29,78,216,0.35);
+        }
+        .h-avatar.group-green {
+            background: linear-gradient(135deg, #064E3B 0%, #059669 50%, #34D399 100%);
+            box-shadow: 0 3px 10px rgba(5,150,105,0.38);
+        }
+        .h-avatar.user-staked {
             background: linear-gradient(135deg, #0891B2 0%, #7C3AED 60%, #EC4899 100%);
-            box-shadow: 0 4px 14px rgba(124,58,237,0.35), inset 0 1px 0 rgba(255,255,255,0.15);
+            box-shadow: 0 3px 10px rgba(124,58,237,0.3);
         }
-        .h-avatar.staked-gold {
+        .h-avatar.user-staked-gold {
             background: linear-gradient(135deg, #D97706 0%, #F59E0B 50%, #FCD34D 100%);
-            box-shadow: 0 4px 14px rgba(217,119,6,0.4), inset 0 1px 0 rgba(255,255,255,0.15);
+            box-shadow: 0 3px 10px rgba(217,119,6,0.35);
         }
-        .h-avatar.staked-green {
-            background: linear-gradient(135deg, #065F46 0%, #059669 50%, #34D399 100%);
-            box-shadow: 0 4px 14px rgba(5,150,105,0.4), inset 0 1px 0 rgba(255,255,255,0.15);
-        }
-        .h-avatar.unstaked {
+        .h-avatar.user-unstaked {
             background: linear-gradient(135deg, #374151 0%, #4B5563 100%);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.25);
         }
 
         /* 认证徽章 */
         .verified-badge {
-            position: absolute; bottom: -4px; right: -4px;
-            width: 20px; height: 20px;
+            position: absolute; bottom: -3px; right: -3px;
+            width: 18px; height: 18px;
             background: linear-gradient(135deg, #7C3AED, #A855F7);
-            border-radius: 50%;
-            border: 2px solid #0D0620;
+            border-radius: 50%; border: 2px solid #0D0620;
             display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 2px 8px rgba(124,58,237,0.5);
+            box-shadow: 0 1px 6px rgba(124,58,237,0.5);
         }
         .verified-badge.blue {
             background: linear-gradient(135deg, #1D4ED8, #3B82F6);
-            box-shadow: 0 2px 8px rgba(29,78,216,0.5);
+            box-shadow: 0 1px 6px rgba(29,78,216,0.5);
         }
-        .verified-badge svg { width: 9px; height: 9px; color: white; }
+        .verified-badge svg { width: 8px; height: 8px; color: white; }
+
+        /* 在线绿点 */
+        .online-dot {
+            position: absolute; bottom: 1px; right: 1px;
+            width: 9px; height: 9px;
+            background: #10B981; border-radius: 50%;
+            border: 2px solid #0D0620;
+            box-shadow: 0 0 5px rgba(16,185,129,0.7);
+        }
 
         /* ===== 对话内容 ===== */
         .chat-body { flex: 1; min-width: 0; }
         .chat-row-top {
             display: flex; align-items: center;
-            justify-content: space-between;
-            margin-bottom: 5px;
+            justify-content: space-between; margin-bottom: 4px;
         }
         .chat-name-wrap {
-            display: flex; align-items: center; gap: 5px; min-width: 0;
+            display: flex; align-items: center; gap: 5px; min-width: 0; flex: 1;
         }
-        .chat-name-v3 {
-            font-size: 0.95rem; font-weight: 700;
-            color: rgba(255,255,255,0.92);
+        .chat-name {
+            font-size: 0.94rem; font-weight: 700;
+            color: rgba(255,255,255,0.9);
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            max-width: 175px;
         }
-        .name-verified {
+        /* 名称旁认证V */
+        .v-badge {
             display: inline-flex; align-items: center; justify-content: center;
-            width: 15px; height: 15px;
+            width: 14px; height: 14px;
             background: linear-gradient(135deg, #7C3AED, #A855F7);
             border-radius: 50%; flex-shrink: 0;
         }
-        .name-verified.blue-v { background: linear-gradient(135deg, #1D4ED8, #3B82F6); }
-        .name-verified svg { width: 8px; height: 8px; color: white; }
+        .v-badge.blue { background: linear-gradient(135deg, #1D4ED8, #3B82F6); }
+        .v-badge svg { width: 7px; height: 7px; color: white; }
 
-        .chat-time-v3 {
-            font-size: 0.68rem;
-            color: rgba(196,181,253,0.45);
+        /* 成员数标签 */
+        .member-tag {
+            display: inline-flex; align-items: center; gap: 2px;
+            background: rgba(124,58,237,0.14);
+            border: 1px solid rgba(124,58,237,0.2);
+            border-radius: 5px; padding: 1px 5px;
+            font-size: 0.58rem; color: rgba(196,181,253,0.65); font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .chat-time {
+            font-size: 0.67rem; color: rgba(196,181,253,0.4);
             flex-shrink: 0; margin-left: 8px;
         }
-        .chat-preview-v3 {
-            font-size: 0.78rem;
-            color: rgba(196,181,253,0.55);
+        .chat-preview {
+            font-size: 0.77rem; color: rgba(196,181,253,0.5);
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
             line-height: 1.4;
         }
 
         /* 未读红点 */
         .unread-badge {
-            position: absolute; top: 10px; right: 12px;
-            min-width: 20px; height: 20px;
+            position: absolute; top: 10px; right: 14px;
+            min-width: 19px; height: 19px;
             background: linear-gradient(135deg, #EF4444, #F97316);
             border-radius: 10px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 0.65rem; font-weight: 800; color: white;
-            padding: 0 6px;
-            box-shadow: 0 2px 8px rgba(239,68,68,0.5);
-        }
-
-        /* ===== 在线状态小点 ===== */
-        .online-dot {
-            position: absolute; bottom: 2px; right: 2px;
-            width: 10px; height: 10px;
-            background: #10B981;
-            border-radius: 50%;
-            border: 2px solid #0D0620;
-            box-shadow: 0 0 6px rgba(16,185,129,0.7);
-        }
-
-        /* ===== 置顶标识 ===== */
-        .pin-dot {
-            width: 6px; height: 6px;
-            background: rgba(167,139,250,0.6);
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-
-        /* ===== 活跃用户数小标签 ===== */
-        .member-tag {
-            display: inline-flex; align-items: center; gap: 3px;
-            background: rgba(124,58,237,0.15);
-            border: 1px solid rgba(124,58,237,0.2);
-            border-radius: 6px;
-            padding: 1px 6px;
-            font-size: 0.6rem;
-            color: rgba(196,181,253,0.7);
-            font-weight: 600;
-            flex-shrink: 0;
+            font-size: 0.62rem; font-weight: 800; color: white;
+            padding: 0 5px;
+            box-shadow: 0 2px 7px rgba(239,68,68,0.5);
         }
 
         /* ===== + 号菜单弹层 ===== */
@@ -293,59 +255,54 @@
         }
         .plus-menu-overlay.show { display: block; }
         .plus-menu {
-            position: absolute; top: 62px; right: 14px;
-            background: rgba(30,15,60,0.95);
+            position: absolute; top: 58px; right: 12px;
+            background: rgba(22,10,50,0.96);
             backdrop-filter: blur(24px);
-            border: 1px solid rgba(124,58,237,0.3);
-            border-radius: 16px;
-            overflow: hidden;
-            min-width: 170px;
-            box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(124,58,237,0.1);
+            border: 1px solid rgba(124,58,237,0.28);
+            border-radius: 14px; overflow: hidden;
+            min-width: 165px;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.55);
+        }
+        .plus-menu::before {
+            content: ''; position: absolute; top: -7px; right: 16px;
+            width: 0; height: 0;
+            border-left: 7px solid transparent;
+            border-right: 7px solid transparent;
+            border-bottom: 8px solid rgba(124,58,237,0.35);
         }
         .plus-menu-item {
-            display: flex; align-items: center; gap: 12px;
-            padding: 13px 18px;
-            cursor: pointer;
+            display: flex; align-items: center; gap: 11px;
+            padding: 12px 16px; cursor: pointer;
             transition: background 0.15s;
             border-bottom: 1px solid rgba(124,58,237,0.1);
         }
         .plus-menu-item:last-child { border-bottom: none; }
-        .plus-menu-item:active { background: rgba(124,58,237,0.2); }
-        .plus-menu-item svg { width: 18px; height: 18px; color: #C4B5FD; flex-shrink: 0; }
-        .plus-menu-item span { font-size: 0.85rem; color: rgba(255,255,255,0.88); font-weight: 500; }
-        .plus-menu::before {
-            content: '';
-            position: absolute; top: -7px; right: 18px;
-            width: 0; height: 0;
-            border-left: 7px solid transparent;
-            border-right: 7px solid transparent;
-            border-bottom: 8px solid rgba(124,58,237,0.4);
-        }
+        .plus-menu-item:active { background: rgba(124,58,237,0.18); }
+        .plus-menu-item svg { width: 17px; height: 17px; color: #C4B5FD; flex-shrink: 0; }
+        .plus-menu-item span { font-size: 0.83rem; color: rgba(255,255,255,0.86); font-weight: 500; }
 
-        /* ===== 底部导航适配 ===== */
+        /* 底部导航适配深色 */
         .bottom-nav {
-            background: rgba(13,6,32,0.9);
-            border-top: 1px solid rgba(124,58,237,0.2);
+            background: rgba(13,6,32,0.92) !important;
+            border-top: 1px solid rgba(124,58,237,0.18) !important;
             backdrop-filter: blur(20px);
         }
     </style>
 </head>
 <body>
 <div class="ambient-bg"></div>
-<!-- 星星粒子 -->
 <div class="stars" id="starsContainer"></div>
 
 <div class="container">
 
-    <!-- 顶部导航栏 -->
+    <!-- 顶部导航 -->
     <div class="im-navbar">
-        <div class="im-navbar-left"></div>
+        <div style="width:32px;"></div>
         <div class="im-navbar-title">消息</div>
         <div onclick="togglePlusMenu()">
             <div class="plus-btn">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-                    <line x1="12" y1="5" x2="12" y2="19"/>
-                    <line x1="5" y1="12" x2="19" y2="12"/>
+                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                 </svg>
             </div>
         </div>
@@ -361,14 +318,14 @@
         </div>
     </div>
 
-    <!-- 官方频道 -->
+    <!-- ===== 官方频道 ===== -->
     <div class="chat-section-title" id="section-official">官方频道</div>
     <div class="chat-list" id="list-official">
 
         <!-- 系统通知 -->
-        <div class="chat-item-v3 official-card" onclick="window.location.href='im-chat.html?room=system'">
-            <div class="h-avatar system">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round">
+        <div class="chat-item official" onclick="location.href='im-chat.html?room=system'">
+            <div class="h-avatar official-blue">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round">
                     <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
                     <path d="M13.73 21a2 2 0 01-3.46 0"/>
                 </svg>
@@ -379,21 +336,19 @@
             <div class="chat-body">
                 <div class="chat-row-top">
                     <div class="chat-name-wrap">
-                        <span class="chat-name-v3">系统通知</span>
-                        <span class="name-verified blue-v">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        </span>
+                        <span class="chat-name">系统通知</span>
+                        <span class="v-badge blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
                     </div>
-                    <span class="chat-time-v3">刚刚</span>
+                    <span class="chat-time">刚刚</span>
                 </div>
-                <div class="chat-preview-v3">质押收益已到账，今日收益 +12.5 U</div>
+                <div class="chat-preview">质押收益已到账，今日收益 +12.5 U</div>
             </div>
             <div class="unread-badge">3</div>
         </div>
 
         <!-- 海豚官方大厅 -->
-        <div class="chat-item-v3 official-card" onclick="window.location.href='im-chat.html?room=hall'">
-            <div class="h-avatar official">
+        <div class="chat-item official" onclick="location.href='im-chat.html?room=hall'">
+            <div class="h-avatar official-purple">
                 H
                 <div class="verified-badge">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
@@ -403,22 +358,20 @@
             <div class="chat-body">
                 <div class="chat-row-top">
                     <div class="chat-name-wrap">
-                        <span class="chat-name-v3">海豚官方大厅</span>
-                        <span class="name-verified">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        </span>
+                        <span class="chat-name">海豚官方大厅</span>
+                        <span class="v-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
                         <span class="member-tag">🟢 1.2k</span>
                     </div>
-                    <span class="chat-time-v3">刚刚</span>
+                    <span class="chat-time">刚刚</span>
                 </div>
-                <div class="chat-preview-v3">AI小豚：今晚 8 点交易赛准时开启！</div>
+                <div class="chat-preview">AI小豚：今晚 8 点交易赛准时开启！</div>
             </div>
             <div class="unread-badge">12</div>
         </div>
 
         <!-- AI 客服小豚 -->
-        <div class="chat-item-v3 official-card" onclick="window.location.href='im-chat.html?room=ai'">
-            <div class="h-avatar ai">
+        <div class="chat-item official" onclick="location.href='im-chat.html?room=ai'">
+            <div class="h-avatar official-red">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round">
                     <rect x="3" y="11" width="18" height="10" rx="2"/>
                     <path d="M9 11V7a3 3 0 016 0v4"/>
@@ -433,122 +386,120 @@
             <div class="chat-body">
                 <div class="chat-row-top">
                     <div class="chat-name-wrap">
-                        <span class="chat-name-v3">AI 客服小豚</span>
-                        <span class="name-verified">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        </span>
+                        <span class="chat-name">AI 客服小豚</span>
+                        <span class="v-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
                     </div>
-                    <span class="chat-time-v3">10:32</span>
+                    <span class="chat-time">10:32</span>
                 </div>
-                <div class="chat-preview-v3">有任何问题都可以问我～</div>
+                <div class="chat-preview">有任何问题都可以问我～</div>
             </div>
         </div>
 
     </div>
 
-    <!-- 社区群组 -->
+    <!-- ===== 社区群组 ===== -->
     <div class="chat-section-title" id="section-group">社区群组</div>
     <div class="chat-list" id="list-group">
 
-        <div class="chat-item-v3" onclick="window.location.href='im-chat.html?room=stake'">
-            <div class="h-avatar staked-gold">H</div>
+        <div class="chat-item" onclick="location.href='im-chat.html?room=stake'">
+            <div class="h-avatar group-gold">H</div>
             <div class="chat-body">
                 <div class="chat-row-top">
                     <div class="chat-name-wrap">
-                        <span class="chat-name-v3">质押高收益交流群</span>
+                        <span class="chat-name">质押高收益交流群</span>
                         <span class="member-tag">🟡 386</span>
                     </div>
-                    <span class="chat-time-v3">昨天</span>
+                    <span class="chat-time">昨天</span>
                 </div>
-                <div class="chat-preview-v3">海豚001：阶梯利率怎么算最划算？</div>
+                <div class="chat-preview">海豚001：阶梯利率怎么算最划算？</div>
             </div>
         </div>
 
-        <div class="chat-item-v3" onclick="window.location.href='im-chat.html?room=contest'">
-            <div class="h-avatar staked" style="background:linear-gradient(135deg,#1E3A5F 0%,#1D4ED8 60%,#60A5FA 100%);box-shadow:0 4px 16px rgba(29,78,216,0.4);">H</div>
+        <div class="chat-item" onclick="location.href='im-chat.html?room=contest'">
+            <div class="h-avatar group-blue">H</div>
             <div class="chat-body">
                 <div class="chat-row-top">
                     <div class="chat-name-wrap">
-                        <span class="chat-name-v3">交易赛 S1 讨论群</span>
+                        <span class="chat-name">交易赛 S1 讨论群</span>
                         <span class="member-tag">🔵 521</span>
                     </div>
-                    <span class="chat-time-v3">昨天</span>
+                    <span class="chat-time">昨天</span>
                 </div>
-                <div class="chat-preview-v3">海豚088：我现在排第 7 名，冲了！</div>
+                <div class="chat-preview">海豚088：我现在排第 7 名，冲了！</div>
             </div>
             <div class="unread-badge">5</div>
         </div>
 
-        <div class="chat-item-v3" onclick="window.location.href='im-chat.html?room=tech'">
-            <div class="h-avatar staked-green">H</div>
+        <div class="chat-item" onclick="location.href='im-chat.html?room=tech'">
+            <div class="h-avatar group-green">H</div>
             <div class="chat-body">
                 <div class="chat-row-top">
                     <div class="chat-name-wrap">
-                        <span class="chat-name-v3">X Layer 技术交流</span>
+                        <span class="chat-name">X Layer 技术交流</span>
                         <span class="member-tag">🟢 214</span>
                     </div>
-                    <span class="chat-time-v3">周二</span>
+                    <span class="chat-time">周二</span>
                 </div>
-                <div class="chat-preview-v3">海豚233：Gas 费又降了，链上活跃度高</div>
+                <div class="chat-preview">海豚233：Gas 费又降了，链上活跃度高</div>
             </div>
         </div>
 
     </div>
 
-    <!-- 私信 -->
+    <!-- ===== 私信 ===== -->
     <div class="chat-section-title" id="section-dm">私信</div>
     <div class="chat-list" id="list-dm">
 
-        <div class="chat-item-v3" onclick="window.location.href='im-chat.html?room=user1'">
-            <div class="h-avatar staked">H<div class="online-dot"></div></div>
+        <div class="chat-item" onclick="location.href='im-chat.html?room=user1'">
+            <div class="h-avatar user-staked">H<div class="online-dot"></div></div>
             <div class="chat-body">
                 <div class="chat-row-top">
-                    <span class="chat-name-v3">海豚 · 0x3F2a</span>
-                    <span class="chat-time-v3">09:15</span>
+                    <span class="chat-name">海豚 · 0x3F2a</span>
+                    <span class="chat-time">09:15</span>
                 </div>
-                <div class="chat-preview-v3">你好，请问邀请码怎么分享？</div>
+                <div class="chat-preview">你好，请问邀请码怎么分享？</div>
             </div>
         </div>
 
-        <div class="chat-item-v3" onclick="window.location.href='im-chat.html?room=user2'">
-            <div class="h-avatar staked-gold">H</div>
+        <div class="chat-item" onclick="location.href='im-chat.html?room=user2'">
+            <div class="h-avatar user-staked-gold">H</div>
             <div class="chat-body">
                 <div class="chat-row-top">
-                    <span class="chat-name-v3">海豚 · 0xA8c1</span>
-                    <span class="chat-time-v3">昨天</span>
+                    <span class="chat-name">海豚 · 0xA8c1</span>
+                    <span class="chat-time">昨天</span>
                 </div>
-                <div class="chat-preview-v3">收益已到账，感谢！</div>
+                <div class="chat-preview">收益已到账，感谢！</div>
             </div>
         </div>
 
-        <div class="chat-item-v3" onclick="window.location.href='im-chat.html?room=user3'">
-            <div class="h-avatar unstaked">H</div>
+        <div class="chat-item" onclick="location.href='im-chat.html?room=user3'">
+            <div class="h-avatar user-unstaked">H</div>
             <div class="chat-body">
                 <div class="chat-row-top">
-                    <span class="chat-name-v3">海豚 · 0xB72e</span>
-                    <span class="chat-time-v3">周一</span>
+                    <span class="chat-name">海豚 · 0xB72e</span>
+                    <span class="chat-time">周一</span>
                 </div>
-                <div class="chat-preview-v3">我还没有质押，怎么开始？</div>
+                <div class="chat-preview">我还没有质押，怎么开始？</div>
             </div>
         </div>
 
-        <div class="chat-item-v3" onclick="window.location.href='im-chat.html?room=user4'">
-            <div class="h-avatar unstaked">H</div>
+        <div class="chat-item" onclick="location.href='im-chat.html?room=user4'">
+            <div class="h-avatar user-unstaked">H</div>
             <div class="chat-body">
                 <div class="chat-row-top">
-                    <span class="chat-name-v3">海豚 · 0xD04f</span>
-                    <span class="chat-time-v3">周日</span>
+                    <span class="chat-name">海豚 · 0xD04f</span>
+                    <span class="chat-time">周日</span>
                 </div>
-                <div class="chat-preview-v3">[图片]</div>
+                <div class="chat-preview">[图片]</div>
             </div>
         </div>
 
     </div>
 
-    <div style="height: 24px;"></div>
+    <div style="height:20px;"></div>
 </div>
 
-<!-- + 号菜单弹层 -->
+<!-- + 号菜单 -->
 <div class="plus-menu-overlay" id="plusMenuOverlay" onclick="closePlusMenu()">
     <div class="plus-menu" onclick="event.stopPropagation()">
         <div class="plus-menu-item" onclick="closePlusMenu()">
@@ -573,7 +524,7 @@
             </svg>
             <span>扫一扫</span>
         </div>
-        <div class="plus-menu-item" onclick="window.location.href='profile.html'; closePlusMenu()">
+        <div class="plus-menu-item" onclick="location.href='profile.html'; closePlusMenu()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
                 <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
@@ -584,35 +535,21 @@
 </div>
 
 <div class="bottom-nav" id="bottomNav"></div>
-
 <script src="common.js"></script>
 <script src="nav.js"></script>
 <script>
-// ===== 生成星星粒子 =====
-(function createStars() {
-    const container = document.getElementById('starsContainer');
-    const count = 55;
-    for (let i = 0; i < count; i++) {
-        const star = document.createElement('div');
-        star.className = 'star';
-        const size = Math.random() * 2 + 0.8;
-        const x = Math.random() * 100;
-        const y = Math.random() * 100;
-        const delay = Math.random() * 4;
-        const duration = 2.5 + Math.random() * 3;
-        const minOp = 0.1 + Math.random() * 0.15;
-        const maxOp = 0.5 + Math.random() * 0.4;
-        star.style.cssText = `
-            width:${size}px; height:${size}px;
-            left:${x}%; top:${y}%;
-            --d:${duration}s; --delay:${delay}s;
-            --min-op:${minOp}; --max-op:${maxOp};
-        `;
-        container.appendChild(star);
+// 星星粒子
+(function() {
+    const c = document.getElementById('starsContainer');
+    for (let i = 0; i < 55; i++) {
+        const s = document.createElement('div');
+        s.className = 'star';
+        const sz = Math.random() * 1.8 + 0.7;
+        s.style.cssText = `width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${2.5+Math.random()*3}s;--delay:${Math.random()*4}s;--min-op:${0.08+Math.random()*0.12};--max-op:${0.45+Math.random()*0.4};`;
+        c.appendChild(s);
     }
 })();
 
-// ===== + 号菜单 =====
 function togglePlusMenu() {
     document.getElementById('plusMenuOverlay').classList.toggle('show');
 }
@@ -620,28 +557,21 @@ function closePlusMenu() {
     document.getElementById('plusMenuOverlay').classList.remove('show');
 }
 
-// ===== 搜索过滤 =====
-function filterChats(keyword) {
-    const kw = keyword.trim().toLowerCase();
-    const sections = [
-        { list: 'list-official', title: 'section-official' },
-        { list: 'list-group',    title: 'section-group' },
-        { list: 'list-dm',       title: 'section-dm' },
-    ];
-    sections.forEach(({ list, title }) => {
-        const listEl = document.getElementById(list);
-        const titleEl = document.getElementById(title);
-        if (!listEl) return;
-        const items = listEl.querySelectorAll('.chat-item-v3');
-        let anyVisible = false;
-        items.forEach(item => {
-            const name = item.querySelector('.chat-name-v3')?.textContent.toLowerCase() || '';
-            const preview = item.querySelector('.chat-preview-v3')?.textContent.toLowerCase() || '';
-            const show = !kw || name.includes(kw) || preview.includes(kw);
-            item.style.display = show ? 'flex' : 'none';
-            if (show) anyVisible = true;
+function filterChats(kw) {
+    kw = kw.trim().toLowerCase();
+    [['list-official','section-official'],['list-group','section-group'],['list-dm','section-dm']].forEach(([lid,tid]) => {
+        const list = document.getElementById(lid);
+        const title = document.getElementById(tid);
+        if (!list) return;
+        let any = false;
+        list.querySelectorAll('.chat-item').forEach(item => {
+            const match = !kw
+                || (item.querySelector('.chat-name')?.textContent.toLowerCase().includes(kw))
+                || (item.querySelector('.chat-preview')?.textContent.toLowerCase().includes(kw));
+            item.style.display = match ? 'flex' : 'none';
+            if (match) any = true;
         });
-        if (titleEl) titleEl.style.display = anyVisible ? 'block' : 'none';
+        if (title) title.style.display = any ? 'block' : 'none';
     });
 }
 </script>
