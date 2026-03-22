@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>海豚社区 - 交易</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* 顶部 */
+        .trade-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 0 16px;
+        }
+        .back-btn {
+            width: 40px; height: 40px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.9);
+            box-shadow: 0 2px 8px rgba(45,27,105,0.08);
+        }
+        .back-btn svg { width: 20px; height: 20px; stroke: #4B5563; }
+        .trade-pair-selector {
+            display: flex; align-items: center; gap: 8px;
+            cursor: pointer;
+        }
+        .trade-pair-icon {
+            width: 32px; height: 32px;
+            background: linear-gradient(135deg, #2D1B69, #7C3AED);
+            border-radius: 11px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem; font-weight: 900; color: white;
+            font-family: 'SF Pro Display','Inter',system-ui,sans-serif;
+        }
+        .trade-pair-name { font-size: 1.05rem; font-weight: 800; color: #1C1C28; }
+        .trade-pair-arrow { font-size: 0.7rem; color: #94A3B8; }
+        .trade-header-right { display: flex; gap: 8px; }
+        .icon-btn {
+            width: 38px; height: 38px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 13px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.9);
+            box-shadow: 0 2px 8px rgba(45,27,105,0.06);
+        }
+        .icon-btn svg { width: 17px; height: 17px; stroke: #4B5563; }
+
+        /* 价格概览 */
+        .price-overview {
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 16px 18px;
+            margin-bottom: 14px;
+            box-shadow: var(--card-shadow);
+        }
+        .price-overview-top {
+            display: flex; align-items: flex-end; gap: 12px;
+            margin-bottom: 12px;
+        }
+        .price-big {
+            font-size: 2rem; font-weight: 800;
+            color: #1C1C28; letter-spacing: -1px;
+            line-height: 1;
+        }
+        .price-big.up { color: #10B981; }
+        .price-big.down { color: #EF4444; }
+        .price-change-pill {
+            padding: 4px 10px; border-radius: 8px;
+            font-size: 0.78rem; font-weight: 700;
+            margin-bottom: 2px;
+        }
+        .price-change-pill.up { background: rgba(16,185,129,0.12); color: #10B981; }
+        .price-change-pill.down { background: rgba(239,68,68,0.12); color: #EF4444; }
+        .price-stats-row {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 0;
+        }
+        .price-stat { text-align: center; }
+        .price-stat:not(:last-child) { border-right: 1px solid rgba(0,0,0,0.06); }
+        .price-stat-label { font-size: 0.58rem; font-weight: 600; color: #94A3B8; margin-bottom: 3px; }
+        .price-stat-value { font-size: 0.75rem; font-weight: 700; color: #1C1C28; }
+        .price-stat-value.up { color: #10B981; }
+        .price-stat-value.down { color: #EF4444; }
+
+        /* K 线图 */
+        .kline-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 16px;
+            margin-bottom: 14px;
+            box-shadow: var(--card-shadow);
+        }
+        .kline-period-row {
+            display: flex; gap: 4px; margin-bottom: 12px;
+        }
+        .period-btn {
+            padding: 5px 10px; border-radius: 8px;
+            font-size: 0.7rem; font-weight: 700;
+            color: #94A3B8; cursor: pointer;
+            transition: all 0.15s;
+        }
+        .period-btn.active {
+            background: linear-gradient(135deg, #7C3AED, #A855F7);
+            color: white;
+        }
+        .kline-canvas-wrap { position: relative; height: 140px; }
+        .kline-canvas-wrap canvas { width: 100%; height: 140px; display: block; }
+
+        /* 主体：订单簿 + 交易表单 */
+        .trade-body {
+            display: grid; grid-template-columns: 1fr 1.6fr;
+            gap: 10px; margin-bottom: 14px;
+        }
+
+        /* 订单簿 */
+        .orderbook-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 14px 12px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+        }
+        .ob-title { font-size: 0.7rem; font-weight: 700; color: #94A3B8; margin-bottom: 10px; text-align: center; }
+        .ob-header {
+            display: flex; justify-content: space-between;
+            font-size: 0.58rem; font-weight: 700;
+            color: #CBD5E1; margin-bottom: 6px;
+            padding: 0 2px;
+        }
+        .ob-row {
+            display: flex; align-items: center;
+            justify-content: space-between;
+            padding: 3px 2px;
+            position: relative;
+            font-size: 0.65rem; font-weight: 600;
+            margin-bottom: 2px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .ob-bg {
+            position: absolute; top: 0; bottom: 0; right: 0;
+            border-radius: 4px;
+            opacity: 0.12;
+        }
+        .ob-row.ask .ob-bg { background: #EF4444; }
+        .ob-row.bid .ob-bg { background: #10B981; }
+        .ob-price { position: relative; z-index: 1; font-weight: 700; }
+        .ob-price.ask { color: #EF4444; }
+        .ob-price.bid { color: #10B981; }
+        .ob-qty { position: relative; z-index: 1; color: #4B5563; }
+        .ob-mid {
+            text-align: center;
+            font-size: 0.78rem; font-weight: 800;
+            color: #1C1C28;
+            padding: 6px 0;
+            border-top: 1px solid rgba(0,0,0,0.05);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            margin: 4px 0;
+        }
+
+        /* 交易表单 */
+        .trade-form-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 14px;
+            box-shadow: var(--card-shadow);
+        }
+        .trade-form-tabs {
+            display: flex; gap: 6px; margin-bottom: 14px;
+        }
+        .trade-form-tab {
+            flex: 1; padding: 8px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 0.78rem; font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1.5px solid transparent;
+        }
+        .trade-form-tab.buy.active {
+            background: linear-gradient(135deg, #10B981, #34D399);
+            color: white;
+            box-shadow: 0 4px 12px rgba(16,185,129,0.3);
+        }
+        .trade-form-tab.sell.active {
+            background: linear-gradient(135deg, #EF4444, #F87171);
+            color: white;
+            box-shadow: 0 4px 12px rgba(239,68,68,0.3);
+        }
+        .trade-form-tab:not(.active) {
+            background: rgba(255,255,255,0.6);
+            color: #94A3B8;
+            border-color: rgba(255,255,255,0.8);
+        }
+        .trade-input-group { margin-bottom: 10px; }
+        .trade-input-label {
+            font-size: 0.62rem; font-weight: 700;
+            color: #94A3B8; margin-bottom: 5px;
+        }
+        .trade-input-row {
+            display: flex; align-items: center;
+            background: rgba(255,255,255,0.75);
+            border-radius: 14px;
+            padding: 10px 12px;
+            border: 1.5px solid rgba(255,255,255,0.9);
+            gap: 8px;
+            transition: border-color 0.2s;
+        }
+        .trade-input-row:focus-within { border-color: #7C3AED; }
+        .trade-input-row input {
+            flex: 1; min-width: 0;
+            background: transparent; border: none; outline: none;
+            font-size: 0.9rem; font-weight: 700; color: #1C1C28;
+        }
+        .trade-input-row input::placeholder { color: #CBD5E1; }
+        .trade-input-unit { font-size: 0.7rem; font-weight: 700; color: #94A3B8; flex-shrink: 0; }
+        .trade-pct-row {
+            display: flex; gap: 4px; margin-bottom: 10px;
+        }
+        .trade-pct-btn {
+            flex: 1;
+            background: rgba(255,255,255,0.6);
+            border: 1px solid rgba(255,255,255,0.8);
+            border-radius: 8px;
+            padding: 5px;
+            text-align: center;
+            font-size: 0.62rem; font-weight: 700;
+            color: #94A3B8; cursor: pointer;
+            transition: all 0.15s;
+        }
+        .trade-pct-btn:active { background: rgba(124,58,237,0.1); color: #7C3AED; }
+        .trade-balance-row {
+            display: flex; justify-content: space-between;
+            font-size: 0.62rem; font-weight: 600;
+            color: #94A3B8; margin-bottom: 10px;
+        }
+        .trade-submit-btn {
+            width: 100%;
+            border: none;
+            border-radius: 14px;
+            padding: 12px;
+            font-size: 0.85rem; font-weight: 800;
+            color: white; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .trade-submit-btn.buy {
+            background: linear-gradient(135deg, #10B981, #34D399);
+            box-shadow: 0 6px 18px rgba(16,185,129,0.3);
+        }
+        .trade-submit-btn.sell {
+            background: linear-gradient(135deg, #EF4444, #F87171);
+            box-shadow: 0 6px 18px rgba(239,68,68,0.3);
+        }
+        .trade-submit-btn:active { transform: scale(0.98); box-shadow: none; }
+
+        /* 最近成交 */
+        .recent-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 16px;
+            margin-bottom: 14px;
+            box-shadow: var(--card-shadow);
+        }
+        .recent-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .recent-title { font-size: 0.85rem; font-weight: 800; color: #1C1C28; }
+        .recent-more { font-size: 0.72rem; font-weight: 700; color: #7C3AED; }
+        .recent-cols {
+            display: grid; grid-template-columns: 1fr 1fr 1fr;
+            font-size: 0.62rem; font-weight: 700;
+            color: #94A3B8; margin-bottom: 8px;
+            padding: 0 4px;
+        }
+        .recent-cols span:last-child { text-align: right; }
+        .recent-row {
+            display: grid; grid-template-columns: 1fr 1fr 1fr;
+            font-size: 0.72rem; font-weight: 600;
+            padding: 6px 4px;
+            border-radius: 8px;
+            transition: background 0.15s;
+        }
+        .recent-row:hover { background: rgba(255,255,255,0.5); }
+        .recent-row span:last-child { text-align: right; color: #94A3B8; }
+        .recent-row .up { color: #10B981; font-weight: 700; }
+        .recent-row .down { color: #EF4444; font-weight: 700; }
+
+        /* Toast */
+        .toast {
+            position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            background: rgba(30,20,60,0.92);
+            color: white; padding: 14px 24px;
+            border-radius: 20px;
+            font-size: 0.88rem; font-weight: 700;
+            z-index: 9999; opacity: 0;
+            transition: all 0.25s; pointer-events: none;
+            backdrop-filter: blur(12px);
+        }
+        .toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    </style>
+</head>
+<body>
+<div class="ambient-bg"></div>
+<div class="container">
+
+    <!-- 顶部 -->
+    <div class="trade-header">
+        <div class="back-btn" onclick="history.back()">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"/>
+            </svg>
+        </div>
+        <div class="trade-pair-selector" onclick="showToast('切换交易对')">
+            <div class="trade-pair-icon">H</div>
+            <span class="trade-pair-name">H / USDT</span>
+            <span class="trade-pair-arrow">▾</span>
+        </div>
+        <div class="trade-header-right">
+            <div class="icon-btn" onclick="window.location.href='market.html'">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                    <polyline points="17 6 23 6 23 12"/>
+                </svg>
+            </div>
+            <div class="icon-btn" onclick="showToast('更多功能')">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- 价格概览 -->
+    <div class="price-overview">
+        <div class="price-overview-top">
+            <div class="price-big up" id="tradePrice">--</div>
+            <div class="price-change-pill up" id="tradePriceChange">-- 24h</div>
+        </div>
+        <div class="price-stats-row">
+            <div class="price-stat">
+                <div class="price-stat-label">24H 高</div>
+                <div class="price-stat-value up" id="tradeHigh">--</div>
+            </div>
+            <div class="price-stat">
+                <div class="price-stat-label">24H 低</div>
+                <div class="price-stat-value down" id="tradeLow">--</div>
+            </div>
+            <div class="price-stat">
+                <div class="price-stat-label">24H 量</div>
+                <div class="price-stat-value" id="tradeVol">--</div>
+            </div>
+            <div class="price-stat">
+                <div class="price-stat-label">市值</div>
+                <div class="price-stat-value" id="tradeMktCap">--</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- K 线图 -->
+    <div class="kline-card">
+        <div class="kline-period-row">
+            <div class="period-btn" onclick="setPeriod('1m',this)">1m</div>
+            <div class="period-btn" onclick="setPeriod('5m',this)">5m</div>
+            <div class="period-btn" onclick="setPeriod('15m',this)">15m</div>
+            <div class="period-btn" onclick="setPeriod('1h',this)">1H</div>
+            <div class="period-btn active" onclick="setPeriod('4h',this)">4H</div>
+            <div class="period-btn" onclick="setPeriod('1d',this)">1D</div>
+            <div class="period-btn" onclick="setPeriod('1w',this)">1W</div>
+        </div>
+        <div class="kline-canvas-wrap">
+            <canvas id="tradeKline" width="600" height="140"></canvas>
+        </div>
+    </div>
+
+    <!-- 订单簿 + 交易表单 -->
+    <div class="trade-body">
+        <!-- 订单簿 -->
+        <div class="orderbook-card">
+            <div class="ob-title">订单簿</div>
+            <div class="ob-header">
+                <span>价格</span>
+                <span>数量</span>
+            </div>
+            <!-- 卖单（asks）-->
+            <div id="asksList"></div>
+            <!-- 中间价 -->
+            <div class="ob-mid" id="obMidPrice">--</div>
+            <!-- 买单（bids）-->
+            <div id="bidsList"></div>
+        </div>
+
+        <!-- 交易表单 -->
+        <div class="trade-form-card">
+            <div class="trade-form-tabs">
+                <div class="trade-form-tab buy active" id="tabBuy" onclick="switchTradeTab('buy')">买入</div>
+                <div class="trade-form-tab sell" id="tabSell" onclick="switchTradeTab('sell')">卖出</div>
+            </div>
+
+            <div class="trade-balance-row">
+                <span>可用</span>
+                <span id="tradeBalance">2,350 USDT</span>
+            </div>
+
+            <div class="trade-input-group">
+                <div class="trade-input-label">价格 (USDT)</div>
+                <div class="trade-input-row">
+                    <input type="number" id="tradePrice2" placeholder="市价" oninput="calcTradeTotal()">
+                    <span class="trade-input-unit">USDT</span>
+                </div>
+            </div>
+
+            <div class="trade-input-group">
+                <div class="trade-input-label">数量 (H)</div>
+                <div class="trade-input-row">
+                    <input type="number" id="tradeQty" placeholder="0.00" oninput="calcTradeTotal()">
+                    <span class="trade-input-unit">H</span>
+                </div>
+            </div>
+
+            <div class="trade-pct-row">
+                <div class="trade-pct-btn" onclick="setTradePct(25)">25%</div>
+                <div class="trade-pct-btn" onclick="setTradePct(50)">50%</div>
+                <div class="trade-pct-btn" onclick="setTradePct(75)">75%</div>
+                <div class="trade-pct-btn" onclick="setTradePct(100)">全仓</div>
+            </div>
+
+            <div class="trade-input-group">
+                <div class="trade-input-label">交易额 (USDT)</div>
+                <div class="trade-input-row">
+                    <input type="number" id="tradeTotal" placeholder="0.00" readonly style="color:#94A3B8;">
+                    <span class="trade-input-unit">USDT</span>
+                </div>
+            </div>
+
+            <button class="trade-submit-btn buy" id="tradeSubmitBtn" onclick="submitTrade()">买入 H</button>
+        </div>
+    </div>
+
+    <!-- 最近成交 -->
+    <div class="recent-card">
+        <div class="recent-header">
+            <div class="recent-title">最近成交</div>
+            <div class="recent-more" onclick="showToast('查看全部成交')">全部 →</div>
+        </div>
+        <div class="recent-cols">
+            <span>价格 (USDT)</span>
+            <span style="text-align:center;">数量 (H)</span>
+            <span>时间</span>
+        </div>
+        <div id="recentTradesList"></div>
+    </div>
+
+</div>
+
+<div class="bottom-nav" id="bottomNav"></div>
+<div class="toast" id="toast"></div>
+
+<script src="common.js"></script>
+<script src="nav.js"></script>
+<script>
+// ===== 数据模拟 =====
+let currentPeriod = '4h';
+let currentTab = 'buy';
+let basePrice = 0.000042;
+
+// 生成模拟 K 线数据
+function genKlineData(n, seed) {
+    const data = [];
+    let price = basePrice || 0.000042;
+    for (let i = 0; i < n; i++) {
+        const s = (seed * (i + 1) * 2654435761) >>> 0;
+        const change = ((s % 200) - 100) / 100000;
+        const open = price;
+        const close = Math.max(0.000001, price + change);
+        const high = Math.max(open, close) * (1 + (s % 50) / 10000);
+        const low  = Math.min(open, close) * (1 - (s % 40) / 10000);
+        data.push({ open, close, high, low, vol: (s % 1000) + 200 });
+        price = close;
+    }
+    return data;
+}
+
+// 绘制 K 线
+function drawKline(period) {
+    const canvas = document.getElementById('tradeKline');
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    const seed = period.split('').reduce((a, c) => a + c.charCodeAt(0), 0) * 137;
+    const data = genKlineData(40, seed);
+    const prices = data.flatMap(d => [d.high, d.low]);
+    const minP = Math.min(...prices), maxP = Math.max(...prices);
+    const range = maxP - minP || 0.000001;
+    const pad = { t: 10, b: 20, l: 4, r: 4 };
+    const barW = Math.floor((W - pad.l - pad.r) / data.length);
+
+    // 网格线
+    ctx.strokeStyle = 'rgba(0,0,0,0.05)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+        const y = pad.t + (H - pad.t - pad.b) * i / 4;
+        ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
+    }
+
+    // 面积图（收盘价）
+    const closePoints = data.map((d, i) => ({
+        x: pad.l + i * barW + barW / 2,
+        y: pad.t + (H - pad.t - pad.b) * (1 - (d.close - minP) / range)
+    }));
+    const grad = ctx.createLinearGradient(0, pad.t, 0, H - pad.b);
+    const isUp = data[data.length - 1].close >= data[0].open;
+    grad.addColorStop(0, isUp ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)');
+    grad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.beginPath();
+    ctx.moveTo(closePoints[0].x, H - pad.b);
+    closePoints.forEach(p => ctx.lineTo(p.x, p.y));
+    ctx.lineTo(closePoints[closePoints.length - 1].x, H - pad.b);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // 折线
+    ctx.beginPath();
+    ctx.strokeStyle = isUp ? '#10B981' : '#EF4444';
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    closePoints.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+    ctx.stroke();
+
+    // 蜡烛
+    data.forEach((d, i) => {
+        const x = pad.l + i * barW + barW / 2;
+        const yH = pad.t + (H - pad.t - pad.b) * (1 - (d.high - minP) / range);
+        const yL = pad.t + (H - pad.t - pad.b) * (1 - (d.low - minP) / range);
+        const yO = pad.t + (H - pad.t - pad.b) * (1 - (d.open - minP) / range);
+        const yC = pad.t + (H - pad.t - pad.b) * (1 - (d.close - minP) / range);
+        const up = d.close >= d.open;
+        ctx.strokeStyle = up ? '#10B981' : '#EF4444';
+        ctx.fillStyle = up ? '#10B981' : '#EF4444';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(x, yH); ctx.lineTo(x, yL); ctx.stroke();
+        const bW = Math.max(2, barW - 3);
+        ctx.fillRect(x - bW / 2, Math.min(yO, yC), bW, Math.max(1, Math.abs(yO - yC)));
+    });
+}
+
+// 生成订单簿
+function renderOrderbook(midPrice) {
+    const asks = [], bids = [];
+    for (let i = 0; i < 6; i++) {
+        const p = midPrice * (1 + (i + 1) * 0.002);
+        const q = (Math.random() * 50000 + 5000).toFixed(0);
+        asks.push({ price: p, qty: q, pct: Math.random() * 80 + 10 });
+    }
+    for (let i = 0; i < 6; i++) {
+        const p = midPrice * (1 - (i + 1) * 0.002);
+        const q = (Math.random() * 50000 + 5000).toFixed(0);
+        bids.push({ price: p, qty: q, pct: Math.random() * 80 + 10 });
+    }
+
+    const fmt = p => p < 0.001 ? p.toFixed(8) : p.toFixed(6);
+    const qFmt = q => parseInt(q) >= 10000 ? (parseInt(q) / 10000).toFixed(1) + 'w' : q;
+
+    document.getElementById('asksList').innerHTML = [...asks].reverse().map(a =>
+        `<div class="ob-row ask">
+            <div class="ob-bg" style="width:${a.pct}%"></div>
+            <span class="ob-price ask">${fmt(a.price)}</span>
+            <span class="ob-qty">${qFmt(a.qty)}</span>
+        </div>`
+    ).join('');
+
+    document.getElementById('obMidPrice').textContent = fmt(midPrice);
+
+    document.getElementById('bidsList').innerHTML = bids.map(b =>
+        `<div class="ob-row bid">
+            <div class="ob-bg" style="width:${b.pct}%"></div>
+            <span class="ob-price bid">${fmt(b.price)}</span>
+            <span class="ob-qty">${qFmt(b.qty)}</span>
+        </div>`
+    ).join('');
+}
+
+// 生成最近成交
+function renderRecentTrades(price) {
+    const trades = [];
+    for (let i = 0; i < 12; i++) {
+        const up = Math.random() > 0.45;
+        const p = price * (1 + (Math.random() - 0.5) * 0.01);
+        const q = (Math.random() * 10000 + 100).toFixed(0);
+        const now = new Date();
+        now.setSeconds(now.getSeconds() - i * 8);
+        const time = now.toTimeString().slice(0, 8);
+        trades.push({ price: p, qty: q, up, time });
+    }
+    const fmt = p => p < 0.001 ? p.toFixed(8) : p.toFixed(6);
+    document.getElementById('recentTradesList').innerHTML = trades.map(t =>
+        `<div class="recent-row">
+            <span class="${t.up ? 'up' : 'down'}">${fmt(t.price)}</span>
+            <span style="text-align:center;color:#4B5563;">${parseInt(t.qty).toLocaleString()}</span>
+            <span>${t.time}</span>
+        </div>`
+    ).join('');
+}
+
+// 初始化价格数据
+function initPriceData(price) {
+    const fmt = p => p < 0.001 ? '$' + p.toFixed(8) : '$' + p.toFixed(6);
+    document.getElementById('tradePrice').textContent = fmt(price);
+    document.getElementById('tradePriceChange').textContent = '+2.34% 24h';
+    document.getElementById('tradeHigh').textContent = fmt(price * 1.05);
+    document.getElementById('tradeLow').textContent = fmt(price * 0.96);
+    document.getElementById('tradeVol').textContent = '8.42M H';
+    document.getElementById('tradeMktCap').textContent = '$2.84M';
+    renderOrderbook(price);
+    renderRecentTrades(price);
+}
+
+function setPeriod(p, el) {
+    currentPeriod = p;
+    document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    drawKline(p);
+}
+
+function switchTradeTab(tab) {
+    currentTab = tab;
+    document.getElementById('tabBuy').className = 'trade-form-tab buy' + (tab === 'buy' ? ' active' : '');
+    document.getElementById('tabSell').className = 'trade-form-tab sell' + (tab === 'sell' ? ' active' : '');
+    const btn = document.getElementById('tradeSubmitBtn');
+    btn.className = 'trade-submit-btn ' + tab;
+    btn.textContent = tab === 'buy' ? '买入 H' : '卖出 H';
+    document.getElementById('tradeBalance').textContent = tab === 'buy' ? '2,350 USDT' : '125,000 H';
+}
+
+function calcTradeTotal() {
+    const price = parseFloat(document.getElementById('tradePrice2').value) || 0;
+    const qty = parseFloat(document.getElementById('tradeQty').value) || 0;
+    document.getElementById('tradeTotal').value = price && qty ? (price * qty).toFixed(4) : '';
+}
+
+function setTradePct(pct) {
+    const balance = currentTab === 'buy' ? 2350 : 125000;
+    const price = parseFloat(document.getElementById('tradePrice2').value) || basePrice;
+    if (currentTab === 'buy') {
+        const usdt = balance * pct / 100;
+        document.getElementById('tradeQty').value = (usdt / price).toFixed(0);
+        document.getElementById('tradeTotal').value = usdt.toFixed(2);
+    } else {
+        document.getElementById('tradeQty').value = (balance * pct / 100).toFixed(0);
+        calcTradeTotal();
+    }
+}
+
+function submitTrade() {
+    const qty = parseFloat(document.getElementById('tradeQty').value) || 0;
+    if (!qty) { showToast('⚠️ 请输入交易数量'); return; }
+    showToast(currentTab === 'buy' ? '✅ 买入订单已提交' : '✅ 卖出订单已提交');
+    document.getElementById('tradeQty').value = '';
+    document.getElementById('tradeTotal').value = '';
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// 初始化
+drawKline('4h');
+initPriceData(0.000042);
+
+// 尝试获取真实价格
+(async () => {
+    try {
+        const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=okb&vs_currencies=usd', { signal: AbortSignal.timeout(5000) });
+        if (res.ok) {
+            // 使用真实 OKB 价格作为参考
+        }
+    } catch(e) {}
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>海豚社区 - 提币</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .page-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 0 20px;
+        }
+        .back-btn {
+            width: 40px; height: 40px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.9);
+            box-shadow: 0 2px 8px rgba(45,27,105,0.08);
+        }
+        .back-btn svg { width: 20px; height: 20px; stroke: #4B5563; }
+        .page-title { font-size: 1.1rem; font-weight: 800; color: #1C1C28; }
+        .history-btn {
+            width: 40px; height: 40px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.9);
+            box-shadow: 0 2px 8px rgba(45,27,105,0.08);
+        }
+        .history-btn svg { width: 18px; height: 18px; stroke: #4B5563; }
+
+        /* 资产卡 */
+        .asset-hero {
+            background: linear-gradient(145deg, #1A0A4A 0%, #2D1B69 50%, #4C1D95 100%);
+            border-radius: 28px;
+            padding: 22px;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 16px 48px rgba(45,27,105,0.3);
+        }
+        .asset-hero::before {
+            content: ''; position: absolute;
+            top: -40px; right: -40px;
+            width: 140px; height: 140px;
+            background: radial-gradient(circle, rgba(167,139,250,0.25) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        .asset-hero-top {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 14px; position: relative; z-index: 1;
+        }
+        .asset-token-pill {
+            display: flex; align-items: center; gap: 8px;
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 40px;
+            padding: 7px 14px 7px 8px;
+            cursor: pointer;
+        }
+        .asset-token-icon {
+            width: 26px; height: 26px;
+            background: linear-gradient(135deg, #A78BFA, #7C3AED);
+            border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem; font-weight: 900; color: white;
+            font-family: 'SF Pro Display','Inter',system-ui,sans-serif;
+        }
+        .asset-token-name { font-size: 0.82rem; font-weight: 700; color: rgba(255,255,255,0.9); }
+        .asset-token-arrow { font-size: 0.65rem; color: rgba(255,255,255,0.5); margin-left: 2px; }
+        .asset-balance-label {
+            font-size: 0.68rem; font-weight: 600;
+            color: rgba(255,255,255,0.5);
+            letter-spacing: 0.5px; position: relative; z-index: 1;
+            margin-bottom: 4px;
+        }
+        .asset-balance-value {
+            font-size: 2.2rem; font-weight: 800;
+            color: white; letter-spacing: -1px;
+            position: relative; z-index: 1;
+            line-height: 1.1;
+        }
+        .asset-balance-usd {
+            font-size: 0.78rem; font-weight: 600;
+            color: rgba(255,255,255,0.5);
+            margin-top: 4px; position: relative; z-index: 1;
+        }
+
+        /* 表单卡 */
+        .form-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: 28px;
+            padding: 20px;
+            margin-bottom: 14px;
+            box-shadow: var(--card-shadow);
+        }
+        .form-label {
+            font-size: 0.7rem; font-weight: 700;
+            color: #94A3B8; letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        /* 地址输入 */
+        .address-input-wrap {
+            background: rgba(255,255,255,0.75);
+            border-radius: 18px;
+            padding: 14px;
+            border: 1.5px solid rgba(255,255,255,0.9);
+            display: flex; align-items: flex-start; gap: 10px;
+            transition: border-color 0.2s;
+        }
+        .address-input-wrap:focus-within { border-color: #7C3AED; }
+        .address-input-wrap svg { width: 18px; height: 18px; stroke: #94A3B8; flex-shrink: 0; margin-top: 2px; }
+        .address-textarea {
+            flex: 1; min-width: 0;
+            background: transparent;
+            border: none; outline: none;
+            font-size: 0.82rem; font-weight: 600;
+            color: #1C1C28;
+            resize: none; height: 54px;
+            line-height: 1.5;
+            font-family: 'SF Mono','Fira Code',monospace;
+        }
+        .address-textarea::placeholder { color: #CBD5E1; font-family: inherit; }
+        .address-actions {
+            display: flex; gap: 6px; margin-top: 10px;
+        }
+        .addr-action-btn {
+            flex: 1;
+            background: rgba(124,58,237,0.08);
+            border: 1px solid rgba(124,58,237,0.15);
+            border-radius: 12px;
+            padding: 8px;
+            text-align: center;
+            font-size: 0.72rem; font-weight: 700;
+            color: #7C3AED;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .addr-action-btn:active { background: rgba(124,58,237,0.15); }
+
+        /* 金额输入 */
+        .amount-input-wrap {
+            background: rgba(255,255,255,0.75);
+            border-radius: 18px;
+            padding: 16px;
+            border: 1.5px solid rgba(255,255,255,0.9);
+            transition: border-color 0.2s;
+        }
+        .amount-input-wrap:focus-within { border-color: #7C3AED; }
+        .amount-row {
+            display: flex; align-items: center; gap: 10px;
+        }
+        .amount-input {
+            flex: 1; min-width: 0;
+            background: transparent;
+            border: none; outline: none;
+            font-size: 1.6rem; font-weight: 800;
+            color: #1C1C28;
+            letter-spacing: -0.5px;
+        }
+        .amount-input::placeholder { color: #CBD5E1; }
+        .amount-token-badge {
+            display: flex; align-items: center; gap: 6px;
+            background: rgba(124,58,237,0.1);
+            border-radius: 12px;
+            padding: 7px 12px;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        .amount-token-dot { width: 8px; height: 8px; background: #7C3AED; border-radius: 50%; }
+        .amount-token-name { font-size: 0.82rem; font-weight: 800; color: #7C3AED; }
+        .amount-token-arrow { font-size: 0.6rem; color: #A78BFA; }
+        .amount-info-row {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-top: 10px; padding-top: 10px;
+            border-top: 1px solid rgba(0,0,0,0.04);
+        }
+        .amount-available { font-size: 0.7rem; font-weight: 600; color: #94A3B8; }
+        .amount-max-btn {
+            font-size: 0.7rem; font-weight: 700;
+            color: #7C3AED;
+            background: rgba(124,58,237,0.1);
+            padding: 4px 12px; border-radius: 20px;
+            cursor: pointer;
+        }
+        .amount-pct-row {
+            display: flex; gap: 6px; margin-top: 10px;
+        }
+        .pct-btn {
+            flex: 1;
+            background: rgba(255,255,255,0.7);
+            border: 1px solid rgba(255,255,255,0.9);
+            border-radius: 10px;
+            padding: 7px;
+            text-align: center;
+            font-size: 0.72rem; font-weight: 700;
+            color: #94A3B8;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .pct-btn:active, .pct-btn.active {
+            background: rgba(124,58,237,0.1);
+            border-color: rgba(124,58,237,0.2);
+            color: #7C3AED;
+        }
+
+        /* 网络选择 */
+        .network-select-wrap {
+            background: rgba(255,255,255,0.75);
+            border-radius: 18px;
+            padding: 14px 16px;
+            border: 1.5px solid rgba(255,255,255,0.9);
+            display: flex; align-items: center; gap: 12px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .network-select-wrap:active { border-color: #7C3AED; }
+        .net-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .net-info { flex: 1; }
+        .net-name { font-size: 0.85rem; font-weight: 700; color: #1C1C28; }
+        .net-fee { font-size: 0.68rem; font-weight: 600; color: #94A3B8; margin-top: 2px; }
+        .net-arrow { font-size: 0.75rem; color: #94A3B8; }
+
+        /* 费用明细 */
+        .fee-card {
+            background: rgba(255,255,255,0.5);
+            border-radius: 20px;
+            padding: 14px 16px;
+            margin-top: 14px;
+            border: 1px solid rgba(255,255,255,0.8);
+        }
+        .fee-row {
+            display: flex; align-items: center; justify-content: space-between;
+            font-size: 0.75rem; font-weight: 600;
+            padding: 5px 0;
+        }
+        .fee-row:not(:last-child) { border-bottom: 1px solid rgba(0,0,0,0.04); padding-bottom: 8px; margin-bottom: 3px; }
+        .fee-label { color: #94A3B8; }
+        .fee-value { color: #1C1C28; font-weight: 700; }
+        .fee-value.green { color: #10B981; }
+        .fee-value.total { font-size: 0.85rem; color: #7C3AED; }
+
+        /* 确认按钮 */
+        .confirm-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #7C3AED, #A855F7);
+            color: white; border: none;
+            border-radius: 20px;
+            padding: 16px;
+            font-size: 0.95rem; font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(124,58,237,0.3);
+            transition: all 0.2s;
+            margin-bottom: 20px;
+        }
+        .confirm-btn:active { transform: scale(0.98); box-shadow: none; }
+        .confirm-btn:disabled {
+            background: linear-gradient(135deg, #CBD5E1, #E2E8F0);
+            box-shadow: none; cursor: not-allowed;
+        }
+
+        /* 提示 */
+        .tips-card {
+            background: rgba(245,158,11,0.06);
+            border: 1px solid rgba(245,158,11,0.2);
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        .tips-title {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 0.8rem; font-weight: 800;
+            color: #D97706; margin-bottom: 10px;
+        }
+        .tips-title svg { width: 16px; height: 16px; stroke: #D97706; }
+        .tip-item {
+            display: flex; align-items: flex-start; gap: 8px;
+            font-size: 0.72rem; font-weight: 600; color: #92400E; line-height: 1.5;
+            margin-bottom: 6px;
+        }
+        .tip-dot { width: 5px; height: 5px; background: #F59E0B; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+
+        /* 确认弹层 */
+        .sheet-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 100;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .sheet-overlay.show { opacity: 1; pointer-events: all; }
+        .confirm-sheet {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: #F8F7FF;
+            border-radius: 28px 28px 0 0;
+            padding: 20px 20px 40px;
+            z-index: 101;
+            transform: translateY(100%);
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .confirm-sheet.show { transform: translateY(0); }
+        .sheet-handle {
+            width: 40px; height: 4px;
+            background: #E2E8F0;
+            border-radius: 2px;
+            margin: 0 auto 20px;
+        }
+        .sheet-title { font-size: 1rem; font-weight: 800; color: #1C1C28; text-align: center; margin-bottom: 20px; }
+        .sheet-detail-row {
+            display: flex; justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        .sheet-detail-label { font-size: 0.78rem; font-weight: 600; color: #94A3B8; }
+        .sheet-detail-value { font-size: 0.78rem; font-weight: 700; color: #1C1C28; max-width: 60%; text-align: right; word-break: break-all; }
+        .sheet-amount-big {
+            text-align: center;
+            font-size: 2rem; font-weight: 800;
+            color: #1C1C28; letter-spacing: -1px;
+            margin: 20px 0 4px;
+        }
+        .sheet-amount-usd { text-align: center; font-size: 0.78rem; color: #94A3B8; margin-bottom: 20px; }
+        .sheet-btns { display: flex; gap: 10px; margin-top: 20px; }
+        .sheet-cancel {
+            flex: 1;
+            background: rgba(255,255,255,0.8);
+            border: 1.5px solid #E2E8F0;
+            border-radius: 18px;
+            padding: 14px;
+            font-size: 0.88rem; font-weight: 700;
+            color: #4B5563; cursor: pointer;
+        }
+        .sheet-submit {
+            flex: 2;
+            background: linear-gradient(135deg, #7C3AED, #A855F7);
+            border: none;
+            border-radius: 18px;
+            padding: 14px;
+            font-size: 0.88rem; font-weight: 800;
+            color: white; cursor: pointer;
+            box-shadow: 0 6px 20px rgba(124,58,237,0.3);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            background: rgba(30,20,60,0.92);
+            color: white; padding: 14px 24px;
+            border-radius: 20px;
+            font-size: 0.88rem; font-weight: 700;
+            z-index: 9999; opacity: 0;
+            transition: all 0.25s; pointer-events: none;
+            backdrop-filter: blur(12px);
+        }
+        .toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    </style>
+</head>
+<body>
+<div class="ambient-bg"></div>
+<div class="container">
+
+    <div class="page-header">
+        <div class="back-btn" onclick="history.back()">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"/>
+            </svg>
+        </div>
+        <div class="page-title">提币</div>
+        <div class="history-btn" onclick="showToast('📋 记录功能开发中')">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+                <polyline points="10 9 9 9 8 9"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- 资产英雄卡 -->
+    <div class="asset-hero">
+        <div class="asset-hero-top">
+            <div class="asset-token-pill" onclick="showToast('切换代币')">
+                <div class="asset-token-icon">H</div>
+                <span class="asset-token-name">H Token</span>
+                <span class="asset-token-arrow">▾</span>
+            </div>
+            <span style="font-size:0.68rem;font-weight:600;color:rgba(255,255,255,0.5);position:relative;z-index:1;">可用余额</span>
+        </div>
+        <div class="asset-balance-label">AVAILABLE BALANCE</div>
+        <div class="asset-balance-value">125,000 <span style="font-size:1.2rem;opacity:0.7;">H</span></div>
+        <div class="asset-balance-usd">≈ $-- · X Layer</div>
+    </div>
+
+    <!-- 提币地址 -->
+    <div class="form-card">
+        <div class="form-label">提币地址</div>
+        <div class="address-input-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+            </svg>
+            <textarea class="address-textarea" id="toAddress" placeholder="输入或粘贴提币地址 (0x...)"></textarea>
+        </div>
+        <div class="address-actions">
+            <div class="addr-action-btn" onclick="pasteAddress()">📋 粘贴</div>
+            <div class="addr-action-btn" onclick="showToast('📷 扫码功能开发中')">📷 扫码</div>
+            <div class="addr-action-btn" onclick="showToast('📒 地址簿开发中')">📒 地址簿</div>
+        </div>
+    </div>
+
+    <!-- 提币网络 -->
+    <div class="form-card">
+        <div class="form-label">提币网络</div>
+        <div class="network-select-wrap" onclick="toggleNetworkSheet()">
+            <div class="net-dot" style="background:#7C3AED;"></div>
+            <div class="net-info">
+                <div class="net-name" id="selectedNetName">X Layer</div>
+                <div class="net-fee" id="selectedNetFee">手续费 ~0.01 H · 约 30秒到账</div>
+            </div>
+            <div class="net-arrow">▾</div>
+        </div>
+    </div>
+
+    <!-- 提币金额 -->
+    <div class="form-card">
+        <div class="form-label">提币数量</div>
+        <div class="amount-input-wrap">
+            <div class="amount-row">
+                <input type="number" class="amount-input" id="withdrawAmount" placeholder="0.00" oninput="calcFee()">
+                <div class="amount-token-badge" onclick="showToast('切换代币')">
+                    <div class="amount-token-dot"></div>
+                    <span class="amount-token-name">H</span>
+                    <span class="amount-token-arrow">▾</span>
+                </div>
+            </div>
+            <div class="amount-info-row">
+                <span class="amount-available">可用: 125,000 H</span>
+                <span class="amount-max-btn" onclick="setMax()">全部</span>
+            </div>
+            <div class="amount-pct-row">
+                <div class="pct-btn" onclick="setPct(25)">25%</div>
+                <div class="pct-btn" onclick="setPct(50)">50%</div>
+                <div class="pct-btn" onclick="setPct(75)">75%</div>
+                <div class="pct-btn" onclick="setPct(100)">100%</div>
+            </div>
+        </div>
+
+        <!-- 费用明细 -->
+        <div class="fee-card">
+            <div class="fee-row">
+                <span class="fee-label">提币数量</span>
+                <span class="fee-value" id="feeAmount">0.00 H</span>
+            </div>
+            <div class="fee-row">
+                <span class="fee-label">网络手续费</span>
+                <span class="fee-value green" id="feeNetwork">~0.01 H</span>
+            </div>
+            <div class="fee-row">
+                <span class="fee-label">实际到账</span>
+                <span class="fee-value total" id="feeActual">0.00 H</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示 -->
+    <div class="tips-card">
+        <div class="tips-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            提币注意事项
+        </div>
+        <div class="tip-item"><div class="tip-dot"></div>请仔细核对提币地址，区块链转账不可撤销</div>
+        <div class="tip-item"><div class="tip-dot"></div>最小提币金额：H Token 100枚，USDT 10枚</div>
+        <div class="tip-item"><div class="tip-dot"></div>X Layer 网络通常 30秒内到账</div>
+        <div class="tip-item"><div class="tip-dot"></div>大额提币可能触发人工审核，请耐心等待</div>
+    </div>
+
+    <button class="confirm-btn" id="confirmWithdrawBtn" onclick="openConfirmSheet()">确认提币</button>
+
+</div>
+
+<!-- 确认弹层 -->
+<div class="sheet-overlay" id="confirmOverlay" onclick="closeConfirmSheet()"></div>
+<div class="confirm-sheet" id="confirmSheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">确认提币</div>
+    <div class="sheet-amount-big" id="sheetAmount">0.00 H</div>
+    <div class="sheet-amount-usd" id="sheetAmountUsd">≈ $--</div>
+    <div class="sheet-detail-row">
+        <span class="sheet-detail-label">提币地址</span>
+        <span class="sheet-detail-value" id="sheetAddr">--</span>
+    </div>
+    <div class="sheet-detail-row">
+        <span class="sheet-detail-label">提币网络</span>
+        <span class="sheet-detail-value" id="sheetNet">X Layer</span>
+    </div>
+    <div class="sheet-detail-row">
+        <span class="sheet-detail-label">网络手续费</span>
+        <span class="sheet-detail-value" id="sheetFee">~0.01 H</span>
+    </div>
+    <div class="sheet-detail-row" style="border:none;">
+        <span class="sheet-detail-label">实际到账</span>
+        <span class="sheet-detail-value" style="color:#7C3AED;" id="sheetActual">--</span>
+    </div>
+    <div class="sheet-btns">
+        <button class="sheet-cancel" onclick="closeConfirmSheet()">取消</button>
+        <button class="sheet-submit" onclick="submitWithdraw()">确认提交</button>
+    </div>
+</div>
+
+<div class="bottom-nav" id="bottomNav"></div>
+<div class="toast" id="toast"></div>
+
+<script src="common.js"></script>
+<script src="nav.js"></script>
+<script>
+const BALANCE = 125000;
+const FEE = 0.01;
+let currentNet = 'xlayer';
+
+function calcFee() {
+    const val = parseFloat(document.getElementById('withdrawAmount').value) || 0;
+    document.getElementById('feeAmount').textContent = val.toFixed(2) + ' H';
+    document.getElementById('feeActual').textContent = Math.max(0, val - FEE).toFixed(2) + ' H';
+}
+
+function setMax() {
+    document.getElementById('withdrawAmount').value = BALANCE;
+    calcFee();
+    document.querySelectorAll('.pct-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.pct-btn')[3].classList.add('active');
+}
+
+function setPct(pct) {
+    document.getElementById('withdrawAmount').value = (BALANCE * pct / 100).toFixed(0);
+    calcFee();
+    document.querySelectorAll('.pct-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+}
+
+function pasteAddress() {
+    if (navigator.clipboard && navigator.clipboard.readText) {
+        navigator.clipboard.readText().then(text => {
+            document.getElementById('toAddress').value = text;
+        }).catch(() => showToast('请手动粘贴地址'));
+    } else {
+        showToast('请手动粘贴地址');
+    }
+}
+
+function toggleNetworkSheet() {
+    showToast('网络选择开发中');
+}
+
+function openConfirmSheet() {
+    const addr = document.getElementById('toAddress').value.trim();
+    const amount = parseFloat(document.getElementById('withdrawAmount').value) || 0;
+    if (!addr) { showToast('⚠️ 请输入提币地址'); return; }
+    if (amount < 100) { showToast('⚠️ 最小提币 100 H'); return; }
+    if (amount > BALANCE) { showToast('⚠️ 余额不足'); return; }
+    document.getElementById('sheetAmount').textContent = amount.toFixed(2) + ' H';
+    document.getElementById('sheetAddr').textContent = addr.slice(0, 8) + '...' + addr.slice(-6);
+    document.getElementById('sheetActual').textContent = (amount - FEE).toFixed(2) + ' H';
+    document.getElementById('confirmOverlay').classList.add('show');
+    document.getElementById('confirmSheet').classList.add('show');
+}
+
+function closeConfirmSheet() {
+    document.getElementById('confirmOverlay').classList.remove('show');
+    document.getElementById('confirmSheet').classList.remove('show');
+}
+
+function submitWithdraw() {
+    closeConfirmSheet();
+    showToast('✅ 提币申请已提交，请等待处理');
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+}
+</script>
+</body>
+</html>
