@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>海豚社区 - 首页</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js" type="application/javascript"></script>
     <style>
         /* 优化图表容器 */
         .kline-container {
@@ -38,13 +37,13 @@
 
     <div class="card price-hero">
         <div class="metric-label" style="color: rgba(255,255,255,0.8);">H Token 链上实时价格 (X Layer)</div>
-        <div class="metric-value" id="hTokenPrice" style="font-size: 2.2rem;">加载中...</div>
+        <div class="metric-value" id="hTokenPrice" style="font-size: 2.2rem;">正在获取...</div>
         
         <div class="kline-canvas"><canvas id="priceKline" width="500" height="80"></canvas></div>
 
         <div class="flex-between" style="margin-top: 12px;">
             <span class="badge" style="background: rgba(255,255,255,0.2); color:white;">实时同步中</span>
-            <span style="font-size:0.75rem; color:rgba(255,255,255,0.8);">数据源: 私有 RPC 节点</span>
+            <span style="font-size:0.75rem; color:rgba(255,255,255,0.8);">数据源: X Layer RPC</span>
         </div>
     </div>
 
