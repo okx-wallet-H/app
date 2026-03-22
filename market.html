@@ -95,36 +95,25 @@
             border-radius: 16px;
         }
         .token-row:active { background: rgba(124, 58, 237, 0.05); }
-
         .token-row-info { display: flex; align-items: center; gap: 12px; }
         .token-row-icon {
-            width: 42px;
-            height: 42px;
+            width: 42px; height: 42px;
             border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             font-size: 1.3rem;
             flex-shrink: 0;
+            overflow: hidden;
+            background: rgba(124,58,237,0.08);
         }
+        .token-row-icon img { width: 100%; height: 100%; object-fit: cover; border-radius: 16px; }
         .token-row-name { font-size: 0.9rem; font-weight: 800; color: #2D1B69; }
-        .token-row-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
-
+        .token-row-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; }
         .token-row-price {
-            font-size: 0.88rem;
-            font-weight: 700;
-            color: #1C1C28;
+            font-size: 0.85rem; font-weight: 700; color: #1C1C28;
             font-family: 'SF Mono', 'Fira Code', monospace;
         }
-        .token-row-price-sub {
-            font-size: 0.68rem;
-            color: var(--text-muted);
-            margin-top: 2px;
-        }
-
-        .token-row-change {
-            text-align: right;
-        }
+        .token-row-price-sub { font-size: 0.68rem; color: var(--text-muted); margin-top: 2px; }
+        .token-row-change { text-align: right; }
         .change-badge {
             display: inline-block;
             padding: 5px 10px;
@@ -136,12 +125,6 @@
         .change-badge.up { background: rgba(16, 185, 129, 0.12); color: #10B981; }
         .change-badge.down { background: rgba(239, 68, 68, 0.1); color: #EF4444; }
         .change-badge.flat { background: rgba(100, 116, 139, 0.1); color: #64748B; }
-
-        /* 迷你 K 线 */
-        .mini-kline {
-            width: 60px;
-            height: 28px;
-        }
 
         /* 市场概览卡片 */
         .market-overview {
@@ -158,22 +141,11 @@
             padding: 16px;
             box-shadow: 0 4px 16px rgba(45, 27, 105, 0.06);
         }
-        .overview-label {
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            margin-bottom: 6px;
-        }
-        .overview-value {
-            font-size: 1.1rem;
-            font-weight: 800;
-            color: #2D1B69;
-        }
-        .overview-change {
-            font-size: 0.72rem;
-            font-weight: 700;
-            margin-top: 3px;
-        }
+        .overview-label { font-size: 0.7rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
+        .overview-value { font-size: 1.05rem; font-weight: 800; color: #2D1B69; }
+        .overview-change { font-size: 0.72rem; font-weight: 700; margin-top: 3px; }
+        .overview-change.positive { color: #10B981; }
+        .overview-change.negative { color: #EF4444; }
 
         /* 涨跌榜 */
         .gainer-list {
@@ -196,80 +168,69 @@
             transition: all 0.2s;
         }
         .gainer-card:active { transform: scale(0.95); }
-        .gainer-icon { font-size: 1.4rem; margin-bottom: 4px; }
+        .gainer-icon { width: 32px; height: 32px; border-radius: 10px; margin: 0 auto 4px; overflow: hidden; }
+        .gainer-icon img { width: 100%; height: 100%; object-fit: cover; }
         .gainer-symbol { font-size: 0.8rem; font-weight: 800; color: #2D1B69; }
         .gainer-change { font-size: 0.72rem; font-weight: 700; margin-top: 3px; }
 
+        /* 加载状态 */
+        .loading-placeholder {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+        .loading-spinner {
+            width: 28px; height: 28px;
+            border: 3px solid rgba(124,58,237,0.15);
+            border-top-color: #7C3AED;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 12px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* 搜索结果高亮 */
+        .search-result-chain {
+            font-size: 0.6rem;
+            background: rgba(124,58,237,0.1);
+            color: #7C3AED;
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-weight: 600;
+            margin-left: 6px;
+        }
+
         /* 详情弹层 */
         .detail-overlay {
-            position: fixed;
-            inset: 0;
+            position: fixed; inset: 0;
             background: rgba(15, 10, 40, 0.5);
             backdrop-filter: blur(8px);
             z-index: 300;
-            opacity: 0;
-            pointer-events: none;
+            opacity: 0; pointer-events: none;
             transition: opacity 0.3s;
         }
         .detail-overlay.active { opacity: 1; pointer-events: auto; }
-
         .detail-sheet {
-            position: fixed;
-            bottom: 0;
-            left: 50%;
+            position: fixed; bottom: 0; left: 50%;
             transform: translateX(-50%) translateY(100%);
-            width: 100%;
-            max-width: 500px;
+            width: 100%; max-width: 500px;
             background: rgba(255, 255, 255, 0.97);
             backdrop-filter: blur(24px);
             border-radius: 32px 32px 0 0;
             padding: 24px 24px calc(32px + env(safe-area-inset-bottom));
             z-index: 301;
             transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+            max-height: 85vh;
+            overflow-y: auto;
         }
         .detail-sheet.active { transform: translateX(-50%) translateY(0); }
-
         .sheet-handle {
-            width: 40px;
-            height: 4px;
+            width: 40px; height: 4px;
             background: #E2E8F0;
             border-radius: 4px;
             margin: 0 auto 20px;
         }
-
-        .detail-chart-area {
-            background: rgba(45, 27, 105, 0.04);
-            border-radius: 20px;
-            padding: 12px;
-            margin: 16px 0;
-            height: 120px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .detail-chart-area canvas { width: 100%; height: 100%; }
-
-        .period-tabs {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 16px;
-        }
-        .period-tab {
-            flex: 1;
-            text-align: center;
-            padding: 6px;
-            border-radius: 10px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            cursor: pointer;
-            color: var(--text-muted);
-            transition: all 0.2s;
-        }
-        .period-tab.active {
-            background: linear-gradient(135deg, #2D1B69, var(--primary));
-            color: white;
-        }
-
         .detail-stats {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -282,13 +243,56 @@
             padding: 12px;
         }
         .detail-stat-label { font-size: 0.68rem; font-weight: 600; color: var(--text-muted); }
-        .detail-stat-value { font-size: 0.9rem; font-weight: 800; color: #2D1B69; margin-top: 3px; }
-
+        .detail-stat-value { font-size: 0.88rem; font-weight: 800; color: #2D1B69; margin-top: 3px; word-break: break-all; }
         .detail-actions {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px;
             margin-top: 20px;
+        }
+
+        /* 持有者列表 */
+        .holders-section { margin-top: 16px; }
+        .holders-title { font-size: 0.82rem; font-weight: 800; color: #2D1B69; margin-bottom: 10px; }
+        .holder-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(124,58,237,0.05);
+            font-size: 0.75rem;
+        }
+        .holder-addr { font-family: monospace; color: #64748B; font-weight: 600; }
+        .holder-pct { font-weight: 800; color: #2D1B69; }
+
+        /* 交易活动 */
+        .trades-section { margin-top: 16px; }
+        .trades-title { font-size: 0.82rem; font-weight: 800; color: #2D1B69; margin-bottom: 10px; }
+        .trade-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(124,58,237,0.05);
+            font-size: 0.72rem;
+        }
+        .trade-type {
+            padding: 2px 8px; border-radius: 6px; font-weight: 800; font-size: 0.68rem;
+        }
+        .trade-type.buy { background: rgba(16,185,129,0.12); color: #10B981; }
+        .trade-type.sell { background: rgba(239,68,68,0.1); color: #EF4444; }
+        .trade-info { text-align: right; color: #64748B; }
+        .trade-price { font-weight: 700; color: #1C1C28; }
+
+        /* Tab 切换 */
+        .detail-tabs {
+            display: flex; gap: 6px; margin-top: 16px;
+        }
+        .detail-tab {
+            flex: 1; text-align: center; padding: 8px;
+            border-radius: 12px; font-size: 0.78rem; font-weight: 700;
+            cursor: pointer; color: var(--text-muted); transition: all 0.2s;
+            background: rgba(124,58,237,0.04);
+        }
+        .detail-tab.active {
+            background: linear-gradient(135deg, #2D1B69, var(--primary));
+            color: white;
         }
     </style>
 </head>
@@ -298,65 +302,72 @@
 
     <div class="text-center" style="margin-bottom: 20px;">
         <h1 style="font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, #2D1B69, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">行情中心</h1>
-        <p style="color: var(--text-muted); font-weight: 500;">实时链上数据 · X Layer 生态</p>
+        <p style="color: var(--text-muted); font-weight: 500;">实时链上数据 · OKX Web3 API</p>
     </div>
 
     <!-- 搜索栏 -->
     <div class="search-bar">
         <span class="search-icon">🔍</span>
-        <input type="text" id="searchInput" placeholder="搜索代币名称或合约地址..." oninput="filterTokens()">
+        <input type="text" id="searchInput" placeholder="搜索代币名称或合约地址..." oninput="handleSearch()">
         <span style="font-size:0.8rem; color:var(--primary); font-weight:700; cursor:pointer;" onclick="clearSearch()">清除</span>
     </div>
 
     <!-- 市场概览 -->
-    <div class="market-overview">
+    <div class="market-overview" id="marketOverview">
         <div class="overview-card">
-            <div class="overview-label">📈 市场总市值</div>
-            <div class="overview-value">$2.84B</div>
-            <div class="overview-change positive">+3.2% 今日</div>
+            <div class="overview-label">🔥 热门代币</div>
+            <div class="overview-value" id="ovHotName">加载中...</div>
+            <div class="overview-change positive" id="ovHotChange">--</div>
         </div>
         <div class="overview-card">
-            <div class="overview-label">💧 24h 总成交额</div>
-            <div class="overview-value">$128M</div>
-            <div class="overview-change positive">+12.5% 较昨日</div>
+            <div class="overview-label">📈 涨幅最大</div>
+            <div class="overview-value" id="ovGainerName">加载中...</div>
+            <div class="overview-change positive" id="ovGainerChange">--</div>
         </div>
         <div class="overview-card">
-            <div class="overview-label">🔥 涨幅最大</div>
-            <div class="overview-value">H Token</div>
-            <div class="overview-change positive">+18.4% 今日</div>
+            <div class="overview-label">📉 跌幅最大</div>
+            <div class="overview-value" id="ovLoserName">加载中...</div>
+            <div class="overview-change negative" id="ovLoserChange">--</div>
         </div>
         <div class="overview-card">
-            <div class="overview-label">❄️ 跌幅最大</div>
-            <div class="overview-value">PEPE</div>
-            <div class="overview-change negative">-7.2% 今日</div>
+            <div class="overview-label">🆕 新上线</div>
+            <div class="overview-value" id="ovNewName">加载中...</div>
+            <div class="overview-change" id="ovNewChange">--</div>
         </div>
     </div>
 
     <!-- 今日涨幅榜 -->
     <div class="section-header"><h3>🚀 今日涨幅榜</h3><span class="badge">实时排名</span></div>
     <div class="card" style="padding: 16px 16px 8px;">
-        <div class="gainer-list" id="gainerList"></div>
+        <div class="gainer-list" id="gainerList">
+            <div class="loading-placeholder"><div class="loading-spinner"></div>加载中...</div>
+        </div>
     </div>
 
     <!-- 分类 Tab -->
     <div class="market-tabs" id="marketTabs">
-        <div class="market-tab active" onclick="switchTab('all', this)">全部</div>
-        <div class="market-tab" onclick="switchTab('xlayer', this)">X Layer</div>
-        <div class="market-tab" onclick="switchTab('defi', this)">DeFi</div>
-        <div class="market-tab" onclick="switchTab('meme', this)">Meme</div>
-        <div class="market-tab" onclick="switchTab('stable', this)">稳定币</div>
+        <div class="market-tab active" onclick="switchTab('hot', this)">热门</div>
+        <div class="market-tab" onclick="switchTab('gainers', this)">涨幅榜</div>
+        <div class="market-tab" onclick="switchTab('losers', this)">跌幅榜</div>
+        <div class="market-tab" onclick="switchTab('volume', this)">成交量</div>
+        <div class="market-tab" onclick="switchTab('new', this)">新币</div>
         <div class="market-tab" onclick="switchTab('watchlist', this)">⭐ 自选</div>
     </div>
 
     <!-- 排序行 -->
     <div class="sort-row">
-        <div class="sort-col active" onclick="sortBy('name')">代币 ↕</div>
-        <div class="sort-col" onclick="sortBy('price')">最新价 ↕</div>
-        <div class="sort-col" onclick="sortBy('change')">24h涨跌 ↕</div>
+        <div class="sort-col active">代币</div>
+        <div class="sort-col">最新价</div>
+        <div class="sort-col" style="justify-content:flex-end;">24h涨跌</div>
     </div>
 
     <!-- 代币列表 -->
-    <div id="tokenList"></div>
+    <div id="tokenList">
+        <div class="loading-placeholder"><div class="loading-spinner"></div>正在获取实时行情...</div>
+    </div>
+
+    <!-- 搜索结果区（默认隐藏） -->
+    <div id="searchResults" style="display:none;"></div>
 
 </div>
 
@@ -365,10 +376,13 @@
 <div class="detail-sheet" id="detailSheet">
     <div class="sheet-handle"></div>
     <div style="display:flex; align-items:center; gap:14px; margin-bottom:8px;">
-        <div id="detailIcon" style="width:48px;height:48px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;background:rgba(124,58,237,0.1);">H</div>
-        <div>
-            <div id="detailSymbol" style="font-size:1.4rem;font-weight:800;color:#2D1B69;">H Token</div>
-            <div id="detailName" style="font-size:0.78rem;color:var(--text-muted);">X Layer Network</div>
+        <div id="detailIcon" style="width:48px;height:48px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;background:rgba(124,58,237,0.1);overflow:hidden;">
+            <img id="detailIconImg" src="" style="width:100%;height:100%;object-fit:cover;display:none;">
+            <span id="detailIconText">H</span>
+        </div>
+        <div style="flex:1;min-width:0;">
+            <div id="detailSymbol" style="font-size:1.4rem;font-weight:800;color:#2D1B69;">--</div>
+            <div id="detailName" style="font-size:0.78rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">--</div>
         </div>
         <div style="margin-left:auto;">
             <div id="detailStar" style="font-size:1.4rem;cursor:pointer;" onclick="toggleWatchlist()">☆</div>
@@ -376,34 +390,12 @@
     </div>
 
     <div style="display:flex;align-items:baseline;gap:10px;">
-        <div id="detailPrice" style="font-size:2rem;font-weight:800;color:#2D1B69;font-family:monospace;">--</div>
-        <div id="detailChange" class="change-badge up">--</div>
+        <div id="detailPrice" style="font-size:1.8rem;font-weight:800;color:#2D1B69;font-family:monospace;">--</div>
+        <div id="detailChange" class="change-badge flat">--</div>
     </div>
 
-    <!-- 周期选择 -->
-    <div class="period-tabs" style="margin-top:16px;">
-        <div class="period-tab active">1H</div>
-        <div class="period-tab">4H</div>
-        <div class="period-tab">1D</div>
-        <div class="period-tab">1W</div>
-        <div class="period-tab">1M</div>
-    </div>
-
-    <!-- K线图 -->
-    <div class="detail-chart-area">
-        <canvas id="detailKline" width="400" height="100"></canvas>
-    </div>
-
-    <!-- 统计数据 -->
-    <div class="detail-stats">
-        <div class="detail-stat">
-            <div class="detail-stat-label">24h 最高</div>
-            <div class="detail-stat-value" id="detailHigh">--</div>
-        </div>
-        <div class="detail-stat">
-            <div class="detail-stat-label">24h 最低</div>
-            <div class="detail-stat-value" id="detailLow">--</div>
-        </div>
+    <!-- 基础统计 -->
+    <div class="detail-stats" id="detailStats">
         <div class="detail-stat">
             <div class="detail-stat-label">24h 成交量</div>
             <div class="detail-stat-value" id="detailVol">--</div>
@@ -412,264 +404,538 @@
             <div class="detail-stat-label">市值</div>
             <div class="detail-stat-value" id="detailMcap">--</div>
         </div>
+        <div class="detail-stat">
+            <div class="detail-stat-label">持有者数</div>
+            <div class="detail-stat-value" id="detailHolders">--</div>
+        </div>
+        <div class="detail-stat">
+            <div class="detail-stat-label">所在链</div>
+            <div class="detail-stat-value" id="detailChain">--</div>
+        </div>
+        <div class="detail-stat">
+            <div class="detail-stat-label">24h 最高</div>
+            <div class="detail-stat-value" id="detailHigh">--</div>
+        </div>
+        <div class="detail-stat">
+            <div class="detail-stat-label">24h 最低</div>
+            <div class="detail-stat-value" id="detailLow">--</div>
+        </div>
+    </div>
+
+    <!-- 详情 Tab -->
+    <div class="detail-tabs">
+        <div class="detail-tab active" onclick="switchDetailTab('holders', this)">持有者</div>
+        <div class="detail-tab" onclick="switchDetailTab('trades', this)">交易活动</div>
+    </div>
+
+    <!-- 持有者列表 -->
+    <div class="holders-section" id="holdersSection">
+        <div class="loading-placeholder" style="padding:20px;"><div class="loading-spinner"></div>加载持有者数据...</div>
+    </div>
+
+    <!-- 交易活动 -->
+    <div class="trades-section" id="tradesSection" style="display:none;">
+        <div class="loading-placeholder" style="padding:20px;"><div class="loading-spinner"></div>加载交易活动...</div>
     </div>
 
     <!-- 操作按钮 -->
     <div class="detail-actions">
-        <button class="btn-gradient" onclick="closeDetail(); window.location.href='wallet.html'">买入</button>
-        <button class="btn-outline" onclick="closeDetail(); window.location.href='wallet.html'">卖出</button>
+        <button class="btn-gradient" onclick="closeDetail(); window.location.href='trade.html'">买入</button>
+        <button class="btn-outline" onclick="closeDetail(); window.location.href='trade.html'">卖出</button>
     </div>
 </div>
 
-<div class="bottom-nav">
-    <a href="index.html" class="nav-item"><div class="nav-icon">🏠</div><span>首页</span></a>
-    <a href="stake.html" class="nav-item"><div class="nav-icon">💎</div><span>质押</span></a>
-    <a href="contest.html" class="nav-item"><div class="nav-icon">🏆</div><span>交易赛</span></a>
-    <a href="im.html" class="nav-item"><div class="nav-icon">💬</div><span>IM</span></a>
-    <a href="wallet.html" class="nav-item"><div class="nav-icon">👛</div><span>钱包</span></a>
-</div>
+<div class="bottom-nav" id="bottomNav"></div>
 
+<script src="okx-api.js"></script>
 <script src="common.js"></script>
 <script src="nav.js"></script>
 <script>
-    // 代币数据（含 H Token 实时价格占位）
-    const allTokens = [
-        { symbol: 'H', name: 'H Token', icon: '🐬', price: null, change: null, vol: '2.4M U', mcap: '$12.8M', cat: ['xlayer', 'defi'], live: true },
-        { symbol: 'OKB', name: 'OKB', icon: '⬛', price: '60.12', change: '+2.34', vol: '18.5M U', mcap: '$3.6B', cat: ['xlayer'] },
-        { symbol: 'WOKB', name: 'Wrapped OKB', icon: '🔷', price: '60.08', change: '+2.31', vol: '5.2M U', mcap: '$1.2B', cat: ['xlayer', 'defi'] },
-        { symbol: 'USDT', name: 'Tether USD', icon: '💵', price: '1.0000', change: '+0.01', vol: '45.0M U', mcap: '$110B', cat: ['stable'] },
-        { symbol: 'USDC', name: 'USD Coin', icon: '🔵', price: '1.0001', change: '+0.00', vol: '22.3M U', mcap: '$42B', cat: ['stable'] },
-        { symbol: 'ETH', name: 'Ethereum', icon: '💎', price: '3,420.00', change: '+1.85', vol: '88.0M U', mcap: '$410B', cat: ['defi'] },
-        { symbol: 'BNB', name: 'BNB', icon: '🟡', price: '585.40', change: '+0.92', vol: '12.0M U', mcap: '$85B', cat: ['defi'] },
-        { symbol: 'PEPE', name: 'Pepe', icon: '🐸', price: '0.00001234', change: '-7.20', vol: '3.1M U', mcap: '$5.2B', cat: ['meme'] },
-        { symbol: 'DOGE', name: 'Dogecoin', icon: '🐶', price: '0.1820', change: '+4.50', vol: '9.8M U', mcap: '$26B', cat: ['meme'] },
-        { symbol: 'SHIB', name: 'Shiba Inu', icon: '🦊', price: '0.00002341', change: '+2.10', vol: '4.5M U', mcap: '$13B', cat: ['meme'] },
-    ];
+// ============================================================
+// 状态管理
+// ============================================================
+let currentTab = 'hot';
+let watchlist = JSON.parse(localStorage.getItem('watchlist') || '[]');
+let currentDetailToken = null;
+let allTokensData = [];     // 当前 tab 的代币列表
+let searchTimeout = null;
 
-    let currentTab = 'all';
-    let watchlist = JSON.parse(localStorage.getItem('watchlist') || '[]');
-    let currentDetailSymbol = null;
+// ============================================================
+// 初始化
+// ============================================================
+async function initMarket() {
+    try {
+        // 第一步：加载热门代币列表（最重要）
+        await loadTokenList();
 
-    // 渲染涨幅榜
-    function renderGainers() {
-        const sorted = [...allTokens].filter(t => parseFloat(t.change) > 0).sort((a, b) => parseFloat(b.change) - parseFloat(a.change)).slice(0, 6);
-        const container = document.getElementById('gainerList');
-        container.innerHTML = '';
-        sorted.forEach(t => {
-            const div = document.createElement('div');
-            div.className = 'gainer-card';
-            div.innerHTML = `<div class="gainer-icon">${t.icon}</div><div class="gainer-symbol">${t.symbol}</div><div class="gainer-change positive">+${t.change}%</div>`;
-            div.onclick = () => openDetail(t.symbol);
-            container.appendChild(div);
-        });
+        // 第二步：从已加载的数据中提取概览信息（无额外 API 请求）
+        fillOverviewFromData(allTokensData);
+
+        // 第三步：加载涨幅榜（单独一个 API 请求）
+        await loadGainers();
+
+        // 第四步：异步加载剩余概览卡片（涨幅/跌幅/新币）
+        loadOverviewCards();
+    } catch(e) {
+        console.error('initMarket error:', e);
+    }
+}
+
+// 从已加载的热门数据中填充概览卡片
+function fillOverviewFromData(data) {
+    if (!data || data.length === 0) return;
+    // 热门代币 = 第一个
+    const hot = data[0];
+    document.getElementById('ovHotName').textContent = hot.tokenSymbol || '--';
+    const hc = OKX_API.formatChange(hot.change);
+    document.getElementById('ovHotChange').textContent = hc.text;
+    document.getElementById('ovHotChange').className = 'overview-change ' + (parseFloat(hot.change) >= 0 ? 'positive' : 'negative');
+
+    // 涨幅最大 = 按 change 降序排第一
+    const sorted = [...data].sort((a, b) => parseFloat(b.change || 0) - parseFloat(a.change || 0));
+    if (sorted.length > 0) {
+        document.getElementById('ovGainerName').textContent = sorted[0].tokenSymbol || '--';
+        const gc = OKX_API.formatChange(sorted[0].change);
+        document.getElementById('ovGainerChange').textContent = gc.text;
+        document.getElementById('ovGainerChange').className = 'overview-change positive';
     }
 
-    // 渲染代币列表
-    function renderTokenList(tokens) {
-        const container = document.getElementById('tokenList');
-        container.innerHTML = '';
-        if (tokens.length === 0) {
-            container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted);">暂无匹配代币</div>';
+    // 跌幅最大 = 按 change 升序排第一
+    if (sorted.length > 1) {
+        const loser = sorted[sorted.length - 1];
+        document.getElementById('ovLoserName').textContent = loser.tokenSymbol || '--';
+        const lc = OKX_API.formatChange(loser.change);
+        document.getElementById('ovLoserChange').textContent = lc.text;
+        document.getElementById('ovLoserChange').className = 'overview-change negative';
+    }
+
+    // 新上线 = 暂时用最后一个代币
+    if (data.length > 2) {
+        const newToken = data[data.length - 1];
+        document.getElementById('ovNewName').textContent = newToken.tokenSymbol || '--';
+        const nc = OKX_API.formatChange(newToken.change);
+        document.getElementById('ovNewChange').textContent = nc.text;
+        document.getElementById('ovNewChange').className = 'overview-change ' + (parseFloat(newToken.change) >= 0 ? 'positive' : 'negative');
+    }
+}
+
+// 异步加载真实的涨幅/跌幅/新币数据替换概览卡片
+async function loadOverviewCards() {
+    try {
+        const gainers = await OKX_API.getHotTokens({ rankingType: '1', rankingTimeFrame: '4' });
+        if (gainers && gainers.length > 0) {
+            document.getElementById('ovGainerName').textContent = gainers[0].tokenSymbol || '--';
+            const gc = OKX_API.formatChange(gainers[0].change);
+            document.getElementById('ovGainerChange').textContent = gc.text;
+            document.getElementById('ovGainerChange').className = 'overview-change positive';
+        }
+    } catch(e) {}
+
+    try {
+        const losers = await OKX_API.getHotTokens({ rankingType: '2', rankingTimeFrame: '4' });
+        if (losers && losers.length > 0) {
+            document.getElementById('ovLoserName').textContent = losers[0].tokenSymbol || '--';
+            const lc = OKX_API.formatChange(losers[0].change);
+            document.getElementById('ovLoserChange').textContent = lc.text;
+            document.getElementById('ovLoserChange').className = 'overview-change negative';
+        }
+    } catch(e) {}
+
+    try {
+        const newTokens = await OKX_API.getHotTokens({ rankingType: '3', rankingTimeFrame: '4' });
+        if (newTokens && newTokens.length > 0) {
+            document.getElementById('ovNewName').textContent = newTokens[0].tokenSymbol || '--';
+            const nc = OKX_API.formatChange(newTokens[0].change);
+            document.getElementById('ovNewChange').textContent = nc.text;
+            document.getElementById('ovNewChange').className = 'overview-change ' + (parseFloat(newTokens[0].change) >= 0 ? 'positive' : 'negative');
+        }
+    } catch(e) {}
+}
+
+// loadOverview 已被 fillOverviewFromData + loadOverviewCards 替代
+
+// ============================================================
+// 涨幅榜
+// ============================================================
+async function loadGainers() {
+    const container = document.getElementById('gainerList');
+
+    // 先从已有热门数据中提取涨幅榜（立即显示）
+    if (allTokensData && allTokensData.length > 0) {
+        const sorted = [...allTokensData].sort((a, b) => parseFloat(b.change || 0) - parseFloat(a.change || 0));
+        renderGainerCards(container, sorted.slice(0, 8));
+    }
+
+    // 异步尝试获取真实涨幅榜数据替换
+    try {
+        const data = await OKX_API.getHotTokens({ rankingType: '1', rankingTimeFrame: '4' });
+        if (data && data.length > 0) {
+            renderGainerCards(container, data.slice(0, 8));
+        }
+    } catch (e) {
+        // 已有回退数据，忽略错误
+    }
+}
+
+function renderGainerCards(container, tokens) {
+    container.innerHTML = '';
+    tokens.forEach(t => {
+        const change = OKX_API.formatChange(t.change);
+        const div = document.createElement('div');
+        div.className = 'gainer-card';
+        div.innerHTML = `
+            <div class="gainer-icon">${t.tokenLogoUrl ? `<img src="${t.tokenLogoUrl}" onerror="this.parentElement.textContent='🪙'">` : '🪙'}</div>
+            <div class="gainer-symbol">${t.tokenSymbol || '--'}</div>
+            <div class="gainer-change" style="color:${change.class === 'up' ? '#10B981' : '#EF4444'}">${change.text}</div>
+        `;
+        div.onclick = () => openDetail(t);
+        container.appendChild(div);
+    });
+}
+
+// ============================================================
+// 代币列表（按 Tab 切换）
+// ============================================================
+async function loadTokenList() {
+    const container = document.getElementById('tokenList');
+    container.innerHTML = '<div class="loading-placeholder"><div class="loading-spinner"></div>正在获取实时行情...</div>';
+
+    try {
+        let data = null;
+
+        if (currentTab === 'watchlist') {
+            // 自选列表
+            if (watchlist.length === 0) {
+                container.innerHTML = '<div class="loading-placeholder">暂无自选代币<br><span style="font-size:0.75rem;color:var(--text-muted);">点击代币详情中的 ⭐ 添加自选</span></div>';
+                return;
+            }
+            // 搜索自选代币
+            const results = [];
+            for (const symbol of watchlist) {
+                const r = await OKX_API.searchTokens(symbol);
+                if (r && r.length > 0) results.push(r[0]);
+            }
+            data = results;
+        } else {
+            // 映射 tab 到 API 参数
+            const tabMap = {
+                'hot': { rankingType: '4' },
+                'gainers': { rankingType: '1' },
+                'losers': { rankingType: '2' },
+                'new': { rankingType: '3' },
+                'volume': { rankingType: '4' }  // 热门通常按交易量排
+            };
+            const params = tabMap[currentTab] || tabMap['hot'];
+            data = await OKX_API.getHotTokens({ ...params, rankingTimeFrame: '4' });
+        }
+
+        if (!data || data.length === 0) {
+            container.innerHTML = '<div class="loading-placeholder">暂无数据</div>';
             return;
         }
-        tokens.forEach(t => {
-            const price = t.live && window._liveHPrice ? formatPriceShort(window._liveHPrice) : t.price || '--';
-            const change = t.live && window._liveHChange !== undefined ? window._liveHChange : t.change;
-            const isUp = parseFloat(change) >= 0;
-            const changeStr = change ? (isUp ? '+' + change + '%' : change + '%') : '--';
-            const changeClass = change ? (isUp ? 'up' : 'down') : 'flat';
 
-            const div = document.createElement('div');
-            div.className = 'token-row';
-            div.innerHTML = `
-                <div class="token-row-info">
-                    <div class="token-row-icon" style="background:rgba(124,58,237,0.08)">${t.icon}</div>
-                    <div>
-                        <div class="token-row-name">${t.symbol}</div>
-                        <div class="token-row-sub">${t.name}</div>
-                    </div>
+        allTokensData = data;
+        renderTokenList(data);
+    } catch (e) {
+        console.error('加载代币列表失败:', e);
+        container.innerHTML = '<div class="loading-placeholder">加载失败，请稍后重试</div>';
+    }
+}
+
+function renderTokenList(tokens) {
+    const container = document.getElementById('tokenList');
+    container.innerHTML = '';
+
+    if (!tokens || tokens.length === 0) {
+        container.innerHTML = '<div class="loading-placeholder">暂无匹配代币</div>';
+        return;
+    }
+
+    tokens.forEach((t, idx) => {
+        const price = OKX_API.formatPrice(t.price);
+        const change = OKX_API.formatChange(t.change);
+        const vol = OKX_API.formatVolume(t.volume24H || t.volume);
+        const chainName = OKX_API.getChainName(t.chainIndex);
+
+        const div = document.createElement('div');
+        div.className = 'token-row';
+        div.innerHTML = `
+            <div class="token-row-info">
+                <div class="token-row-icon">
+                    ${t.tokenLogoUrl ? `<img src="${t.tokenLogoUrl}" onerror="this.style.display='none';this.parentElement.textContent='🪙'">` : '🪙'}
                 </div>
                 <div>
-                    <div class="token-row-price">${price}</div>
-                    <div class="token-row-price-sub">Vol: ${t.vol}</div>
+                    <div class="token-row-name">${t.tokenSymbol || '--'}<span class="search-result-chain">${chainName}</span></div>
+                    <div class="token-row-sub">${t.tokenName || t.tokenFullName || '--'}</div>
                 </div>
-                <div class="token-row-change">
-                    <div class="change-badge ${changeClass}">${changeStr}</div>
-                </div>`;
-            div.onclick = () => openDetail(t.symbol);
-            container.appendChild(div);
-        });
-    }
-
-    function formatPriceShort(price) {
-        if (price >= 1) return '$' + price.toFixed(4);
-        if (price >= 0.01) return '$' + price.toFixed(6);
-        const str = price.toFixed(18);
-        const afterDot = str.split('.')[1];
-        let zeros = 0;
-        for (let c of afterDot) { if (c === '0') zeros++; else break; }
-        const sig = afterDot.slice(zeros, zeros + 4);
-        return `$0.0{${zeros}}${sig}`;
-    }
-
-    function switchTab(tab, el) {
-        currentTab = tab;
-        document.querySelectorAll('.market-tab').forEach(t => t.classList.remove('active'));
-        el.classList.add('active');
-        applyFilter();
-    }
-
-    function applyFilter() {
-        let tokens = allTokens;
-        const q = document.getElementById('searchInput').value.trim().toLowerCase();
-        if (q) tokens = tokens.filter(t => t.symbol.toLowerCase().includes(q) || t.name.toLowerCase().includes(q));
-        if (currentTab === 'watchlist') tokens = tokens.filter(t => watchlist.includes(t.symbol));
-        else if (currentTab !== 'all') tokens = tokens.filter(t => t.cat.includes(currentTab));
-        renderTokenList(tokens);
-    }
-
-    function filterTokens() { applyFilter(); }
-    function clearSearch() { document.getElementById('searchInput').value = ''; applyFilter(); }
-
-    // 详情弹层
-    function openDetail(symbol) {
-        const t = allTokens.find(x => x.symbol === symbol);
-        if (!t) return;
-        currentDetailSymbol = symbol;
-        const price = t.live && window._liveHPrice ? formatPriceShort(window._liveHPrice) : (t.price ? '$' + t.price : '--');
-        const change = t.live && window._liveHChange !== undefined ? window._liveHChange : t.change;
-        const isUp = parseFloat(change) >= 0;
-
-        document.getElementById('detailIcon').textContent = t.icon;
-        document.getElementById('detailSymbol').textContent = t.symbol;
-        document.getElementById('detailName').textContent = t.name;
-        document.getElementById('detailPrice').textContent = price;
-        const chgEl = document.getElementById('detailChange');
-        chgEl.textContent = change ? (isUp ? '+' + change + '%' : change + '%') : '--';
-        chgEl.className = 'change-badge ' + (change ? (isUp ? 'up' : 'down') : 'flat');
-        document.getElementById('detailHigh').textContent = price;
-        document.getElementById('detailLow').textContent = price;
-        document.getElementById('detailVol').textContent = t.vol;
-        document.getElementById('detailMcap').textContent = t.mcap;
-        document.getElementById('detailStar').textContent = watchlist.includes(symbol) ? '⭐' : '☆';
-
-        // 绘制示意 K 线
-        drawDemoKline();
-
-        document.getElementById('detailOverlay').classList.add('active');
-        document.getElementById('detailSheet').classList.add('active');
-    }
-
-    function closeDetail() {
-        document.getElementById('detailOverlay').classList.remove('active');
-        document.getElementById('detailSheet').classList.remove('active');
-    }
-
-    function toggleWatchlist() {
-        if (!currentDetailSymbol) return;
-        const idx = watchlist.indexOf(currentDetailSymbol);
-        if (idx >= 0) {
-            watchlist.splice(idx, 1);
-            document.getElementById('detailStar').textContent = '☆';
-        } else {
-            watchlist.push(currentDetailSymbol);
-            document.getElementById('detailStar').textContent = '⭐';
-        }
-        localStorage.setItem('watchlist', JSON.stringify(watchlist));
-    }
-
-    function drawDemoKline() {
-        const canvas = document.getElementById('detailKline');
-        const ctx = canvas.getContext('2d');
-        const w = canvas.clientWidth || 400;
-        const h = canvas.clientHeight || 100;
-        canvas.width = w * (window.devicePixelRatio || 1);
-        canvas.height = h * (window.devicePixelRatio || 1);
-        ctx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
-        ctx.clearRect(0, 0, w, h);
-
-        // 生成随机 K 线数据
-        const n = 30;
-        let price = 100;
-        const data = [];
-        for (let i = 0; i < n; i++) {
-            const open = price;
-            const change = (Math.random() - 0.48) * 4;
-            const close = open + change;
-            const high = Math.max(open, close) + Math.random() * 2;
-            const low = Math.min(open, close) - Math.random() * 2;
-            data.push({ open, high, low, close });
-            price = close;
-        }
-
-        const allH = data.map(d => d.high);
-        const allL = data.map(d => d.low);
-        const maxP = Math.max(...allH);
-        const minP = Math.min(...allL);
-        const range = maxP - minP || 1;
-        const pad = { t: 6, b: 6, l: 4, r: 4 };
-        const cw = w - pad.l - pad.r;
-        const ch = h - pad.t - pad.b;
-        const bw = cw / n;
-
-        data.forEach((d, i) => {
-            const x = pad.l + i * bw + bw / 2;
-            const isUp = d.close >= d.open;
-            const color = isUp ? '#10B981' : '#EF4444';
-            const oy = pad.t + (maxP - d.open) / range * ch;
-            const cy = pad.t + (maxP - d.close) / range * ch;
-            const hy = pad.t + (maxP - d.high) / range * ch;
-            const ly = pad.t + (maxP - d.low) / range * ch;
-
-            ctx.strokeStyle = color;
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(x, hy);
-            ctx.lineTo(x, ly);
-            ctx.stroke();
-
-            ctx.fillStyle = color;
-            const bodyTop = Math.min(oy, cy);
-            const bodyH = Math.max(Math.abs(cy - oy), 1.5);
-            ctx.fillRect(x - bw * 0.3, bodyTop, bw * 0.6, bodyH);
-        });
-
-        // 均线
-        ctx.beginPath();
-        ctx.strokeStyle = 'rgba(124,58,237,0.5)';
-        ctx.lineWidth = 1.5;
-        data.forEach((d, i) => {
-            const x = pad.l + i * bw + bw / 2;
-            const y = pad.t + (maxP - d.close) / range * ch;
-            i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-        });
-        ctx.stroke();
-    }
-
-    // 接收实时价格
-    const origUpdate = window.updatePriceUI;
-    window.updatePriceUI = function(price) {
-        if (origUpdate) origUpdate(price);
-        window._liveHPrice = price;
-        const changePercent = window._firstPriceForMarket ? ((price - window._firstPriceForMarket) / window._firstPriceForMarket * 100) : 0;
-        if (!window._firstPriceForMarket) window._firstPriceForMarket = price;
-        window._liveHChange = changePercent.toFixed(2);
-        // 更新 H Token 行
-        applyFilter();
-    };
-
-    // 初始化
-    renderGainers();
-    applyFilter();
-
-    // 周期 tab 点击
-    document.querySelectorAll('.period-tab').forEach(tab => {
-        tab.addEventListener('click', function() {
-            document.querySelectorAll('.period-tab').forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-            drawDemoKline();
-        });
+            </div>
+            <div>
+                <div class="token-row-price">${price}</div>
+                <div class="token-row-price-sub">Vol: ${vol}</div>
+            </div>
+            <div class="token-row-change">
+                <div class="change-badge ${change.class}">${change.text}</div>
+            </div>`;
+        div.onclick = () => openDetail(t);
+        container.appendChild(div);
     });
+}
+
+// ============================================================
+// Tab 切换
+// ============================================================
+function switchTab(tab, el) {
+    currentTab = tab;
+    document.querySelectorAll('.market-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+
+    // 隐藏搜索结果，显示列表
+    document.getElementById('searchResults').style.display = 'none';
+    document.getElementById('tokenList').style.display = '';
+
+    loadTokenList();
+}
+
+// ============================================================
+// 搜索
+// ============================================================
+function handleSearch() {
+    clearTimeout(searchTimeout);
+    const q = document.getElementById('searchInput').value.trim();
+
+    if (!q) {
+        document.getElementById('searchResults').style.display = 'none';
+        document.getElementById('tokenList').style.display = '';
+        return;
+    }
+
+    searchTimeout = setTimeout(async () => {
+        const container = document.getElementById('searchResults');
+        container.style.display = '';
+        document.getElementById('tokenList').style.display = 'none';
+        container.innerHTML = '<div class="loading-placeholder"><div class="loading-spinner"></div>搜索中...</div>';
+
+        try {
+            // 搜索多条链
+            const results = await OKX_API.searchTokens(q, '196,1,56');
+            if (!results || results.length === 0) {
+                container.innerHTML = '<div class="loading-placeholder">未找到匹配的代币</div>';
+                return;
+            }
+            renderTokenList.call(null, results);
+            // 搜索结果渲染到 searchResults 容器
+            container.innerHTML = document.getElementById('tokenList').innerHTML;
+            document.getElementById('tokenList').style.display = 'none';
+
+            // 重新绑定点击事件
+            container.querySelectorAll('.token-row').forEach((row, idx) => {
+                row.onclick = () => openDetail(results[idx]);
+            });
+        } catch (e) {
+            container.innerHTML = '<div class="loading-placeholder">搜索失败</div>';
+        }
+    }, 400);
+}
+
+function clearSearch() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('searchResults').style.display = 'none';
+    document.getElementById('tokenList').style.display = '';
+}
+
+// ============================================================
+// 详情弹层
+// ============================================================
+async function openDetail(token) {
+    currentDetailToken = token;
+    const addr = token.tokenContractAddress;
+    const chain = token.chainIndex || '196';
+
+    // 基础信息先填充
+    const iconImg = document.getElementById('detailIconImg');
+    const iconText = document.getElementById('detailIconText');
+    if (token.tokenLogoUrl) {
+        iconImg.src = token.tokenLogoUrl;
+        iconImg.style.display = '';
+        iconText.style.display = 'none';
+    } else {
+        iconImg.style.display = 'none';
+        iconText.style.display = '';
+        iconText.textContent = (token.tokenSymbol || '?')[0];
+    }
+
+    document.getElementById('detailSymbol').textContent = token.tokenSymbol || '--';
+    document.getElementById('detailName').textContent = token.tokenName || token.tokenFullName || '--';
+    document.getElementById('detailPrice').innerHTML = OKX_API.formatPriceHtml(token.price);
+
+    const change = OKX_API.formatChange(token.change);
+    const chgEl = document.getElementById('detailChange');
+    chgEl.textContent = change.text;
+    chgEl.className = 'change-badge ' + change.class;
+
+    document.getElementById('detailVol').textContent = OKX_API.formatVolume(token.volume24H || token.volume || '0');
+    document.getElementById('detailMcap').textContent = OKX_API.formatMarketCap(token.marketCap || '0');
+    document.getElementById('detailChain').textContent = OKX_API.getChainName(chain);
+    document.getElementById('detailHolders').textContent = '--';
+    document.getElementById('detailHigh').textContent = '--';
+    document.getElementById('detailLow').textContent = '--';
+
+    // 自选状态
+    const isWatched = watchlist.includes(token.tokenSymbol);
+    document.getElementById('detailStar').textContent = isWatched ? '⭐' : '☆';
+
+    // 重置 tab
+    document.querySelectorAll('.detail-tab').forEach(t => t.classList.remove('active'));
+    document.querySelector('.detail-tab').classList.add('active');
+    document.getElementById('holdersSection').style.display = '';
+    document.getElementById('tradesSection').style.display = 'none';
+
+    // 清空持有者和交易
+    document.getElementById('holdersSection').innerHTML = '<div class="loading-placeholder" style="padding:20px;"><div class="loading-spinner"></div>加载持有者数据...</div>';
+    document.getElementById('tradesSection').innerHTML = '<div class="loading-placeholder" style="padding:20px;"><div class="loading-spinner"></div>加载交易活动...</div>';
+
+    // 显示弹层
+    document.getElementById('detailOverlay').classList.add('active');
+    document.getElementById('detailSheet').classList.add('active');
+
+    // 异步加载详情数据
+    if (addr) {
+        loadDetailData(addr, chain);
+    }
+}
+
+async function loadDetailData(addr, chain) {
+    try {
+        // 并行加载交易信息、持有者、交易活动
+        const [priceInfo, holders, trades] = await Promise.all([
+            OKX_API.getTokenPriceInfo(addr, chain),
+            OKX_API.getTokenHolders(addr, chain),
+            OKX_API.getTokenTrades(addr, chain, 20)
+        ]);
+
+        // 更新交易信息
+        if (priceInfo && priceInfo.length > 0) {
+            const pi = priceInfo[0];
+            document.getElementById('detailPrice').innerHTML = OKX_API.formatPriceHtml(pi.price);
+            document.getElementById('detailVol').textContent = OKX_API.formatVolume(pi.volume24H || '0');
+            document.getElementById('detailMcap').textContent = OKX_API.formatMarketCap(pi.marketCap || '0');
+            document.getElementById('detailHolders').textContent = OKX_API.formatHolders(pi.holders || '0');
+            document.getElementById('detailHigh').textContent = OKX_API.formatPrice(pi.high24H || '0');
+            document.getElementById('detailLow').textContent = OKX_API.formatPrice(pi.low24H || '0');
+
+            const change24 = OKX_API.formatChange(pi.priceChange24H);
+            const chgEl = document.getElementById('detailChange');
+            chgEl.textContent = change24.text + ' 24h';
+            chgEl.className = 'change-badge ' + change24.class;
+        }
+
+        // 渲染持有者
+        renderHolders(holders);
+
+        // 渲染交易活动
+        renderTrades(trades);
+
+    } catch (e) {
+        console.error('加载详情失败:', e);
+    }
+}
+
+function renderHolders(holders) {
+    const container = document.getElementById('holdersSection');
+    if (!holders || holders.length === 0) {
+        container.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:0.78rem;">暂无持有者数据</div>';
+        return;
+    }
+
+    let html = '<div class="holders-title">Top 持有者</div>';
+    holders.slice(0, 10).forEach((h, i) => {
+        const addr = OKX_API.shortAddress(h.holderWalletAddress);
+        const pct = parseFloat(h.holdPercent || 0).toFixed(2);
+        const tag = h.tag ? `<span style="font-size:0.6rem;background:rgba(124,58,237,0.1);color:#7C3AED;padding:1px 5px;border-radius:4px;margin-left:4px;">${h.tag}</span>` : '';
+        html += `
+            <div class="holder-row">
+                <div>
+                    <span style="color:#94A3B8;font-size:0.68rem;margin-right:6px;">#${i + 1}</span>
+                    <span class="holder-addr">${addr}</span>${tag}
+                </div>
+                <span class="holder-pct">${pct}%</span>
+            </div>`;
+    });
+    container.innerHTML = html;
+}
+
+function renderTrades(trades) {
+    const container = document.getElementById('tradesSection');
+    if (!trades || trades.length === 0) {
+        container.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:0.78rem;">暂无交易活动</div>';
+        return;
+    }
+
+    let html = '<div class="trades-title">最近交易</div>';
+    trades.slice(0, 15).forEach(t => {
+        const isBuy = (t.type || '').toLowerCase() === 'buy';
+        const typeClass = isBuy ? 'buy' : 'sell';
+        const typeText = isBuy ? '买入' : '卖出';
+        const price = OKX_API.formatPrice(t.price);
+        const vol = OKX_API.formatVolume(t.volume);
+        const time = OKX_API.formatTime(t.tradeTime);
+        const dex = t.dexName || '--';
+
+        html += `
+            <div class="trade-row">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span class="trade-type ${typeClass}">${typeText}</span>
+                    <span class="trade-price">${price}</span>
+                </div>
+                <div class="trade-info">
+                    <div>${vol}</div>
+                    <div style="font-size:0.65rem;">${dex} · ${time}</div>
+                </div>
+            </div>`;
+    });
+    container.innerHTML = html;
+}
+
+// ============================================================
+// 详情 Tab 切换
+// ============================================================
+function switchDetailTab(tab, el) {
+    document.querySelectorAll('.detail-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+
+    document.getElementById('holdersSection').style.display = tab === 'holders' ? '' : 'none';
+    document.getElementById('tradesSection').style.display = tab === 'trades' ? '' : 'none';
+}
+
+function closeDetail() {
+    document.getElementById('detailOverlay').classList.remove('active');
+    document.getElementById('detailSheet').classList.remove('active');
+}
+
+function toggleWatchlist() {
+    if (!currentDetailToken) return;
+    const symbol = currentDetailToken.tokenSymbol;
+    const idx = watchlist.indexOf(symbol);
+    if (idx >= 0) {
+        watchlist.splice(idx, 1);
+        document.getElementById('detailStar').textContent = '☆';
+    } else {
+        watchlist.push(symbol);
+        document.getElementById('detailStar').textContent = '⭐';
+    }
+    localStorage.setItem('watchlist', JSON.stringify(watchlist));
+}
+
+// ============================================================
+// 启动
+// ============================================================
+initMarket();
+
+// 每 60 秒自动刷新
+setInterval(() => {
+    loadOverview();
+    if (currentTab !== 'watchlist') loadTokenList();
+}, 60000);
 </script>
 </body>
 </html>

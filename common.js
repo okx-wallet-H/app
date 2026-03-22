@@ -188,20 +188,8 @@ function updatePriceUI(price) {
     // 记录当前价格
     previousPrice = price;
 
-    // 同步更新热门代币列表
-    try {
-        if (typeof hotTokens !== 'undefined' && hotTokens && hotTokens.length > 0) {
-            const changePercent = firstPrice > 0 ? ((price - firstPrice) / firstPrice * 100) : 0;
-            const changeStr = (changePercent >= 0 ? '+' : '') + changePercent.toFixed(2) + '%';
-            hotTokens[0].price = formatted.plain.replace('{', '₍').replace('}', '₎');
-            hotTokens[0].change = changeStr;
-            hotTokens[0].up = changePercent >= 0;
-            if (typeof generateHotTokens === 'function') generateHotTokens();
-            if (typeof renderHotTokens === 'function') renderHotTokens();
-        }
-    } catch (e) {
-        // 新版首页可能不用 hotTokens 全局变量
-    }
+    // 注意：热门代币列表现在由 OKX API 实时数据驱动（在 index.html 中的 loadRealHotTokens 函数）
+    // 不再通过此处更新静态列表
 }
 
 // ============================================================
@@ -526,7 +514,10 @@ function highlightCurrentNav() {
 // 页面初始化
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
-    generateHotTokens();
+    // 仅在没有 OKX_API（即 okx-api.js 未加载）时使用静态热门代币
+    if (typeof OKX_API === 'undefined') {
+        generateHotTokens();
+    }
     generateTools();
     highlightCurrentNav();
 
@@ -536,15 +527,19 @@ document.addEventListener('DOMContentLoaded', () => {
         setInterval(fetchOnChainPrice, CONFIG.updateInterval);
     }
 
-    // 通用按钮事件
-    const btns = document.querySelectorAll('.btn-gradient, .btn-outline');
-    btns.forEach(btn => {
-        if (!btn.hasAttribute('data-listener')) {
-            btn.setAttribute('data-listener', 'true');
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                alert('模拟操作：实际开发将连接智能合约/后端');
-            });
-        }
-    });
+    // 通用按钮事件（仅在质押页面等特定页面绑定，不影响行情页等已有 onclick 的页面）
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    const noAlertPages = ['market.html', 'trade.html'];
+    if (!noAlertPages.includes(currentPage)) {
+        const btns = document.querySelectorAll('.btn-gradient, .btn-outline');
+        btns.forEach(btn => {
+            if (!btn.hasAttribute('data-listener') && !btn.hasAttribute('onclick')) {
+                btn.setAttribute('data-listener', 'true');
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    alert('模拟操作：实际开发将连接智能合约/后端');
+                });
+            }
+        });
+    }
 });

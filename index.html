@@ -1094,6 +1094,7 @@
 
 <div class="bottom-nav" id="bottomNav"></div>
 
+<script src="okx-api.js"></script>
 <script src="common.js"></script>
 <script src="nav.js"></script>
 <script>
@@ -1137,34 +1138,51 @@ function doHomeStake() {
     window.location.href = 'stake.html';
 }
 
-// 热门代币渲染（覆盖 common.js 的旧版本）
+// 热门代币渲染 — 对接 OKX 真实数据
 function renderHotTokens() {
-    const tokens = [
-        { symbol: 'H', name: 'H Token', price: '--', change: '+0.00%', icon: '🐬', bg: '#EDE9FE', up: true },
-        { symbol: 'OKB', name: 'OKB', price: '$52.4', change: '+2.31%', icon: '⭕', bg: '#FEF3C7', up: true },
-        { symbol: 'BNB', name: 'BNB', price: '$608', change: '-0.87%', icon: '🟡', bg: '#FEF9C3', up: false },
-        { symbol: 'ETH', name: 'Ethereum', price: '$3,241', change: '+1.14%', icon: '💎', bg: '#EFF6FF', up: true },
-        { symbol: 'USDT', name: 'Tether', price: '$1.00', change: '+0.01%', icon: '💵', bg: '#F0FDF4', up: true },
-    ];
     const container = document.getElementById('hotTokensList');
     if (!container) return;
-    container.innerHTML = '';
-    tokens.forEach(t => {
-        const div = document.createElement('div');
-        div.className = 'token-pill';
-        div.innerHTML = `
-            <div class="token-pill-icon" style="background:${t.bg}">${t.icon}</div>
-            <div class="token-pill-info">
-                <div class="token-pill-name">${t.symbol}</div>
-                <div class="token-pill-price">${t.price}</div>
-            </div>
-            <div class="token-pill-change ${t.up ? 'up' : 'down'}">${t.change}</div>
-        `;
-        div.addEventListener('click', () => window.location.href = 'market.html');
-        container.appendChild(div);
-    });
+    // 先显示加载状态
+    if (!container.dataset.loaded) {
+        container.innerHTML = '<div style="padding:16px;text-align:center;color:#94A3B8;font-size:0.78rem;">加载热门代币...</div>';
+    }
 }
 renderHotTokens();
+
+// 异步加载真实热门代币数据
+async function loadRealHotTokens() {
+    const container = document.getElementById('hotTokensList');
+    if (!container) return;
+    try {
+        const data = await OKX_API.getHotTokens({ rankingType: '4', rankingTimeFrame: '4' });
+        if (!data || data.length === 0) return;
+        container.dataset.loaded = 'true';
+        container.innerHTML = '';
+        data.slice(0, 6).forEach(t => {
+            const price = OKX_API.formatPrice(t.price);
+            const change = OKX_API.formatChange(t.change);
+            const div = document.createElement('div');
+            div.className = 'token-pill';
+            div.innerHTML = `
+                <div class="token-pill-icon" style="background:rgba(124,58,237,0.08);border-radius:12px;overflow:hidden;width:36px;height:36px;display:flex;align-items:center;justify-content:center;">
+                    ${t.tokenLogoUrl ? `<img src="${t.tokenLogoUrl}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.parentElement.textContent='🪙'">` : '🪙'}
+                </div>
+                <div class="token-pill-info">
+                    <div class="token-pill-name">${t.tokenSymbol || '--'}</div>
+                    <div class="token-pill-price">${price}</div>
+                </div>
+                <div class="token-pill-change ${change.class === 'up' ? 'up' : 'down'}">${change.text}</div>
+            `;
+            div.addEventListener('click', () => window.location.href = 'market.html');
+            container.appendChild(div);
+        });
+    } catch (e) {
+        console.error('加载热门代币失败:', e);
+    }
+}
+loadRealHotTokens();
+// 每 60 秒刷新
+setInterval(loadRealHotTokens, 60000);
 
 // ===== 轮播图逻辑 =====
 (function initBanner() {
