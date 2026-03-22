@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>海豚社区 - 我的钱包</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="ambient-bg"></div>
+<div class="container">
+    <div class="text-center" style="margin-bottom: 24px;">
+        <h1 style="font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, #2D1B69, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">我的数字钱包</h1>
+        <p style="color: var(--text-muted);">去中心化资产管理中心</p>
+    </div>
+
+    <div class="card price-hero" style="padding: 24px;">
+        <div class="metric-label">总资产折合 (USD)</div>
+        <div class="metric-value" style="font-size: 2rem;">$ 12,450.00</div>
+        <div class="flex-between" style="margin-top:20px;">
+            <span style="font-family:monospace; background:rgba(0,0,0,0.2); padding:6px 12px; border-radius:20px;">0x71C...e4c2</span>
+            <span style="background:rgba(255,255,255,0.2); padding:6px 12px; border-radius:20px;">BNB Chain ▼</span>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="tools-grid" style="margin-top:0;">
+            <div class="tool-card" id="depositBtn"><div class="tool-icon">📥</div><div>充币</div></div>
+            <div class="tool-card" id="withdrawBtn"><div class="tool-icon">📤</div><div>提币</div></div>
+            <div class="tool-card" id="tradeBtn"><div class="tool-icon">🔄</div><div>交易</div></div>
+            <div class="tool-card" id="buyBtn"><div class="tool-icon">💳</div><div>买币</div></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="flex-between"><span style="font-weight:700;">💰 资产列表</span><span style="font-size:1.2rem; cursor:pointer;" id="settingsBtn">⚙️</span></div>
+        <div class="chat-item" style="justify-content: space-between;">
+            <div><div class="flex-between"><span style="font-weight:800;">H Token</span><span style="font-size:0.7rem;">+2.34%</span></div><div>125,000 H</div></div>
+            <div>$690.00</div>
+        </div>
+        <div class="chat-item" style="justify-content: space-between;">
+            <div><div class="flex-between"><span style="font-weight:800;">BNB</span><span>+1.20%</span></div><div>0.85 BNB</div></div>
+            <div>$497.42</div>
+        </div>
+        <div class="chat-item" style="justify-content: space-between;">
+            <div><div class="flex-between"><span style="font-weight:800;">USDT</span><span>0.00%</span></div><div>11,262.58 USDT</div></div>
+            <div>$11,262.58</div>
+        </div>
+    </div>
+</div>
+
+<div class="bottom-nav">
+    <a href="index.html" class="nav-item"><div class="nav-icon">🏠</div><span>首页</span></a>
+    <a href="stake.html" class="nav-item"><div class="nav-icon">💎</div><span>质押</span></a>
+    <a href="contest.html" class="nav-item"><div class="nav-icon">🏆</div><span>交易赛</span></a>
+    <a href="im.html" class="nav-item"><div class="nav-icon">💬</div><span>IM</span></a>
+    <a href="wallet.html" class="nav-item active"><div class="nav-icon">👛</div><span>钱包</span></a>
+</div>
+
+<script src="common.js"></script>
+</body>
+</html>

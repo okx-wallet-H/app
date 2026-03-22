@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>海豚社区 - 质押中心</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="ambient-bg"></div>
+<div class="container">
+    <div class="text-center" style="margin-bottom: 24px;">
+        <h1 style="font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, #2D1B69, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">质押矩阵</h1>
+        <p style="color: var(--text-muted); font-weight: 500;">锁定资产，稳健获取网络收益</p>
+    </div>
+
+    <div class="card price-hero" style="padding: 24px;">
+        <div class="metric-label">全网总质押价值 (TVL)</div>
+        <div class="metric-value" style="font-size: 2rem;">$ 1,425,800.00</div>
+        <div class="flex-between" style="margin-top: 16px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 16px;">
+            <div><div class="metric-label">H质押池</div><div style="color:white; font-weight:700;">720万 H</div></div>
+            <div><div class="metric-label">U质押池</div><div style="color:white; font-weight:700;">2.85万 U</div></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="flex-between"><span class="badge" style="background: var(--success); color:white;">资金池健康度</span><span style="font-weight:700;">1373 天</span></div>
+        <div class="threshold-badge" style="background: var(--success); color:white; width:100%; text-align:center;">✅ 健康 · 国库可持续天数充足</div>
+    </div>
+
+    <div class="card">
+        <div class="stake-header"><span class="stake-title">质押 H 赚取 U</span><span class="stake-rate">阶梯利率 0.5% ~ 1.0%</span></div>
+        <div class="step-bar-container">
+            <div class="flex-between"><span style="font-size:0.8rem; font-weight:600;">阶梯日利率机制</span><span class="badge" style="background:var(--primary); color:white;">越久越高</span></div>
+            <div class="step-bar"><div class="step-segment highlight" style="flex:1"></div><div class="step-segment highlight" style="flex:1; opacity:0.8"></div><div class="step-segment" style="flex:1; background:#E2E8F0;"></div><div class="step-segment" style="flex:1; background:#E2E8F0;"></div><div class="step-segment" style="flex:1; background:#E2E8F0;"></div></div>
+            <div class="rate-label"><span>1-7d 0.5%</span><span>8-16d 0.6%</span><span>17-30d 0.7%</span><span>31-60d 0.8%</span><span>≥61d 1.0%</span></div>
+        </div>
+        <div class="info-box">📈 当前阈值 1373 天 → 最高利率 1.0% 生效中</div>
+        <div class="input-group"><input type="number" placeholder="输入质押 H 数量"><span>MAX</span></div>
+        <div class="flex-between" style="margin-bottom:16px; font-size:0.75rem;"><span>可用余额: 125,000 H</span><span>预计日收益: ~0.00 U</span></div>
+        <button class="btn-gradient">确认质押</button>
+    </div>
+
+    <div class="card">
+        <div class="stake-header"><span class="stake-title">质押 U 赚取 H</span><span class="stake-rate">阶梯利率 0.5% ~ 1.0%</span></div>
+        <div class="step-bar-container">
+            <div class="flex-between"><span style="font-size:0.8rem; font-weight:600;">阶梯日利率机制</span><span class="badge" style="background:var(--primary); color:white;">越久越高</span></div>
+            <div class="step-bar"><div class="step-segment highlight" style="flex:1"></div><div class="step-segment highlight" style="flex:1; opacity:0.8"></div><div class="step-segment" style="flex:1; background:#E2E8F0;"></div><div class="step-segment" style="flex:1; background:#E2E8F0;"></div><div class="step-segment" style="flex:1; background:#E2E8F0;"></div></div>
+            <div class="rate-label"><span>1-7d 0.5%</span><span>8-16d 0.6%</span><span>17-30d 0.7%</span><span>31-60d 0.8%</span><span>≥61d 1.0%</span></div>
+        </div>
+        <div class="info-box">📈 当前阈值 1373 天 → 最高利率 1.0% 生效中</div>
+        <div class="input-group"><input type="number" placeholder="输入质押 U 数量"><span>MAX</span></div>
+        <button class="btn-gradient">确认质押</button>
+    </div>
+
+    <div class="card">
+        <div class="section-header"><h3>我的质押</h3><span class="badge">实时数据</span></div>
+        <div class="my-stake-grid">
+            <div class="my-stake-card"><div class="metric-label">质押 H</div><div class="metric-value">12,500 H</div><div class="metric-label" style="margin-top:6px;">累计收益</div><div class="metric-value">324.5 U</div></div>
+            <div class="my-stake-card"><div class="metric-label">质押 U</div><div class="metric-value">1,200 U</div><div class="metric-label" style="margin-top:6px;">累计收益</div><div class="metric-value">87.2 H</div></div>
+        </div>
+        <div class="flex-between" style="margin-top:8px;"><span>未领取收益</span><span style="font-weight:700;">24.5 U + 6.2 H</span></div>
+        <button class="btn-outline" style="width:100%; margin-top:12px;">一键领取收益</button>
+    </div>
+</div>
+
+<div class="bottom-nav">
+    <a href="index.html" class="nav-item"><div class="nav-icon">🏠</div><span>首页</span></a>
+    <a href="stake.html" class="nav-item active"><div class="nav-icon">💎</div><span>质押</span></a>
+    <a href="contest.html" class="nav-item"><div class="nav-icon">🏆</div><span>交易赛</span></a>
+    <a href="im.html" class="nav-item"><div class="nav-icon">💬</div><span>IM</span></a>
+    <a href="wallet.html" class="nav-item"><div class="nav-icon">👛</div><span>钱包</span></a>
+</div>
+
+<script src="common.js"></script>
+</body>
+</html>
