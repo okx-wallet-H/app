@@ -2,67 +2,941 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>海豚社区 - 质押中心</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* ===== 质押英雄卡 ===== */
+        .stake-hero {
+            background: linear-gradient(145deg, #0d0628 0%, #1a0a52 35%, #2d1b69 65%, #4c1d95 100%);
+            border-radius: 32px;
+            padding: 28px 24px 24px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .stake-hero::before {
+            content: '';
+            position: absolute;
+            top: -80px; right: -60px;
+            width: 260px; height: 260px;
+            background: radial-gradient(circle, rgba(124,58,237,0.35) 0%, transparent 65%);
+            border-radius: 50%;
+        }
+        .stake-hero::after {
+            content: '';
+            position: absolute;
+            bottom: -50px; left: -40px;
+            width: 200px; height: 200px;
+            background: radial-gradient(circle, rgba(20,184,166,0.2) 0%, transparent 65%);
+            border-radius: 50%;
+        }
+        .hero-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: rgba(255,255,255,0.5);
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            position: relative; z-index: 1;
+            margin-bottom: 6px;
+        }
+        .hero-tvl {
+            font-size: 2.4rem;
+            font-weight: 900;
+            color: white;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            letter-spacing: -1.5px;
+            line-height: 1.1;
+            position: relative; z-index: 1;
+            text-shadow: 0 0 40px rgba(168,85,247,0.4);
+        }
+        .hero-tvl-sub {
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.45);
+            position: relative; z-index: 1;
+            margin-top: 4px;
+            margin-bottom: 22px;
+        }
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 18px;
+            position: relative; z-index: 1;
+        }
+        .hero-stat {
+            text-align: center;
+            position: relative;
+        }
+        .hero-stat + .hero-stat::before {
+            content: '';
+            position: absolute; left: 0; top: 10%; height: 80%;
+            width: 1px; background: rgba(255,255,255,0.1);
+        }
+        .hero-stat-val {
+            font-size: 1rem;
+            font-weight: 800;
+            color: white;
+        }
+        .hero-stat-val.green { color: #6EE7B7; }
+        .hero-stat-val.gold { color: #FCD34D; }
+        .hero-stat-lbl {
+            font-size: 0.62rem;
+            color: rgba(255,255,255,0.45);
+            margin-top: 3px;
+        }
+
+        /* ===== 健康度条 ===== */
+        .health-card {
+            background: rgba(255,255,255,0.75);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.85);
+            border-radius: 24px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 4px 16px rgba(45,27,105,0.07);
+        }
+        .health-icon {
+            width: 44px; height: 44px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #D1FAE5, #A7F3D0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .health-icon svg { width: 22px; height: 22px; }
+        .health-info { flex: 1; }
+        .health-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #2D1B69;
+            margin-bottom: 6px;
+        }
+        .health-bar-wrap {
+            background: rgba(124,58,237,0.08);
+            border-radius: 40px;
+            height: 6px;
+            overflow: hidden;
+        }
+        .health-bar-fill {
+            height: 100%;
+            border-radius: 40px;
+            background: linear-gradient(90deg, #10B981, #34D399);
+            width: 91%;
+        }
+        .health-days {
+            font-size: 0.88rem;
+            font-weight: 800;
+            color: #10B981;
+            flex-shrink: 0;
+        }
+
+        /* ===== Tab 切换 ===== */
+        .stake-tabs {
+            display: flex;
+            background: rgba(124,58,237,0.06);
+            border-radius: 20px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+        .stake-tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .stake-tab.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 4px 16px rgba(45,27,105,0.1);
+        }
+
+        /* ===== 质押操作卡 ===== */
+        .stake-op-card {
+            background: rgba(255,255,255,0.78);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255,255,255,0.9);
+            border-radius: 32px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(45,27,105,0.08);
+        }
+
+        /* 利率阶梯 */
+        .rate-ladder {
+            background: linear-gradient(135deg, rgba(124,58,237,0.05), rgba(168,85,247,0.08));
+            border: 1px solid rgba(124,58,237,0.1);
+            border-radius: 22px;
+            padding: 16px;
+            margin-bottom: 18px;
+        }
+        .rate-ladder-title {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #2D1B69;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .rate-active-badge {
+            background: linear-gradient(90deg, var(--primary), #A855F7);
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 40px;
+        }
+        .rate-steps {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+        .rate-step {
+            flex: 1;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.68rem;
+            font-weight: 700;
+            background: rgba(124,58,237,0.06);
+            color: var(--text-muted);
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        .rate-step.active {
+            background: linear-gradient(135deg, var(--primary), #A855F7);
+            color: white;
+            box-shadow: 0 4px 12px rgba(124,58,237,0.3);
+            border-color: transparent;
+        }
+        .rate-step.passed {
+            background: rgba(124,58,237,0.12);
+            color: var(--primary);
+            border-color: rgba(124,58,237,0.15);
+        }
+        .rate-labels {
+            display: flex;
+            gap: 4px;
+        }
+        .rate-label-item {
+            flex: 1;
+            text-align: center;
+            font-size: 0.58rem;
+            color: var(--text-muted);
+        }
+        .rate-label-item.active { color: var(--primary); font-weight: 700; }
+
+        /* 输入区 */
+        .amount-input-wrap {
+            background: rgba(248,247,255,0.9);
+            border: 1.5px solid rgba(124,58,237,0.12);
+            border-radius: 22px;
+            padding: 16px 18px;
+            margin: 16px 0;
+            transition: border-color 0.2s;
+        }
+        .amount-input-wrap:focus-within {
+            border-color: rgba(124,58,237,0.4);
+            box-shadow: 0 0 0 4px rgba(124,58,237,0.06);
+        }
+        .amount-input-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .amount-token-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(124,58,237,0.08);
+            border-radius: 40px;
+            padding: 5px 12px 5px 8px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #2D1B69;
+        }
+        .token-dot {
+            width: 22px; height: 22px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #7C3AED, #A855F7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            font-weight: 800;
+            color: white;
+        }
+        .amount-max-btn {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--primary);
+            background: rgba(124,58,237,0.08);
+            border: none;
+            border-radius: 40px;
+            padding: 5px 12px;
+            cursor: pointer;
+        }
+        .amount-input-field {
+            width: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #2D1B69;
+            font-family: 'SF Mono', monospace;
+            letter-spacing: -0.5px;
+        }
+        .amount-input-field::placeholder { color: rgba(45,27,105,0.2); }
+        .amount-balance {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+        .amount-balance span { color: var(--primary); font-weight: 700; }
+
+        /* 预计收益展示 */
+        .yield-preview {
+            background: linear-gradient(135deg, rgba(16,185,129,0.06), rgba(20,184,166,0.08));
+            border: 1px solid rgba(16,185,129,0.15);
+            border-radius: 18px;
+            padding: 14px 16px;
+            margin-bottom: 16px;
+        }
+        .yield-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+        }
+        .yield-row + .yield-row {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(16,185,129,0.1);
+        }
+        .yield-label { color: var(--text-muted); font-weight: 600; }
+        .yield-value { font-weight: 800; color: #2D1B69; }
+        .yield-value.green { color: #10B981; }
+
+        /* 确认按钮 */
+        .confirm-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #4C1D95, #7C3AED, #A855F7);
+            border: none;
+            border-radius: 22px;
+            font-size: 1rem;
+            font-weight: 800;
+            color: white;
+            cursor: pointer;
+            letter-spacing: 0.3px;
+            box-shadow: 0 8px 24px rgba(124,58,237,0.35), 0 1px 0 rgba(255,255,255,0.15) inset;
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .confirm-btn::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 60%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+            transform: skewX(-20deg);
+            transition: left 0.6s;
+        }
+        .confirm-btn:active {
+            transform: scale(0.98);
+            box-shadow: 0 4px 12px rgba(124,58,237,0.25);
+        }
+        .confirm-btn:hover::after { left: 150%; }
+
+        /* ===== 我的质押 ===== */
+        .my-stake-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .my-stake-title {
+            font-size: 1rem;
+            font-weight: 800;
+            color: #2D1B69;
+        }
+        .claim-all-btn {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+            border: 1px solid rgba(245,158,11,0.2);
+            border-radius: 40px;
+            padding: 7px 14px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #92400E;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .claim-all-btn:active { transform: scale(0.97); }
+
+        /* 质押仓位卡 */
+        .position-card {
+            background: rgba(248,247,255,0.8);
+            border: 1px solid rgba(124,58,237,0.08);
+            border-radius: 24px;
+            padding: 18px;
+            margin-bottom: 12px;
+        }
+        .position-card:last-child { margin-bottom: 0; }
+        .position-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+        .position-token {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .position-token-icon {
+            width: 40px; height: 40px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.78rem;
+            font-weight: 800;
+            color: white;
+        }
+        .position-token-icon.h-icon {
+            background: linear-gradient(135deg, #2D1B69, #7C3AED);
+        }
+        .position-token-icon.u-icon {
+            background: linear-gradient(135deg, #065F46, #10B981);
+        }
+        .position-token-name {
+            font-size: 0.92rem;
+            font-weight: 800;
+            color: #2D1B69;
+        }
+        .position-token-sub {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+        .position-apy {
+            text-align: right;
+        }
+        .position-apy-val {
+            font-size: 1rem;
+            font-weight: 800;
+            color: #10B981;
+        }
+        .position-apy-lbl {
+            font-size: 0.62rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+        .position-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .position-stat {
+            background: rgba(255,255,255,0.7);
+            border-radius: 14px;
+            padding: 10px 8px;
+            text-align: center;
+        }
+        .position-stat-val {
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: #2D1B69;
+        }
+        .position-stat-lbl {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            margin-top: 3px;
+        }
+        .position-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .pos-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 14px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+            border: none;
+        }
+        .pos-btn-claim {
+            background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+            color: #92400E;
+        }
+        .pos-btn-unstake {
+            background: rgba(239,68,68,0.08);
+            color: #EF4444;
+            border: 1px solid rgba(239,68,68,0.15);
+        }
+        .pos-btn-add {
+            background: rgba(124,58,237,0.08);
+            color: var(--primary);
+            border: 1px solid rgba(124,58,237,0.15);
+        }
+        .pos-btn:active { transform: scale(0.97); }
+
+        /* 收益进度条 */
+        .position-progress {
+            margin-bottom: 14px;
+        }
+        .position-progress-top {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            margin-bottom: 6px;
+        }
+        .position-progress-label { color: var(--text-muted); font-weight: 600; }
+        .position-progress-days { color: var(--primary); font-weight: 700; }
+        .position-progress-bar {
+            background: rgba(124,58,237,0.08);
+            border-radius: 40px;
+            height: 6px;
+            overflow: hidden;
+        }
+        .position-progress-fill {
+            height: 100%;
+            border-radius: 40px;
+            background: linear-gradient(90deg, var(--primary), #A855F7);
+        }
+
+        /* ===== 质押记录 ===== */
+        .record-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(124,58,237,0.05);
+        }
+        .record-item:last-child { border-bottom: none; }
+        .record-icon {
+            width: 38px; height: 38px;
+            border-radius: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .record-icon svg { width: 18px; height: 18px; }
+        .record-info { flex: 1; }
+        .record-title { font-size: 0.85rem; font-weight: 700; color: #2D1B69; }
+        .record-time { font-size: 0.68rem; color: var(--text-muted); margin-top: 2px; }
+        .record-amount { text-align: right; }
+        .record-val { font-size: 0.88rem; font-weight: 800; }
+        .record-val.plus { color: #10B981; }
+        .record-val.minus { color: #EF4444; }
+        .record-status { font-size: 0.65rem; color: var(--text-muted); margin-top: 2px; }
+
+        /* ===== 弹层 ===== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15,5,40,0.6);
+            backdrop-filter: blur(8px);
+            z-index: 200;
+            display: none;
+            align-items: flex-end;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-sheet {
+            width: 100%;
+            background: white;
+            border-radius: 32px 32px 0 0;
+            padding: 24px 20px 40px;
+            animation: slideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        .modal-handle {
+            width: 40px; height: 4px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 40px;
+            margin: 0 auto 20px;
+        }
+        .modal-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #2D1B69;
+            margin-bottom: 20px;
+        }
+
+        /* Toast */
+        #stakeToast {
+            position: fixed;
+            bottom: 110px; left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: rgba(45,27,105,0.92);
+            color: white;
+            padding: 10px 22px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 999;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+    </style>
 </head>
 <body>
 <div class="ambient-bg"></div>
 <div class="container">
-    <div class="text-center" style="margin-bottom: 24px;">
-        <h1 style="font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, #2D1B69, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">质押矩阵</h1>
-        <p style="color: var(--text-muted); font-weight: 500;">锁定资产，稳健获取网络收益</p>
-    </div>
 
-    <div class="card price-hero" style="padding: 24px;">
-        <div class="metric-label">全网总质押价值 (TVL)</div>
-        <div class="metric-value" style="font-size: 2rem;">$ 1,425,800.00</div>
-        <div class="flex-between" style="margin-top: 16px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 16px;">
-            <div><div class="metric-label">H质押池</div><div style="color:white; font-weight:700;">720万 H</div></div>
-            <div><div class="metric-label">U质押池</div><div style="color:white; font-weight:700;">2.85万 U</div></div>
+    <!-- ===== 英雄区 ===== -->
+    <div class="stake-hero">
+        <div class="hero-label">Total Value Locked</div>
+        <div class="hero-tvl">$1,425,800</div>
+        <div class="hero-tvl-sub">全网质押总价值 · 实时更新</div>
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <div class="hero-stat-val">720万</div>
+                <div class="hero-stat-lbl">H 质押量</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-val">2.85万</div>
+                <div class="hero-stat-lbl">U 质押量</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-val green">1.0%</div>
+                <div class="hero-stat-lbl">当前最高日利率</div>
+            </div>
         </div>
     </div>
 
-    <div class="card">
-        <div class="flex-between"><span class="badge" style="background: var(--success); color:white;">资金池健康度</span><span style="font-weight:700;">1373 天</span></div>
-        <div class="threshold-badge" style="background: var(--success); color:white; width:100%; text-align:center;">✅ 健康 · 国库可持续天数充足</div>
+    <!-- ===== 资金池健康度 ===== -->
+    <div class="health-card">
+        <div class="health-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+            </svg>
+        </div>
+        <div class="health-info">
+            <div class="health-title">资金池健康度 · 优秀</div>
+            <div class="health-bar-wrap">
+                <div class="health-bar-fill"></div>
+            </div>
+        </div>
+        <div class="health-days">1373天</div>
     </div>
 
-    <div class="card">
-        <div class="stake-header"><span class="stake-title">质押 H 赚取 U</span><span class="stake-rate">阶梯利率 0.5% ~ 1.0%</span></div>
-        <div class="step-bar-container">
-            <div class="flex-between"><span style="font-size:0.8rem; font-weight:600;">阶梯日利率机制</span><span class="badge" style="background:var(--primary); color:white;">越久越高</span></div>
-            <div class="step-bar"><div class="step-segment highlight" style="flex:1"></div><div class="step-segment highlight" style="flex:1; opacity:0.8"></div><div class="step-segment" style="flex:1; background:#E2E8F0;"></div><div class="step-segment" style="flex:1; background:#E2E8F0;"></div><div class="step-segment" style="flex:1; background:#E2E8F0;"></div></div>
-            <div class="rate-label"><span>1-7d 0.5%</span><span>8-16d 0.6%</span><span>17-30d 0.7%</span><span>31-60d 0.8%</span><span>≥61d 1.0%</span></div>
-        </div>
-        <div class="info-box">📈 当前阈值 1373 天 → 最高利率 1.0% 生效中</div>
-        <div class="input-group"><input type="number" placeholder="输入质押 H 数量"><span>MAX</span></div>
-        <div class="flex-between" style="margin-bottom:16px; font-size:0.75rem;"><span>可用余额: 125,000 H</span><span>预计日收益: ~0.00 U</span></div>
-        <button class="btn-gradient">确认质押</button>
+    <!-- ===== 操作 Tab ===== -->
+    <div class="stake-tabs">
+        <div class="stake-tab active" onclick="switchTab('stake-h', this)">质押 H 赚 U</div>
+        <div class="stake-tab" onclick="switchTab('stake-u', this)">质押 U 赚 H</div>
+        <div class="stake-tab" onclick="switchTab('my-stake', this)">我的质押</div>
     </div>
 
-    <div class="card">
-        <div class="stake-header"><span class="stake-title">质押 U 赚取 H</span><span class="stake-rate">阶梯利率 0.5% ~ 1.0%</span></div>
-        <div class="step-bar-container">
-            <div class="flex-between"><span style="font-size:0.8rem; font-weight:600;">阶梯日利率机制</span><span class="badge" style="background:var(--primary); color:white;">越久越高</span></div>
-            <div class="step-bar"><div class="step-segment highlight" style="flex:1"></div><div class="step-segment highlight" style="flex:1; opacity:0.8"></div><div class="step-segment" style="flex:1; background:#E2E8F0;"></div><div class="step-segment" style="flex:1; background:#E2E8F0;"></div><div class="step-segment" style="flex:1; background:#E2E8F0;"></div></div>
-            <div class="rate-label"><span>1-7d 0.5%</span><span>8-16d 0.6%</span><span>17-30d 0.7%</span><span>31-60d 0.8%</span><span>≥61d 1.0%</span></div>
+    <!-- ===== 质押 H 赚 U ===== -->
+    <div id="stake-h">
+        <div class="stake-op-card">
+            <!-- 利率阶梯 -->
+            <div class="rate-ladder">
+                <div class="rate-ladder-title">
+                    <span>阶梯日利率</span>
+                    <span class="rate-active-badge">当前 1.0% 最高档</span>
+                </div>
+                <div class="rate-steps">
+                    <div class="rate-step passed">0.5%</div>
+                    <div class="rate-step passed">0.6%</div>
+                    <div class="rate-step passed">0.7%</div>
+                    <div class="rate-step passed">0.8%</div>
+                    <div class="rate-step active">1.0%</div>
+                </div>
+                <div class="rate-labels">
+                    <div class="rate-label-item">1-7天</div>
+                    <div class="rate-label-item">8-16天</div>
+                    <div class="rate-label-item">17-30天</div>
+                    <div class="rate-label-item">31-60天</div>
+                    <div class="rate-label-item active">≥61天</div>
+                </div>
+            </div>
+
+            <!-- 输入金额 -->
+            <div class="amount-input-wrap" id="inputWrapH">
+                <div class="amount-input-top">
+                    <div class="amount-token-badge">
+                        <div class="token-dot">H</div>
+                        H Token
+                    </div>
+                    <button class="amount-max-btn" onclick="setMax('h')">全部</button>
+                </div>
+                <input class="amount-input-field" id="amountH" type="number" placeholder="0" oninput="calcYield('h')">
+                <div class="amount-balance">可用余额：<span id="balH">125,000 H</span></div>
+            </div>
+
+            <!-- 预计收益 -->
+            <div class="yield-preview" id="yieldH" style="display:none;">
+                <div class="yield-row">
+                    <span class="yield-label">日收益预估</span>
+                    <span class="yield-value green" id="dailyYieldH">—</span>
+                </div>
+                <div class="yield-row">
+                    <span class="yield-label">月收益预估</span>
+                    <span class="yield-value green" id="monthYieldH">—</span>
+                </div>
+                <div class="yield-row">
+                    <span class="yield-label">年化收益率 (APY)</span>
+                    <span class="yield-value" id="apyH">365%</span>
+                </div>
+            </div>
+
+            <button class="confirm-btn" onclick="confirmStake('H')">确认质押 H</button>
         </div>
-        <div class="info-box">📈 当前阈值 1373 天 → 最高利率 1.0% 生效中</div>
-        <div class="input-group"><input type="number" placeholder="输入质押 U 数量"><span>MAX</span></div>
-        <button class="btn-gradient">确认质押</button>
     </div>
 
-    <div class="card">
-        <div class="section-header"><h3>我的质押</h3><span class="badge">实时数据</span></div>
-        <div class="my-stake-grid">
-            <div class="my-stake-card"><div class="metric-label">质押 H</div><div class="metric-value">12,500 H</div><div class="metric-label" style="margin-top:6px;">累计收益</div><div class="metric-value">324.5 U</div></div>
-            <div class="my-stake-card"><div class="metric-label">质押 U</div><div class="metric-value">1,200 U</div><div class="metric-label" style="margin-top:6px;">累计收益</div><div class="metric-value">87.2 H</div></div>
+    <!-- ===== 质押 U 赚 H ===== -->
+    <div id="stake-u" style="display:none;">
+        <div class="stake-op-card">
+            <div class="rate-ladder">
+                <div class="rate-ladder-title">
+                    <span>阶梯日利率</span>
+                    <span class="rate-active-badge">当前 1.0% 最高档</span>
+                </div>
+                <div class="rate-steps">
+                    <div class="rate-step passed">0.5%</div>
+                    <div class="rate-step passed">0.6%</div>
+                    <div class="rate-step passed">0.7%</div>
+                    <div class="rate-step passed">0.8%</div>
+                    <div class="rate-step active">1.0%</div>
+                </div>
+                <div class="rate-labels">
+                    <div class="rate-label-item">1-7天</div>
+                    <div class="rate-label-item">8-16天</div>
+                    <div class="rate-label-item">17-30天</div>
+                    <div class="rate-label-item">31-60天</div>
+                    <div class="rate-label-item active">≥61天</div>
+                </div>
+            </div>
+
+            <div class="amount-input-wrap" id="inputWrapU">
+                <div class="amount-input-top">
+                    <div class="amount-token-badge">
+                        <div class="token-dot" style="background:linear-gradient(135deg,#065F46,#10B981);">U</div>
+                        USDT
+                    </div>
+                    <button class="amount-max-btn" onclick="setMax('u')">全部</button>
+                </div>
+                <input class="amount-input-field" id="amountU" type="number" placeholder="0" oninput="calcYield('u')">
+                <div class="amount-balance">可用余额：<span id="balU">1,200 USDT</span></div>
+            </div>
+
+            <div class="yield-preview" id="yieldU" style="display:none;">
+                <div class="yield-row">
+                    <span class="yield-label">日收益预估</span>
+                    <span class="yield-value green" id="dailyYieldU">—</span>
+                </div>
+                <div class="yield-row">
+                    <span class="yield-label">月收益预估</span>
+                    <span class="yield-value green" id="monthYieldU">—</span>
+                </div>
+                <div class="yield-row">
+                    <span class="yield-label">年化收益率 (APY)</span>
+                    <span class="yield-value" id="apyU">365%</span>
+                </div>
+            </div>
+
+            <button class="confirm-btn" style="background:linear-gradient(135deg,#065F46,#10B981,#34D399); box-shadow:0 8px 24px rgba(16,185,129,0.3);" onclick="confirmStake('U')">确认质押 U</button>
         </div>
-        <div class="flex-between" style="margin-top:8px;"><span>未领取收益</span><span style="font-weight:700;">24.5 U + 6.2 H</span></div>
-        <button class="btn-outline" style="width:100%; margin-top:12px;">一键领取收益</button>
     </div>
+
+    <!-- ===== 我的质押 ===== -->
+    <div id="my-stake" style="display:none;">
+
+        <!-- 总收益卡 -->
+        <div class="stake-op-card" style="background:linear-gradient(135deg,#0d0628,#1a0a52,#2d1b69);border:none;margin-bottom:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+                <div>
+                    <div style="font-size:0.72rem;color:rgba(255,255,255,0.5);margin-bottom:4px;">累计总收益</div>
+                    <div style="font-size:1.8rem;font-weight:900;color:white;font-family:monospace;">411.7</div>
+                    <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);margin-top:2px;">324.5 U + 87.2 H</div>
+                </div>
+                <button class="claim-all-btn" onclick="showToast('一键领取成功！+24.5 U +6.2 H')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#92400E" stroke-width="2.5" stroke-linecap="round"><path d="M12 2v20M2 12l10 10 10-10"/></svg>
+                    一键领取
+                </button>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div style="background:rgba(255,255,255,0.08);border-radius:16px;padding:12px;text-align:center;">
+                    <div style="font-size:0.65rem;color:rgba(255,255,255,0.45);margin-bottom:4px;">未领取 U</div>
+                    <div style="font-size:1.1rem;font-weight:800;color:#FCD34D;">24.5 U</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.08);border-radius:16px;padding:12px;text-align:center;">
+                    <div style="font-size:0.65rem;color:rgba(255,255,255,0.45);margin-bottom:4px;">未领取 H</div>
+                    <div style="font-size:1.1rem;font-weight:800;color:#A5B4FC;">6.2 H</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- H 质押仓位 -->
+        <div class="position-card">
+            <div class="position-top">
+                <div class="position-token">
+                    <div class="position-token-icon h-icon">H</div>
+                    <div>
+                        <div class="position-token-name">H Token 质押</div>
+                        <div class="position-token-sub">赚取 USDT · 阶梯利率</div>
+                    </div>
+                </div>
+                <div class="position-apy">
+                    <div class="position-apy-val">1.0%/日</div>
+                    <div class="position-apy-lbl">当前利率</div>
+                </div>
+            </div>
+            <div class="position-progress">
+                <div class="position-progress-top">
+                    <span class="position-progress-label">质押时长进度</span>
+                    <span class="position-progress-days">已质押 68 天 · 最高档</span>
+                </div>
+                <div class="position-progress-bar">
+                    <div class="position-progress-fill" style="width:100%;"></div>
+                </div>
+            </div>
+            <div class="position-stats">
+                <div class="position-stat">
+                    <div class="position-stat-val">12,500</div>
+                    <div class="position-stat-lbl">质押 H</div>
+                </div>
+                <div class="position-stat">
+                    <div class="position-stat-val" style="color:#10B981;">324.5</div>
+                    <div class="position-stat-lbl">累计收益 U</div>
+                </div>
+                <div class="position-stat">
+                    <div class="position-stat-val" style="color:#F59E0B;">18.5</div>
+                    <div class="position-stat-lbl">今日收益 U</div>
+                </div>
+            </div>
+            <div class="position-actions">
+                <button class="pos-btn pos-btn-claim" onclick="showToast('领取成功！+18.5 U')">领取收益</button>
+                <button class="pos-btn pos-btn-add" onclick="switchTab('stake-h', document.querySelectorAll(\'.stake-tab\')[0])">追加质押</button>
+                <button class="pos-btn pos-btn-unstake" onclick="showToast('解质押需等待 24h 冷却期')">解质押</button>
+            </div>
+        </div>
+
+        <!-- U 质押仓位 -->
+        <div class="position-card">
+            <div class="position-top">
+                <div class="position-token">
+                    <div class="position-token-icon u-icon">U</div>
+                    <div>
+                        <div class="position-token-name">USDT 质押</div>
+                        <div class="position-token-sub">赚取 H Token · 阶梯利率</div>
+                    </div>
+                </div>
+                <div class="position-apy">
+                    <div class="position-apy-val" style="color:#10B981;">0.8%/日</div>
+                    <div class="position-apy-lbl">当前利率</div>
+                </div>
+            </div>
+            <div class="position-progress">
+                <div class="position-progress-top">
+                    <span class="position-progress-label">质押时长进度</span>
+                    <span class="position-progress-days">已质押 38 天 · 第4档</span>
+                </div>
+                <div class="position-progress-bar">
+                    <div class="position-progress-fill" style="width:72%;background:linear-gradient(90deg,#10B981,#34D399);"></div>
+                </div>
+            </div>
+            <div class="position-stats">
+                <div class="position-stat">
+                    <div class="position-stat-val">1,200</div>
+                    <div class="position-stat-lbl">质押 U</div>
+                </div>
+                <div class="position-stat">
+                    <div class="position-stat-val" style="color:#10B981;">87.2</div>
+                    <div class="position-stat-lbl">累计收益 H</div>
+                </div>
+                <div class="position-stat">
+                    <div class="position-stat-val" style="color:#F59E0B;">9.6</div>
+                    <div class="position-stat-lbl">今日收益 H</div>
+                </div>
+            </div>
+            <div class="position-actions">
+                <button class="pos-btn pos-btn-claim" onclick="showToast('领取成功！+9.6 H')">领取收益</button>
+                <button class="pos-btn pos-btn-add" onclick="switchTab('stake-u', document.querySelectorAll(\'.stake-tab\')[1])">追加质押</button>
+                <button class="pos-btn pos-btn-unstake" onclick="showToast('解质押需等待 24h 冷却期')">解质押</button>
+            </div>
+        </div>
+
+        <!-- 质押记录 -->
+        <div class="section-header" style="margin-top:8px;"><h3>质押记录</h3><span class="badge">最近 10 条</span></div>
+        <div class="card" style="padding:16px 20px;">
+            <div class="record-item">
+                <div class="record-icon" style="background:rgba(16,185,129,0.1);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M2 12l10-10 10 10"/></svg>
+                </div>
+                <div class="record-info">
+                    <div class="record-title">质押 H Token</div>
+                    <div class="record-time">2026-01-14 · 68天前</div>
+                </div>
+                <div class="record-amount">
+                    <div class="record-val minus">-12,500 H</div>
+                    <div class="record-status">质押中</div>
+                </div>
+            </div>
+            <div class="record-item">
+                <div class="record-icon" style="background:rgba(245,158,11,0.1);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M2 12l10 10 10-10"/></svg>
+                </div>
+                <div class="record-info">
+                    <div class="record-title">领取收益 U</div>
+                    <div class="record-time">2026-03-20 · 3天前</div>
+                </div>
+                <div class="record-amount">
+                    <div class="record-val plus">+52.0 U</div>
+                    <div class="record-status">已到账</div>
+                </div>
+            </div>
+            <div class="record-item">
+                <div class="record-icon" style="background:rgba(16,185,129,0.1);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M2 12l10-10 10 10"/></svg>
+                </div>
+                <div class="record-info">
+                    <div class="record-title">质押 USDT</div>
+                    <div class="record-time">2026-02-13 · 38天前</div>
+                </div>
+                <div class="record-amount">
+                    <div class="record-val minus">-1,200 U</div>
+                    <div class="record-status">质押中</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
+
+<div id="stakeToast"></div>
 
 <div class="bottom-nav">
     <a href="index.html" class="nav-item"><div class="nav-icon">🏠</div><span>首页</span></a>
@@ -73,5 +947,65 @@
 </div>
 
 <script src="common.js"></script>
+<script src="nav.js"></script>
+<script>
+    // Tab 切换
+    function switchTab(id, el) {
+        ['stake-h', 'stake-u', 'my-stake'].forEach(t => {
+            const el2 = document.getElementById(t);
+            if (el2) el2.style.display = t === id ? 'block' : 'none';
+        });
+        document.querySelectorAll('.stake-tab').forEach(t => t.classList.remove('active'));
+        if (el) el.classList.add('active');
+    }
+
+    // 计算收益
+    function calcYield(type) {
+        const input = document.getElementById(type === 'h' ? 'amountH' : 'amountU');
+        const yieldBox = document.getElementById(type === 'h' ? 'yieldH' : 'yieldU');
+        const val = parseFloat(input.value) || 0;
+        if (val <= 0) { yieldBox.style.display = 'none'; return; }
+        yieldBox.style.display = 'block';
+        const rate = 0.01; // 1.0% 最高档
+        const daily = (val * rate).toFixed(4);
+        const monthly = (val * rate * 30).toFixed(2);
+        const unit = type === 'h' ? 'U' : 'H';
+        document.getElementById(type === 'h' ? 'dailyYieldH' : 'dailyYieldU').textContent = `+${daily} ${unit}`;
+        document.getElementById(type === 'h' ? 'monthYieldH' : 'monthYieldU').textContent = `+${monthly} ${unit}`;
+        document.getElementById(type === 'h' ? 'apyH' : 'apyU').textContent = '365%';
+    }
+
+    // 全部按钮
+    function setMax(type) {
+        if (type === 'h') {
+            document.getElementById('amountH').value = 125000;
+            calcYield('h');
+        } else {
+            document.getElementById('amountU').value = 1200;
+            calcYield('u');
+        }
+    }
+
+    // 确认质押
+    function confirmStake(token) {
+        const val = parseFloat(document.getElementById(token === 'H' ? 'amountH' : 'amountU').value) || 0;
+        if (val <= 0) { showToast('请输入质押数量'); return; }
+        showToast(`质押成功！${val.toLocaleString()} ${token} 已锁定`);
+    }
+
+    // Toast
+    let toastTimer;
+    function showToast(msg) {
+        const el = document.getElementById('stakeToast');
+        el.textContent = msg;
+        el.style.opacity = '1';
+        el.style.transform = 'translateX(-50%) translateY(0)';
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateX(-50%) translateY(20px)';
+        }, 2200);
+    }
+</script>
 </body>
 </html>

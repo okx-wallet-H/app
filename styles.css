@@ -376,35 +376,106 @@ canvas {
 
 .bottom-nav {
     position: fixed;
-    bottom: 20px;
+    bottom: 16px;
     left: 50%;
     transform: translateX(-50%);
     width: calc(100% - 32px);
-    max-width: 400px;
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(32px);
-    border: 1px solid rgba(255, 255, 255, 0.6);
-    border-radius: 40px;
+    max-width: 420px;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    border-radius: 44px;
     display: flex;
-    justify-content: space-between;
-    padding: 10px 20px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+    justify-content: space-around;
+    padding: 10px 8px;
+    box-shadow: 0 8px 32px rgba(45, 27, 105, 0.12), 0 1px 0 rgba(255,255,255,0.8) inset;
     z-index: 100;
 }
 .nav-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
-    font-size: 0.7rem;
+    gap: 3px;
+    font-size: 0.65rem;
     font-weight: 600;
     color: var(--text-muted);
     cursor: pointer;
     text-decoration: none;
+    padding: 4px 12px;
+    border-radius: 28px;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
 }
-.nav-icon { font-size: 1.4rem; filter: grayscale(0.4) opacity(0.7); transition: all 0.2s; }
-.nav-item.active .nav-icon { filter: none; transform: translateY(-2px); }
-.nav-item.active span { color: var(--primary); }
+.nav-icon {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.nav-icon svg {
+    width: 22px;
+    height: 22px;
+    stroke: #94A3B8;
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: all 0.25s;
+}
+.nav-item.active {
+    color: var(--primary);
+}
+.nav-item.active .nav-icon {
+    transform: translateY(-2px);
+}
+.nav-item.active .nav-icon svg {
+    stroke: var(--primary);
+}
+.nav-item.active .nav-icon svg.fill-icon {
+    fill: var(--primary);
+    stroke: var(--primary);
+}
+.nav-item.active::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    background: var(--primary);
+    border-radius: 50%;
+}
+
+/* H 字母头像 */
+.h-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #2D1B69 0%, #7C3AED 60%, #A855F7 100%);
+    border-radius: 28px;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+.h-avatar::before {
+    content: '';
+    position: absolute;
+    top: -30%;
+    left: -30%;
+    width: 80%;
+    height: 80%;
+    background: radial-gradient(circle, rgba(255,255,255,0.25) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+.h-avatar svg {
+    position: relative;
+    z-index: 1;
+}
 
 .flex-between { display: flex; justify-content: space-between; align-items: center; }
 .badge {
