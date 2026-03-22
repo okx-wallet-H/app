@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>海豚社区 - 钱包备份</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .page-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 0 20px;
+        }
+        .back-btn {
+            width: 40px; height: 40px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.7);
+            border: 1px solid rgba(255,255,255,0.9);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(45,27,105,0.08);
+            flex-shrink: 0;
+        }
+        .back-btn svg { width: 18px; height: 18px; stroke: #2D1B69; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+        .page-title { font-size: 1.15rem; font-weight: 800; color: #2D1B69; }
+
+        /* 安全警告卡 */
+        .warning-card {
+            background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(252,211,77,0.12));
+            border: 1.5px solid rgba(245,158,11,0.25);
+            border-radius: 24px;
+            padding: 18px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 14px;
+        }
+        .warning-icon {
+            width: 44px; height: 44px;
+            border-radius: 16px;
+            background: rgba(245,158,11,0.15);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .warning-icon svg { width: 22px; height: 22px; stroke: #F59E0B; fill: none; stroke-width: 2; stroke-linecap: round; }
+        .warning-title { font-size: 0.88rem; font-weight: 800; color: #92400E; margin-bottom: 6px; }
+        .warning-list { list-style: none; padding: 0; margin: 0; }
+        .warning-list li {
+            font-size: 0.75rem;
+            color: #78350F;
+            padding: 3px 0;
+            padding-left: 14px;
+            position: relative;
+        }
+        .warning-list li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: #F59E0B;
+            font-weight: 800;
+        }
+
+        /* 步骤卡 */
+        .steps-card {
+            background: rgba(255,255,255,0.78);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255,255,255,0.9);
+            border-radius: 28px;
+            padding: 22px 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 6px 24px rgba(45,27,105,0.07);
+        }
+        .steps-title { font-size: 0.92rem; font-weight: 800; color: #2D1B69; margin-bottom: 18px; }
+        .step-item {
+            display: flex;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+        .step-item:last-child { margin-bottom: 0; }
+        .step-num {
+            width: 30px; height: 30px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--primary), #A855F7);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: white;
+            flex-shrink: 0;
+        }
+        .step-content { flex: 1; }
+        .step-title { font-size: 0.85rem; font-weight: 700; color: #2D1B69; margin-bottom: 3px; }
+        .step-desc { font-size: 0.73rem; color: var(--text-muted); line-height: 1.5; }
+
+        /* 备份类型选择 */
+        .backup-types {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .backup-type-card {
+            background: rgba(255,255,255,0.78);
+            backdrop-filter: blur(24px);
+            border: 2px solid rgba(255,255,255,0.9);
+            border-radius: 24px;
+            padding: 18px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 16px rgba(45,27,105,0.06);
+        }
+        .backup-type-card.selected {
+            border-color: var(--primary);
+            background: rgba(124,58,237,0.04);
+            box-shadow: 0 4px 20px rgba(124,58,237,0.12);
+        }
+        .backup-type-card:active { transform: scale(0.99); }
+        .backup-type-icon {
+            width: 48px; height: 48px;
+            border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .backup-type-icon svg { width: 24px; height: 24px; }
+        .backup-type-info { flex: 1; }
+        .backup-type-name { font-size: 0.92rem; font-weight: 800; color: #2D1B69; }
+        .backup-type-desc { font-size: 0.72rem; color: var(--text-muted); margin-top: 3px; }
+        .backup-type-badge {
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 40px;
+        }
+        .backup-type-badge.rec { background: rgba(16,185,129,0.1); color: #10B981; }
+        .backup-type-badge.adv { background: rgba(124,58,237,0.1); color: var(--primary); }
+        .radio-circle {
+            width: 20px; height: 20px;
+            border-radius: 50%;
+            border: 2px solid rgba(124,58,237,0.2);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+        .backup-type-card.selected .radio-circle {
+            border-color: var(--primary);
+            background: var(--primary);
+        }
+        .backup-type-card.selected .radio-circle::after {
+            content: '';
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: white;
+        }
+
+        /* 助记词展示区 */
+        .mnemonic-section { display: none; }
+        .mnemonic-section.show { display: block; }
+        .mnemonic-blur-wrap {
+            position: relative;
+            margin-bottom: 16px;
+        }
+        .mnemonic-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            background: rgba(248,247,255,0.9);
+            border: 1.5px solid rgba(124,58,237,0.1);
+            border-radius: 22px;
+            padding: 16px;
+        }
+        .mnemonic-word {
+            background: white;
+            border-radius: 12px;
+            padding: 10px 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(45,27,105,0.06);
+        }
+        .mnemonic-idx { font-size: 0.6rem; color: var(--text-muted); font-weight: 600; }
+        .mnemonic-text { font-size: 0.82rem; font-weight: 700; color: #2D1B69; margin-top: 2px; }
+        .mnemonic-blur {
+            position: absolute;
+            inset: 0;
+            background: rgba(248,247,255,0.92);
+            backdrop-filter: blur(12px);
+            border-radius: 22px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+        .mnemonic-blur svg { width: 32px; height: 32px; stroke: #7C3AED; fill: none; stroke-width: 1.8; }
+        .mnemonic-blur-text { font-size: 0.85rem; font-weight: 700; color: #2D1B69; }
+        .mnemonic-blur-sub { font-size: 0.72rem; color: var(--text-muted); }
+
+        /* 确认按钮 */
+        .confirm-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #4C1D95, #7C3AED, #A855F7);
+            border: none;
+            border-radius: 22px;
+            font-size: 1rem;
+            font-weight: 800;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(124,58,237,0.3);
+            transition: all 0.2s;
+            margin-bottom: 12px;
+        }
+        .confirm-btn:active { transform: scale(0.98); }
+        .confirm-btn.danger {
+            background: linear-gradient(135deg, #7F1D1D, #EF4444, #F87171);
+            box-shadow: 0 8px 24px rgba(239,68,68,0.25);
+        }
+
+        /* 复制按钮 */
+        .copy-btn {
+            width: 100%;
+            padding: 13px;
+            background: rgba(124,58,237,0.08);
+            border: 1.5px solid rgba(124,58,237,0.15);
+            border-radius: 18px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            margin-bottom: 16px;
+        }
+        .copy-btn svg { width: 16px; height: 16px; stroke: var(--primary); fill: none; stroke-width: 2; stroke-linecap: round; }
+        .copy-btn:active { transform: scale(0.98); background: rgba(124,58,237,0.12); }
+
+        /* Toast */
+        #backupToast {
+            position: fixed;
+            bottom: 110px; left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: rgba(45,27,105,0.92);
+            color: white;
+            padding: 10px 22px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 999;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+<div class="ambient-bg"></div>
+<div class="container">
+
+    <!-- 顶部导航 -->
+    <div class="page-header">
+        <div class="back-btn" onclick="history.back()">
+            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        </div>
+        <div class="page-title">钱包备份</div>
+    </div>
+
+    <!-- 安全警告 -->
+    <div class="warning-card">
+        <div class="warning-icon">
+            <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div>
+            <div class="warning-title">重要安全提示</div>
+            <ul class="warning-list">
+                <li>助记词/私钥是您钱包的唯一凭证</li>
+                <li>任何人获得它都可以完全控制您的资产</li>
+                <li>请勿截图、拍照或通过网络传输</li>
+                <li>建议手写保存并存放于安全位置</li>
+                <li>官方人员永远不会索取您的助记词</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 备份步骤 -->
+    <div class="steps-card">
+        <div class="steps-title">备份流程</div>
+        <div class="step-item">
+            <div class="step-num">1</div>
+            <div class="step-content">
+                <div class="step-title">选择备份类型</div>
+                <div class="step-desc">选择助记词（推荐）或私钥备份方式</div>
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-num">2</div>
+            <div class="step-content">
+                <div class="step-title">验证身份</div>
+                <div class="step-desc">通过密码验证确认是本人操作</div>
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-num">3</div>
+            <div class="step-content">
+                <div class="step-title">安全记录</div>
+                <div class="step-desc">手写记录并妥善保管，切勿数字存储</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 备份类型选择 -->
+    <div class="section-header"><h3>选择备份类型</h3></div>
+    <div class="backup-types">
+        <div class="backup-type-card selected" id="mnemonicCard" onclick="selectType('mnemonic')">
+            <div class="backup-type-icon" style="background:rgba(124,58,237,0.1);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            </div>
+            <div class="backup-type-info">
+                <div class="backup-type-name">助记词备份</div>
+                <div class="backup-type-desc">12个英文单词，可恢复完整钱包</div>
+                <div class="backup-type-badge rec" style="margin-top:6px;display:inline-block;">推荐</div>
+            </div>
+            <div class="radio-circle"></div>
+        </div>
+        <div class="backup-type-card" id="privateKeyCard" onclick="selectType('privateKey')">
+            <div class="backup-type-icon" style="background:rgba(245,158,11,0.1);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+            </div>
+            <div class="backup-type-info">
+                <div class="backup-type-name">私钥备份</div>
+                <div class="backup-type-desc">64位十六进制字符串，高级用户使用</div>
+                <div class="backup-type-badge adv" style="margin-top:6px;display:inline-block;">高级</div>
+            </div>
+            <div class="radio-circle"></div>
+        </div>
+    </div>
+
+    <!-- 助记词展示 -->
+    <div class="mnemonic-section show" id="mnemonicSection">
+        <div class="section-header"><h3>我的助记词</h3><span class="badge" style="background:rgba(239,68,68,0.1);color:#EF4444;">高度机密</span></div>
+        <div class="mnemonic-blur-wrap">
+            <div class="mnemonic-grid" id="mnemonicGrid">
+                <!-- 12个助记词 -->
+                <div class="mnemonic-word"><div class="mnemonic-idx">1</div><div class="mnemonic-text">ocean</div></div>
+                <div class="mnemonic-word"><div class="mnemonic-idx">2</div><div class="mnemonic-text">dolphin</div></div>
+                <div class="mnemonic-word"><div class="mnemonic-idx">3</div><div class="mnemonic-text">wallet</div></div>
+                <div class="mnemonic-word"><div class="mnemonic-idx">4</div><div class="mnemonic-text">secure</div></div>
+                <div class="mnemonic-word"><div class="mnemonic-idx">5</div><div class="mnemonic-text">token</div></div>
+                <div class="mnemonic-word"><div class="mnemonic-idx">6</div><div class="mnemonic-text">chain</div></div>
+                <div class="mnemonic-word"><div class="mnemonic-idx">7</div><div class="mnemonic-text">bridge</div></div>
+                <div class="mnemonic-word"><div class="mnemonic-idx">8</div><div class="mnemonic-text">layer</div></div>
+                <div class="mnemonic-word"><div class="mnemonic-idx">9</div><div class="mnemonic-text">stake</div></div>
+                <div class="mnemonic-word"><div class="mnemonic-idx">10</div><div class="mnemonic-text">yield</div></div>
+                <div class="mnemonic-word"><div class="mnemonic-idx">11</div><div class="mnemonic-text">reward</div></div>
+                <div class="mnemonic-word"><div class="mnemonic-idx">12</div><div class="mnemonic-text">trust</div></div>
+            </div>
+            <div class="mnemonic-blur" id="mnemonicBlur" onclick="revealMnemonic()">
+                <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                <div class="mnemonic-blur-text">点击显示助记词</div>
+                <div class="mnemonic-blur-sub">请确保周围无人旁观</div>
+            </div>
+        </div>
+        <button class="copy-btn" onclick="copyMnemonic()">
+            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            复制助记词
+        </button>
+    </div>
+
+    <!-- 私钥展示 -->
+    <div class="mnemonic-section" id="privateKeySection">
+        <div class="section-header"><h3>我的私钥</h3><span class="badge" style="background:rgba(239,68,68,0.1);color:#EF4444;">高度机密</span></div>
+        <div class="mnemonic-blur-wrap">
+            <div style="background:rgba(248,247,255,0.9);border:1.5px solid rgba(124,58,237,0.1);border-radius:22px;padding:20px;">
+                <div id="privateKeyText" style="font-family:'SF Mono',monospace;font-size:0.72rem;color:#2D1B69;word-break:break-all;line-height:1.8;font-weight:600;">
+                    0x4f3edf983ac636a65a842ce7c78d9aa706d3b113f538d1f2e6b5e9d8c7a4b2e1
+                </div>
+            </div>
+            <div class="mnemonic-blur" id="privateKeyBlur" onclick="revealPrivateKey()">
+                <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                <div class="mnemonic-blur-text">点击显示私钥</div>
+                <div class="mnemonic-blur-sub">请确保周围无人旁观</div>
+            </div>
+        </div>
+        <button class="copy-btn" onclick="copyPrivateKey()">
+            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            复制私钥
+        </button>
+    </div>
+
+    <!-- 已备份确认 -->
+    <button class="confirm-btn" onclick="confirmBackup()">我已安全备份，继续</button>
+
+    <div style="height: 100px;"></div>
+</div>
+
+<div id="backupToast"></div>
+
+<div class="bottom-nav">
+    <a href="index.html" class="nav-item"><div class="nav-icon">🏠</div><span>首页</span></a>
+    <a href="stake.html" class="nav-item"><div class="nav-icon">💎</div><span>质押</span></a>
+    <a href="contest.html" class="nav-item"><div class="nav-icon">🏆</div><span>交易赛</span></a>
+    <a href="im.html" class="nav-item"><div class="nav-icon">💬</div><span>IM</span></a>
+    <a href="wallet.html" class="nav-item"><div class="nav-icon">👛</div><span>钱包</span></a>
+</div>
+
+<script src="common.js"></script>
+<script src="nav.js"></script>
+<script>
+let currentType = 'mnemonic';
+
+function selectType(type) {
+    currentType = type;
+    document.getElementById('mnemonicCard').classList.toggle('selected', type === 'mnemonic');
+    document.getElementById('privateKeyCard').classList.toggle('selected', type === 'privateKey');
+    document.getElementById('mnemonicSection').classList.toggle('show', type === 'mnemonic');
+    document.getElementById('privateKeySection').classList.toggle('show', type === 'privateKey');
+}
+
+function revealMnemonic() {
+    document.getElementById('mnemonicBlur').style.display = 'none';
+}
+
+function revealPrivateKey() {
+    document.getElementById('privateKeyBlur').style.display = 'none';
+}
+
+function copyMnemonic() {
+    const words = ['ocean','dolphin','wallet','secure','token','chain','bridge','layer','stake','yield','reward','trust'];
+    navigator.clipboard?.writeText(words.join(' ')).catch(() => {});
+    showToast('助记词已复制到剪贴板');
+}
+
+function copyPrivateKey() {
+    const key = '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113f538d1f2e6b5e9d8c7a4b2e1';
+    navigator.clipboard?.writeText(key).catch(() => {});
+    showToast('私钥已复制到剪贴板');
+}
+
+function confirmBackup() {
+    showToast('备份已确认，请妥善保管');
+    setTimeout(() => history.back(), 1500);
+}
+
+let toastTimer;
+function showToast(msg) {
+    const el = document.getElementById('backupToast');
+    el.textContent = msg;
+    el.style.opacity = '1';
+    el.style.transform = 'translateX(-50%) translateY(0)';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateX(-50%) translateY(20px)';
+    }, 2200);
+}
+</script>
+</body>
+</html>

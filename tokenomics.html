@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>海豚社区 - 社区模型</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .page-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 0 20px;
+        }
+        .back-btn {
+            width: 40px; height: 40px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.7);
+            border: 1px solid rgba(255,255,255,0.9);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(45,27,105,0.08);
+            flex-shrink: 0;
+        }
+        .back-btn svg { width: 18px; height: 18px; stroke: #2D1B69; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+        .page-title { font-size: 1.15rem; font-weight: 800; color: #2D1B69; }
+
+        /* Token 英雄卡 */
+        .token-hero {
+            background: linear-gradient(145deg, #0d0628, #1a0a52, #2d1b69, #4c1d95);
+            border-radius: 32px;
+            padding: 28px 24px;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+        }
+        .token-hero::before {
+            content: '';
+            position: absolute;
+            top: -60px; left: 50%;
+            transform: translateX(-50%);
+            width: 280px; height: 280px;
+            background: radial-gradient(circle, rgba(168,85,247,0.25) 0%, transparent 65%);
+            border-radius: 50%;
+        }
+        .token-logo {
+            width: 80px; height: 80px;
+            border-radius: 28px;
+            background: linear-gradient(135deg, #4C1D95, #7C3AED, #A855F7);
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 16px;
+            position: relative; z-index: 1;
+            box-shadow: 0 16px 40px rgba(124,58,237,0.4), 0 0 0 1px rgba(255,255,255,0.1) inset;
+        }
+        .token-logo-text {
+            font-size: 2rem;
+            font-weight: 900;
+            color: white;
+            font-family: 'SF Pro Display', system-ui;
+            letter-spacing: -1px;
+        }
+        .token-name {
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: white;
+            position: relative; z-index: 1;
+            margin-bottom: 4px;
+        }
+        .token-desc {
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.45);
+            position: relative; z-index: 1;
+            margin-bottom: 20px;
+        }
+        .token-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 18px;
+            position: relative; z-index: 1;
+        }
+        .token-stat { text-align: center; position: relative; }
+        .token-stat + .token-stat::before {
+            content: '';
+            position: absolute; left: 0; top: 10%; height: 80%;
+            width: 1px; background: rgba(255,255,255,0.1);
+        }
+        .token-stat-val { font-size: 0.95rem; font-weight: 800; color: white; }
+        .token-stat-lbl { font-size: 0.62rem; color: rgba(255,255,255,0.4); margin-top: 3px; }
+
+        /* 代币分配饼图 */
+        .pie-card {
+            background: rgba(255,255,255,0.78);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255,255,255,0.9);
+            border-radius: 28px;
+            padding: 22px 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 6px 24px rgba(45,27,105,0.07);
+        }
+        .pie-title {
+            font-size: 0.92rem;
+            font-weight: 800;
+            color: #2D1B69;
+            margin-bottom: 20px;
+        }
+        .pie-wrap {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        canvas#pieChart {
+            width: 130px !important;
+            height: 130px !important;
+            flex-shrink: 0;
+        }
+        .pie-legend { flex: 1; }
+        .pie-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .pie-legend-item:last-child { margin-bottom: 0; }
+        .pie-dot {
+            width: 10px; height: 10px;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+        .pie-legend-name { font-size: 0.78rem; font-weight: 700; color: #2D1B69; flex: 1; }
+        .pie-legend-pct { font-size: 0.78rem; font-weight: 800; color: var(--primary); }
+
+        /* 经济循环图 */
+        .cycle-card {
+            background: rgba(255,255,255,0.78);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255,255,255,0.9);
+            border-radius: 28px;
+            padding: 22px 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 6px 24px rgba(45,27,105,0.07);
+        }
+        .cycle-title { font-size: 0.92rem; font-weight: 800; color: #2D1B69; margin-bottom: 18px; }
+        .cycle-flow {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+        .cycle-node {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            position: relative;
+        }
+        .cycle-node::before {
+            content: '';
+            position: absolute;
+            left: 19px;
+            top: 44px;
+            width: 2px;
+            height: calc(100% - 10px);
+            background: linear-gradient(180deg, rgba(124,58,237,0.3), rgba(124,58,237,0.05));
+        }
+        .cycle-node:last-child::before { display: none; }
+        .cycle-icon-wrap {
+            width: 40px; height: 40px;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            position: relative; z-index: 1;
+        }
+        .cycle-icon-wrap svg { width: 20px; height: 20px; }
+        .cycle-content { flex: 1; padding-bottom: 20px; }
+        .cycle-node-title { font-size: 0.88rem; font-weight: 800; color: #2D1B69; margin-bottom: 4px; }
+        .cycle-node-desc { font-size: 0.75rem; color: var(--text-muted); line-height: 1.5; }
+        .cycle-node-badge {
+            display: inline-block;
+            background: rgba(124,58,237,0.08);
+            color: var(--primary);
+            font-size: 0.68rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 40px;
+            margin-top: 6px;
+        }
+
+        /* 利率规则表 */
+        .rate-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .rate-table th {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            padding: 8px 0;
+            text-align: left;
+            border-bottom: 1px solid rgba(124,58,237,0.08);
+        }
+        .rate-table td {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #2D1B69;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(124,58,237,0.05);
+        }
+        .rate-table tr:last-child td { border-bottom: none; }
+        .rate-table td.highlight { color: var(--primary); font-weight: 800; }
+        .rate-table td.green { color: #10B981; font-weight: 800; }
+
+        /* 销毁机制 */
+        .burn-card {
+            background: linear-gradient(135deg, rgba(239,68,68,0.06), rgba(252,165,165,0.08));
+            border: 1px solid rgba(239,68,68,0.12);
+            border-radius: 24px;
+            padding: 18px 20px;
+            margin-bottom: 16px;
+        }
+        .burn-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+        .burn-icon {
+            width: 38px; height: 38px;
+            border-radius: 13px;
+            background: rgba(239,68,68,0.1);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .burn-icon svg { width: 20px; height: 20px; stroke: #EF4444; fill: none; stroke-width: 2; stroke-linecap: round; }
+        .burn-title { font-size: 0.92rem; font-weight: 800; color: #2D1B69; }
+        .burn-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .burn-stat {
+            background: rgba(255,255,255,0.6);
+            border-radius: 16px;
+            padding: 12px;
+            text-align: center;
+        }
+        .burn-stat-val { font-size: 1rem; font-weight: 800; color: #EF4444; }
+        .burn-stat-lbl { font-size: 0.65rem; color: var(--text-muted); margin-top: 3px; }
+    </style>
+</head>
+<body>
+<div class="ambient-bg"></div>
+<div class="container">
+
+    <!-- 顶部导航 -->
+    <div class="page-header">
+        <div class="back-btn" onclick="history.back()">
+            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        </div>
+        <div class="page-title">社区模型</div>
+    </div>
+
+    <!-- Token 英雄卡 -->
+    <div class="token-hero">
+        <div class="token-logo">
+            <div class="token-logo-text">H</div>
+        </div>
+        <div class="token-name">H Token</div>
+        <div class="token-desc">海豚社区原生代币 · X Layer 公链发行</div>
+        <div class="token-stats">
+            <div class="token-stat">
+                <div class="token-stat-val">10亿</div>
+                <div class="token-stat-lbl">总发行量</div>
+            </div>
+            <div class="token-stat">
+                <div class="token-stat-val">9,230万</div>
+                <div class="token-stat-lbl">奖励池剩余</div>
+            </div>
+            <div class="token-stat">
+                <div class="token-stat-val" style="color:#FCA5A5;">1,200万</div>
+                <div class="token-stat-lbl">累计销毁</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 代币分配 -->
+    <div class="pie-card">
+        <div class="pie-title">代币分配结构</div>
+        <div class="pie-wrap">
+            <canvas id="pieChart" width="130" height="130"></canvas>
+            <div class="pie-legend">
+                <div class="pie-legend-item">
+                    <div class="pie-dot" style="background:#7C3AED;"></div>
+                    <span class="pie-legend-name">质押奖励池</span>
+                    <span class="pie-legend-pct">40%</span>
+                </div>
+                <div class="pie-legend-item">
+                    <div class="pie-dot" style="background:#10B981;"></div>
+                    <span class="pie-legend-name">流通市场</span>
+                    <span class="pie-legend-pct">30%</span>
+                </div>
+                <div class="pie-legend-item">
+                    <div class="pie-dot" style="background:#F59E0B;"></div>
+                    <span class="pie-legend-name">团队推荐奖励</span>
+                    <span class="pie-legend-pct">15%</span>
+                </div>
+                <div class="pie-legend-item">
+                    <div class="pie-dot" style="background:#3B82F6;"></div>
+                    <span class="pie-legend-name">交易赛奖励</span>
+                    <span class="pie-legend-pct">10%</span>
+                </div>
+                <div class="pie-legend-item">
+                    <div class="pie-dot" style="background:#EF4444;"></div>
+                    <span class="pie-legend-name">生态建设</span>
+                    <span class="pie-legend-pct">5%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 经济循环 -->
+    <div class="cycle-card">
+        <div class="cycle-title">经济循环模型</div>
+        <div class="cycle-flow">
+            <div class="cycle-node">
+                <div class="cycle-icon-wrap" style="background:rgba(124,58,237,0.1);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                </div>
+                <div class="cycle-content">
+                    <div class="cycle-node-title">用户入场</div>
+                    <div class="cycle-node-desc">用户通过 OKX 钱包连接，在 X Layer 链上购买 H Token，加入海豚社区。</div>
+                    <div class="cycle-node-badge">OKX 钱包 · X Layer</div>
+                </div>
+            </div>
+            <div class="cycle-node">
+                <div class="cycle-icon-wrap" style="background:rgba(16,185,129,0.1);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6L12 2z"/></svg>
+                </div>
+                <div class="cycle-content">
+                    <div class="cycle-node-title">质押生息</div>
+                    <div class="cycle-node-desc">质押 H 赚 USDT，质押 USDT 赚 H。阶梯利率最高 1.0%/日，持仓越久利率越高。</div>
+                    <div class="cycle-node-badge">最高 1.0%/日 · 365% APY</div>
+                </div>
+            </div>
+            <div class="cycle-node">
+                <div class="cycle-icon-wrap" style="background:rgba(245,158,11,0.1);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+                </div>
+                <div class="cycle-content">
+                    <div class="cycle-node-title">邀请裂变</div>
+                    <div class="cycle-node-desc">邀请好友加入可获得推荐奖励，形成两级团队结构，团队交易量越大奖励越多。</div>
+                    <div class="cycle-node-badge">两级团队 · 持续分润</div>
+                </div>
+            </div>
+            <div class="cycle-node">
+                <div class="cycle-icon-wrap" style="background:rgba(59,130,246,0.1);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round"><path d="M8 21h8M12 17v4M7 4H4a1 1 0 00-1 1v3a5 5 0 005 5h0M17 4h3a1 1 0 011 1v3a5 5 0 01-5 5h0"/><path d="M7 4h10v8a5 5 0 01-10 0V4z"/></svg>
+                </div>
+                <div class="cycle-content">
+                    <div class="cycle-node-title">交易赛竞技</div>
+                    <div class="cycle-node-desc">每期交易赛按交易量排名，前100名瓜分奖励池，激励用户持续活跃交易。</div>
+                    <div class="cycle-node-badge">每期奖励池 · 排名瓜分</div>
+                </div>
+            </div>
+            <div class="cycle-node">
+                <div class="cycle-icon-wrap" style="background:rgba(239,68,68,0.1);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <div class="cycle-content">
+                    <div class="cycle-node-title">通缩销毁</div>
+                    <div class="cycle-node-desc">每笔交易手续费的 50% 用于回购销毁 H Token，持续减少流通量，支撑代币价值。</div>
+                    <div class="cycle-node-badge">手续费 50% 销毁</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 利率规则 -->
+    <div class="section-header"><h3>阶梯利率规则</h3><span class="badge">H & U 双向</span></div>
+    <div class="card" style="padding:16px 20px;">
+        <table class="rate-table">
+            <thead>
+                <tr>
+                    <th>质押时长</th>
+                    <th>日利率</th>
+                    <th>年化 APY</th>
+                    <th>适用方向</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1 - 7 天</td>
+                    <td class="highlight">0.5%</td>
+                    <td>182.5%</td>
+                    <td>H↔U 双向</td>
+                </tr>
+                <tr>
+                    <td>8 - 16 天</td>
+                    <td class="highlight">0.6%</td>
+                    <td>219%</td>
+                    <td>H↔U 双向</td>
+                </tr>
+                <tr>
+                    <td>17 - 30 天</td>
+                    <td class="highlight">0.7%</td>
+                    <td>255.5%</td>
+                    <td>H↔U 双向</td>
+                </tr>
+                <tr>
+                    <td>31 - 60 天</td>
+                    <td class="highlight">0.8%</td>
+                    <td>292%</td>
+                    <td>H↔U 双向</td>
+                </tr>
+                <tr>
+                    <td>≥ 61 天</td>
+                    <td class="green">1.0%</td>
+                    <td class="green">365%</td>
+                    <td>H↔U 双向</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 销毁机制 -->
+    <div class="burn-card">
+        <div class="burn-header">
+            <div class="burn-icon">
+                <svg viewBox="0 0 24 24"><path d="M12 2c0 0-5 4-5 10a5 5 0 0010 0c0-6-5-10-5-10z"/><path d="M12 12c0 0-2 1.5-2 3a2 2 0 004 0c0-1.5-2-3-2-3z"/></svg>
+            </div>
+            <div class="burn-title">通缩销毁机制</div>
+        </div>
+        <div class="burn-stats">
+            <div class="burn-stat">
+                <div class="burn-stat-val">1,200万</div>
+                <div class="burn-stat-lbl">累计销毁 H</div>
+            </div>
+            <div class="burn-stat">
+                <div class="burn-stat-val">1.2%</div>
+                <div class="burn-stat-lbl">已销毁比例</div>
+            </div>
+        </div>
+    </div>
+
+    <div style="height: 100px;"></div>
+</div>
+
+<div class="bottom-nav">
+    <a href="index.html" class="nav-item"><div class="nav-icon">🏠</div><span>首页</span></a>
+    <a href="stake.html" class="nav-item"><div class="nav-icon">💎</div><span>质押</span></a>
+    <a href="contest.html" class="nav-item"><div class="nav-icon">🏆</div><span>交易赛</span></a>
+    <a href="im.html" class="nav-item"><div class="nav-icon">💬</div><span>IM</span></a>
+    <a href="wallet.html" class="nav-item"><div class="nav-icon">👛</div><span>钱包</span></a>
+</div>
+
+<script src="common.js"></script>
+<script src="nav.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const canvas = document.getElementById('pieChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = 130 * dpr;
+    canvas.height = 130 * dpr;
+    ctx.scale(dpr, dpr);
+
+    const data = [
+        { pct: 0.40, color: '#7C3AED' },
+        { pct: 0.30, color: '#10B981' },
+        { pct: 0.15, color: '#F59E0B' },
+        { pct: 0.10, color: '#3B82F6' },
+        { pct: 0.05, color: '#EF4444' },
+    ];
+
+    const cx = 65, cy = 65, r = 52, innerR = 32;
+    let startAngle = -Math.PI / 2;
+
+    data.forEach(d => {
+        const angle = d.pct * 2 * Math.PI;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, r, startAngle, startAngle + angle);
+        ctx.closePath();
+        ctx.fillStyle = d.color;
+        ctx.fill();
+        startAngle += angle;
+    });
+
+    // 中心挖空
+    ctx.beginPath();
+    ctx.arc(cx, cy, innerR, 0, Math.PI * 2);
+    ctx.fillStyle = 'white';
+    ctx.fill();
+
+    // 中心文字
+    ctx.fillStyle = '#2D1B69';
+    ctx.font = `bold ${14 * dpr}px system-ui`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.scale(1/dpr, 1/dpr);
+    ctx.fillText('10亿', cx * dpr, (cy - 8) * dpr);
+    ctx.font = `${10 * dpr}px system-ui`;
+    ctx.fillStyle = '#94A3B8';
+    ctx.fillText('总发行', cx * dpr, (cy + 10) * dpr);
+});
+</script>
+</body>
+</html>

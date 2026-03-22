@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>海豚社区 - 数据总览</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .page-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 0 20px;
+        }
+        .back-btn {
+            width: 40px; height: 40px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.7);
+            border: 1px solid rgba(255,255,255,0.9);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(45,27,105,0.08);
+            flex-shrink: 0;
+        }
+        .back-btn svg { width: 18px; height: 18px; stroke: #2D1B69; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+        .page-title { font-size: 1.15rem; font-weight: 800; color: #2D1B69; }
+        .live-badge {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(16,185,129,0.1);
+            border: 1px solid rgba(16,185,129,0.2);
+            border-radius: 40px;
+            padding: 5px 12px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #10B981;
+        }
+        .live-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: #10B981;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        /* 核心指标大卡 */
+        .core-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .metric-card {
+            background: rgba(255,255,255,0.78);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255,255,255,0.9);
+            border-radius: 24px;
+            padding: 18px 16px;
+            box-shadow: 0 4px 16px rgba(45,27,105,0.07);
+            position: relative;
+            overflow: hidden;
+        }
+        .metric-card.full { grid-column: span 2; }
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: -20px; right: -20px;
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            opacity: 0.08;
+        }
+        .metric-card.purple::before { background: #7C3AED; }
+        .metric-card.green::before { background: #10B981; }
+        .metric-card.gold::before { background: #F59E0B; }
+        .metric-card.blue::before { background: #3B82F6; }
+        .metric-icon {
+            width: 36px; height: 36px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 10px;
+        }
+        .metric-icon svg { width: 18px; height: 18px; }
+        .metric-val {
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: #2D1B69;
+            font-family: 'SF Mono', monospace;
+            letter-spacing: -0.5px;
+        }
+        .metric-lbl {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+            font-weight: 600;
+        }
+        .metric-change {
+            font-size: 0.72rem;
+            font-weight: 700;
+            margin-top: 6px;
+        }
+        .metric-change.up { color: #10B981; }
+        .metric-change.down { color: #EF4444; }
+
+        /* TVL 英雄卡 */
+        .tvl-hero {
+            background: linear-gradient(145deg, #0d0628, #1a0a52, #2d1b69);
+            border-radius: 32px;
+            padding: 26px 24px;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+        .tvl-hero::before {
+            content: '';
+            position: absolute;
+            top: -50px; right: -50px;
+            width: 200px; height: 200px;
+            background: radial-gradient(circle, rgba(124,58,237,0.3) 0%, transparent 65%);
+            border-radius: 50%;
+        }
+        .tvl-hero::after {
+            content: '';
+            position: absolute;
+            bottom: -40px; left: -30px;
+            width: 160px; height: 160px;
+            background: radial-gradient(circle, rgba(16,185,129,0.2) 0%, transparent 65%);
+            border-radius: 50%;
+        }
+        .tvl-label { font-size: 0.72rem; font-weight: 600; color: rgba(255,255,255,0.45); letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 6px; position: relative; z-index: 1; }
+        .tvl-val { font-size: 2.2rem; font-weight: 900; color: white; font-family: monospace; letter-spacing: -1px; position: relative; z-index: 1; }
+        .tvl-sub { font-size: 0.75rem; color: rgba(255,255,255,0.4); margin-top: 4px; margin-bottom: 20px; position: relative; z-index: 1; }
+        .tvl-bars {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            position: relative; z-index: 1;
+        }
+        .tvl-bar-item {
+            background: rgba(255,255,255,0.07);
+            border-radius: 16px;
+            padding: 12px;
+        }
+        .tvl-bar-top {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        .tvl-bar-wrap {
+            background: rgba(255,255,255,0.1);
+            border-radius: 40px;
+            height: 5px;
+            overflow: hidden;
+            margin-bottom: 6px;
+        }
+        .tvl-bar-fill { height: 100%; border-radius: 40px; }
+        .tvl-bar-val { font-size: 0.88rem; font-weight: 800; color: white; }
+
+        /* 趋势图 */
+        .trend-card {
+            background: rgba(255,255,255,0.78);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255,255,255,0.9);
+            border-radius: 28px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 6px 24px rgba(45,27,105,0.07);
+        }
+        .trend-title {
+            font-size: 0.88rem;
+            font-weight: 800;
+            color: #2D1B69;
+            margin-bottom: 16px;
+        }
+        canvas.trend-chart { width: 100%; height: 100px; display: block; }
+
+        /* 社区活跃度 */
+        .activity-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .activity-item {
+            background: rgba(255,255,255,0.78);
+            border: 1px solid rgba(255,255,255,0.9);
+            border-radius: 20px;
+            padding: 14px 10px;
+            text-align: center;
+            box-shadow: 0 3px 12px rgba(45,27,105,0.06);
+        }
+        .activity-val { font-size: 1.05rem; font-weight: 800; color: #2D1B69; }
+        .activity-lbl { font-size: 0.62rem; color: var(--text-muted); margin-top: 4px; }
+
+        /* 排行榜 */
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(124,58,237,0.05);
+        }
+        .leaderboard-item:last-child { border-bottom: none; }
+        .lb-rank {
+            width: 28px; height: 28px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.78rem;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+        .lb-rank.gold { background: linear-gradient(135deg, #F59E0B, #FCD34D); color: white; }
+        .lb-rank.silver { background: linear-gradient(135deg, #94A3B8, #CBD5E1); color: white; }
+        .lb-rank.bronze { background: linear-gradient(135deg, #B45309, #D97706); color: white; }
+        .lb-rank.normal { background: rgba(124,58,237,0.08); color: var(--primary); }
+        .lb-avatar {
+            width: 36px; height: 36px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #2D1B69, #7C3AED);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.72rem; font-weight: 800; color: white;
+            flex-shrink: 0;
+        }
+        .lb-info { flex: 1; }
+        .lb-name { font-size: 0.85rem; font-weight: 700; color: #2D1B69; }
+        .lb-sub { font-size: 0.65rem; color: var(--text-muted); margin-top: 2px; }
+        .lb-val { font-size: 0.88rem; font-weight: 800; color: var(--primary); }
+    </style>
+</head>
+<body>
+<div class="ambient-bg"></div>
+<div class="container">
+
+    <!-- 顶部导航 -->
+    <div class="page-header">
+        <div class="back-btn" onclick="history.back()">
+            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        </div>
+        <div class="page-title">数据总览</div>
+        <div class="live-badge"><div class="live-dot"></div>实时</div>
+    </div>
+
+    <!-- TVL 英雄卡 -->
+    <div class="tvl-hero">
+        <div class="tvl-label">Total Value Locked</div>
+        <div class="tvl-val" id="tvlVal">$1,425,800</div>
+        <div class="tvl-sub">全网质押总价值 · 每15秒更新</div>
+        <div class="tvl-bars">
+            <div class="tvl-bar-item">
+                <div class="tvl-bar-top"><span>H 质押</span><span>71%</span></div>
+                <div class="tvl-bar-wrap"><div class="tvl-bar-fill" style="width:71%;background:linear-gradient(90deg,#7C3AED,#A855F7);"></div></div>
+                <div class="tvl-bar-val">720万 H</div>
+            </div>
+            <div class="tvl-bar-item">
+                <div class="tvl-bar-top"><span>U 质押</span><span>29%</span></div>
+                <div class="tvl-bar-wrap"><div class="tvl-bar-fill" style="width:29%;background:linear-gradient(90deg,#10B981,#34D399);"></div></div>
+                <div class="tvl-bar-val">2.85万 U</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 核心指标 -->
+    <div class="core-metrics">
+        <div class="metric-card purple">
+            <div class="metric-icon" style="background:rgba(124,58,237,0.1);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+            </div>
+            <div class="metric-val" id="memberCount">8,420</div>
+            <div class="metric-lbl">社区总成员</div>
+            <div class="metric-change up">↑ +128 今日</div>
+        </div>
+        <div class="metric-card green">
+            <div class="metric-icon" style="background:rgba(16,185,129,0.1);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
+            <div class="metric-val" id="activeCount">1,247</div>
+            <div class="metric-lbl">今日活跃</div>
+            <div class="metric-change up">↑ +8.3%</div>
+        </div>
+        <div class="metric-card gold">
+            <div class="metric-icon" style="background:rgba(245,158,11,0.1);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6L12 2z"/></svg>
+            </div>
+            <div class="metric-val">9,230万</div>
+            <div class="metric-lbl">奖励池 H</div>
+            <div class="metric-change down">↓ -2.1% 今日</div>
+        </div>
+        <div class="metric-card blue">
+            <div class="metric-icon" style="background:rgba(59,130,246,0.1);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="16" rx="2"/><path d="M2 10h20"/></svg>
+            </div>
+            <div class="metric-val">1.26万</div>
+            <div class="metric-lbl">国库余额 U</div>
+            <div class="metric-change up">↑ +324 今日</div>
+        </div>
+    </div>
+
+    <!-- TVL 趋势 -->
+    <div class="trend-card">
+        <div class="trend-title">TVL 30日趋势</div>
+        <canvas class="trend-chart" id="tvlChart"></canvas>
+    </div>
+
+    <!-- 社区活跃度 -->
+    <div class="section-header"><h3>社区活跃度</h3><span class="badge">今日</span></div>
+    <div class="activity-grid">
+        <div class="activity-item">
+            <div class="activity-val">3,842</div>
+            <div class="activity-lbl">IM 消息数</div>
+        </div>
+        <div class="activity-item">
+            <div class="activity-val">287</div>
+            <div class="activity-lbl">新增质押</div>
+        </div>
+        <div class="activity-item">
+            <div class="activity-val">156</div>
+            <div class="activity-lbl">新增成员</div>
+        </div>
+        <div class="activity-item">
+            <div class="activity-val">423</div>
+            <div class="activity-lbl">交易笔数</div>
+        </div>
+        <div class="activity-item">
+            <div class="activity-val">89</div>
+            <div class="activity-lbl">收益领取</div>
+        </div>
+        <div class="activity-item">
+            <div class="activity-val">34</div>
+            <div class="activity-lbl">邀请成功</div>
+        </div>
+    </div>
+
+    <!-- 质押量趋势 -->
+    <div class="trend-card">
+        <div class="trend-title">质押人数 30日趋势</div>
+        <canvas class="trend-chart" id="stakeChart"></canvas>
+    </div>
+
+    <!-- 质押排行榜 -->
+    <div class="section-header"><h3>质押量排行榜</h3><span class="badge">Top 5</span></div>
+    <div class="card" style="padding:16px 20px;">
+        <div class="leaderboard-item">
+            <div class="lb-rank gold">1</div>
+            <div class="lb-avatar">W</div>
+            <div class="lb-info">
+                <div class="lb-name">0x71C...e4c2</div>
+                <div class="lb-sub">质押 68 天 · 最高档</div>
+            </div>
+            <div class="lb-val">850,000 H</div>
+        </div>
+        <div class="leaderboard-item">
+            <div class="lb-rank silver">2</div>
+            <div class="lb-avatar">D</div>
+            <div class="lb-info">
+                <div class="lb-name">0x3aF...b821</div>
+                <div class="lb-sub">质押 52 天 · 最高档</div>
+            </div>
+            <div class="lb-val">620,000 H</div>
+        </div>
+        <div class="leaderboard-item">
+            <div class="lb-rank bronze">3</div>
+            <div class="lb-avatar">S</div>
+            <div class="lb-info">
+                <div class="lb-name">0x9bC...f234</div>
+                <div class="lb-sub">质押 45 天 · 第4档</div>
+            </div>
+            <div class="lb-val">480,000 H</div>
+        </div>
+        <div class="leaderboard-item">
+            <div class="lb-rank normal">4</div>
+            <div class="lb-avatar">M</div>
+            <div class="lb-info">
+                <div class="lb-name">0x2eD...a109</div>
+                <div class="lb-sub">质押 38 天 · 第4档</div>
+            </div>
+            <div class="lb-val">320,000 H</div>
+        </div>
+        <div class="leaderboard-item">
+            <div class="lb-rank normal">5</div>
+            <div class="lb-avatar">H</div>
+            <div class="lb-info">
+                <div class="lb-name">0x5fA...c567</div>
+                <div class="lb-sub">质押 29 天 · 第3档</div>
+            </div>
+            <div class="lb-val">210,000 H</div>
+        </div>
+    </div>
+
+    <div style="height: 100px;"></div>
+</div>
+
+<div class="bottom-nav">
+    <a href="index.html" class="nav-item"><div class="nav-icon">🏠</div><span>首页</span></a>
+    <a href="stake.html" class="nav-item"><div class="nav-icon">💎</div><span>质押</span></a>
+    <a href="contest.html" class="nav-item"><div class="nav-icon">🏆</div><span>交易赛</span></a>
+    <a href="im.html" class="nav-item"><div class="nav-icon">💬</div><span>IM</span></a>
+    <a href="wallet.html" class="nav-item"><div class="nav-icon">👛</div><span>钱包</span></a>
+</div>
+
+<script src="common.js"></script>
+<script src="nav.js"></script>
+<script>
+function drawTrendChart(canvasId, data, color1, color2) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    ctx.scale(dpr, dpr);
+
+    const pad = { top: 8, bottom: 8, left: 4, right: 4 };
+    const cw = w - pad.left - pad.right;
+    const ch = h - pad.top - pad.bottom;
+    const maxVal = Math.max(...data);
+    const minVal = Math.min(...data) * 0.95;
+    const range = maxVal - minVal || 1;
+
+    ctx.clearRect(0, 0, w, h);
+
+    // 渐变面积
+    const grad = ctx.createLinearGradient(0, pad.top, 0, h);
+    grad.addColorStop(0, color1 + '28');
+    grad.addColorStop(1, color1 + '00');
+
+    ctx.beginPath();
+    data.forEach((v, i) => {
+        const x = pad.left + (i / (data.length - 1)) * cw;
+        const y = pad.top + ch - ((v - minVal) / range) * ch;
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+    ctx.lineTo(pad.left + cw, pad.top + ch);
+    ctx.lineTo(pad.left, pad.top + ch);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // 折线
+    ctx.beginPath();
+    ctx.strokeStyle = color1;
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    data.forEach((v, i) => {
+        const x = pad.left + (i / (data.length - 1)) * cw;
+        const y = pad.top + ch - ((v - minVal) / range) * ch;
+        if (i === 0) ctx.moveTo(x, y);
+        else {
+            const px = pad.left + ((i-1) / (data.length - 1)) * cw;
+            const py = pad.top + ch - ((data[i-1] - minVal) / range) * ch;
+            const cpx = (px + x) / 2;
+            ctx.bezierCurveTo(cpx, py, cpx, y, x, y);
+        }
+    });
+    ctx.stroke();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const tvlData = Array.from({length: 30}, (_, i) => 1200000 + i * 8000 + Math.sin(i/3) * 30000);
+    const stakeData = Array.from({length: 30}, (_, i) => 3200 + i * 40 + Math.sin(i/4) * 80);
+    drawTrendChart('tvlChart', tvlData, '#7C3AED', '#A855F7');
+    drawTrendChart('stakeChart', stakeData, '#10B981', '#34D399');
+
+    // 实时数据接入
+    if (typeof fetchOnChainPrice === 'function') {
+        fetchOnChainPrice();
+    }
+});
+</script>
+</body>
+</html>

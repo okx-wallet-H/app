@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>海豚社区 - 盈亏分析</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .page-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 0 20px;
+        }
+        .back-btn {
+            width: 40px; height: 40px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.7);
+            border: 1px solid rgba(255,255,255,0.9);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(45,27,105,0.08);
+            flex-shrink: 0;
+        }
+        .back-btn svg { width: 18px; height: 18px; stroke: #2D1B69; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+        .page-title { font-size: 1.15rem; font-weight: 800; color: #2D1B69; }
+
+        /* 总盈亏英雄卡 */
+        .pnl-hero {
+            background: linear-gradient(145deg, #0d0628, #1a0a52, #2d1b69);
+            border-radius: 32px;
+            padding: 28px 24px;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+        .pnl-hero::before {
+            content: '';
+            position: absolute;
+            top: -60px; right: -60px;
+            width: 220px; height: 220px;
+            background: radial-gradient(circle, rgba(16,185,129,0.2) 0%, transparent 65%);
+            border-radius: 50%;
+        }
+        .pnl-hero-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: rgba(255,255,255,0.45);
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .pnl-hero-val {
+            font-size: 2.6rem;
+            font-weight: 900;
+            font-family: 'SF Mono', monospace;
+            letter-spacing: -1.5px;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+        .pnl-hero-val.profit { color: #6EE7B7; text-shadow: 0 0 30px rgba(110,231,183,0.3); }
+        .pnl-hero-val.loss { color: #FCA5A5; }
+        .pnl-hero-sub {
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 22px;
+        }
+        .pnl-hero-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 18px;
+        }
+        .pnl-hero-stat { text-align: center; position: relative; }
+        .pnl-hero-stat + .pnl-hero-stat::before {
+            content: '';
+            position: absolute; left: 0; top: 10%; height: 80%;
+            width: 1px; background: rgba(255,255,255,0.1);
+        }
+        .pnl-stat-val { font-size: 0.95rem; font-weight: 800; color: white; }
+        .pnl-stat-val.green { color: #6EE7B7; }
+        .pnl-stat-val.red { color: #FCA5A5; }
+        .pnl-stat-lbl { font-size: 0.62rem; color: rgba(255,255,255,0.4); margin-top: 3px; }
+
+        /* 时间筛选 */
+        .time-filter {
+            display: flex;
+            background: rgba(124,58,237,0.06);
+            border-radius: 18px;
+            padding: 3px;
+            margin-bottom: 16px;
+        }
+        .time-btn {
+            flex: 1;
+            text-align: center;
+            padding: 8px 4px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .time-btn.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 3px 10px rgba(45,27,105,0.1);
+        }
+
+        /* 折线图卡 */
+        .chart-card {
+            background: rgba(255,255,255,0.78);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255,255,255,0.9);
+            border-radius: 28px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 6px 24px rgba(45,27,105,0.07);
+        }
+        .chart-card-title {
+            font-size: 0.88rem;
+            font-weight: 800;
+            color: #2D1B69;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .chart-legend {
+            display: flex;
+            gap: 12px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+        .legend-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+        }
+        canvas.pnl-chart {
+            width: 100%;
+            height: 120px;
+            display: block;
+        }
+
+        /* 资产分布 */
+        .asset-dist {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .asset-dist-item {
+            background: rgba(255,255,255,0.78);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.9);
+            border-radius: 22px;
+            padding: 16px;
+            box-shadow: 0 4px 16px rgba(45,27,105,0.06);
+        }
+        .asset-dist-icon {
+            width: 38px; height: 38px;
+            border-radius: 13px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 10px;
+        }
+        .asset-dist-icon svg { width: 20px; height: 20px; }
+        .asset-dist-val { font-size: 1.05rem; font-weight: 800; color: #2D1B69; }
+        .asset-dist-lbl { font-size: 0.68rem; color: var(--text-muted); margin-top: 3px; }
+        .asset-dist-change { font-size: 0.72rem; font-weight: 700; margin-top: 4px; }
+        .asset-dist-change.up { color: #10B981; }
+        .asset-dist-change.down { color: #EF4444; }
+
+        /* 交易明细 */
+        .trade-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(124,58,237,0.05);
+        }
+        .trade-item:last-child { border-bottom: none; }
+        .trade-icon {
+            width: 40px; height: 40px;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .trade-icon svg { width: 18px; height: 18px; }
+        .trade-info { flex: 1; }
+        .trade-title { font-size: 0.85rem; font-weight: 700; color: #2D1B69; }
+        .trade-meta { font-size: 0.68rem; color: var(--text-muted); margin-top: 2px; }
+        .trade-pnl { text-align: right; }
+        .trade-pnl-val { font-size: 0.9rem; font-weight: 800; }
+        .trade-pnl-val.profit { color: #10B981; }
+        .trade-pnl-val.loss { color: #EF4444; }
+        .trade-pnl-rate { font-size: 0.65rem; color: var(--text-muted); margin-top: 2px; }
+
+        /* 排名卡 */
+        .rank-card {
+            background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(252,211,77,0.12));
+            border: 1px solid rgba(245,158,11,0.15);
+            border-radius: 22px;
+            padding: 16px 18px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .rank-icon {
+            width: 48px; height: 48px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #F59E0B, #FCD34D);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            font-size: 1.4rem;
+        }
+        .rank-info { flex: 1; }
+        .rank-title { font-size: 0.88rem; font-weight: 800; color: #2D1B69; }
+        .rank-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 3px; }
+        .rank-val { font-size: 1.3rem; font-weight: 900; color: #F59E0B; }
+    </style>
+</head>
+<body>
+<div class="ambient-bg"></div>
+<div class="container">
+
+    <!-- 顶部导航 -->
+    <div class="page-header">
+        <div class="back-btn" onclick="history.back()">
+            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        </div>
+        <div class="page-title">盈亏分析</div>
+    </div>
+
+    <!-- 总盈亏英雄卡 -->
+    <div class="pnl-hero">
+        <div class="pnl-hero-label">累计总盈亏</div>
+        <div class="pnl-hero-val profit" id="totalPnl">+2,847.5 U</div>
+        <div class="pnl-hero-sub">自入驻以来 · 含质押收益 + 交易收益</div>
+        <div class="pnl-hero-stats">
+            <div class="pnl-hero-stat">
+                <div class="pnl-stat-val green" id="stakeIncome">+324.5 U</div>
+                <div class="pnl-stat-lbl">质押收益</div>
+            </div>
+            <div class="pnl-hero-stat">
+                <div class="pnl-stat-val green" id="tradeIncome">+2,523.0 U</div>
+                <div class="pnl-stat-lbl">交易收益</div>
+            </div>
+            <div class="pnl-hero-stat">
+                <div class="pnl-stat-val" style="color:#FCD34D;" id="contestIncome">+1,525 H</div>
+                <div class="pnl-stat-lbl">交易赛奖励</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 时间筛选 -->
+    <div class="time-filter">
+        <div class="time-btn" onclick="switchTime('7d', this)">7天</div>
+        <div class="time-btn active" onclick="switchTime('30d', this)">30天</div>
+        <div class="time-btn" onclick="switchTime('90d', this)">90天</div>
+        <div class="time-btn" onclick="switchTime('all', this)">全部</div>
+    </div>
+
+    <!-- 盈亏曲线 -->
+    <div class="chart-card">
+        <div class="chart-card-title">
+            <span>盈亏曲线</span>
+            <div class="chart-legend">
+                <div class="legend-item"><div class="legend-dot" style="background:#7C3AED;"></div>累计盈亏</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#10B981;"></div>质押收益</div>
+            </div>
+        </div>
+        <canvas class="pnl-chart" id="pnlChart"></canvas>
+    </div>
+
+    <!-- 资产分布 -->
+    <div class="section-header"><h3>资产分布</h3><span class="badge">实时</span></div>
+    <div class="asset-dist">
+        <div class="asset-dist-item">
+            <div class="asset-dist-icon" style="background:linear-gradient(135deg,rgba(124,58,237,0.12),rgba(168,85,247,0.18));">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+            </div>
+            <div class="asset-dist-val">125,000</div>
+            <div class="asset-dist-lbl">H Token 持仓</div>
+            <div class="asset-dist-change up">≈ $4.41 USDT</div>
+        </div>
+        <div class="asset-dist-item">
+            <div class="asset-dist-icon" style="background:linear-gradient(135deg,rgba(16,185,129,0.1),rgba(52,211,153,0.15));">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="16" rx="2"/><path d="M2 10h20"/></svg>
+            </div>
+            <div class="asset-dist-val">1,200</div>
+            <div class="asset-dist-lbl">USDT 质押中</div>
+            <div class="asset-dist-change up">+0.8%/日</div>
+        </div>
+        <div class="asset-dist-item">
+            <div class="asset-dist-icon" style="background:linear-gradient(135deg,rgba(245,158,11,0.1),rgba(252,211,77,0.15));">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6L12 2z"/></svg>
+            </div>
+            <div class="asset-dist-val">12,500</div>
+            <div class="asset-dist-lbl">H Token 质押中</div>
+            <div class="asset-dist-change up">+1.0%/日</div>
+        </div>
+        <div class="asset-dist-item">
+            <div class="asset-dist-icon" style="background:linear-gradient(135deg,rgba(239,68,68,0.08),rgba(252,165,165,0.12));">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+            </div>
+            <div class="asset-dist-val">12人</div>
+            <div class="asset-dist-lbl">直推团队</div>
+            <div class="asset-dist-change up">+1,200 H 推荐奖</div>
+        </div>
+    </div>
+
+    <!-- 交易赛排名 -->
+    <div class="rank-card">
+        <div class="rank-icon">🏆</div>
+        <div class="rank-info">
+            <div class="rank-title">交易赛当前排名</div>
+            <div class="rank-sub">本期交易量 · 实时更新</div>
+        </div>
+        <div class="rank-val">#23</div>
+    </div>
+
+    <!-- 近期交易明细 -->
+    <div class="section-header"><h3>近期交易明细</h3><span class="badge">最近 30 天</span></div>
+    <div class="card" style="padding:16px 20px;">
+        <div class="trade-item">
+            <div class="trade-icon" style="background:rgba(16,185,129,0.1);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round"><path d="M7 17L17 7M7 7h10v10"/></svg>
+            </div>
+            <div class="trade-info">
+                <div class="trade-title">买入 H Token</div>
+                <div class="trade-meta">2026-03-20 · 10,000 H @ $0.000353</div>
+            </div>
+            <div class="trade-pnl">
+                <div class="trade-pnl-val profit">+$1.20</div>
+                <div class="trade-pnl-rate">+34.0%</div>
+            </div>
+        </div>
+        <div class="trade-item">
+            <div class="trade-icon" style="background:rgba(124,58,237,0.1);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M2 12l10-10 10 10"/></svg>
+            </div>
+            <div class="trade-info">
+                <div class="trade-title">质押 H Token</div>
+                <div class="trade-meta">2026-01-14 · 12,500 H · 68天</div>
+            </div>
+            <div class="trade-pnl">
+                <div class="trade-pnl-val profit">+324.5 U</div>
+                <div class="trade-pnl-rate">累计收益</div>
+            </div>
+        </div>
+        <div class="trade-item">
+            <div class="trade-icon" style="background:rgba(245,158,11,0.1);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6L12 2z"/></svg>
+            </div>
+            <div class="trade-info">
+                <div class="trade-title">交易赛奖励</div>
+                <div class="trade-meta">2026-03-01 · 第8期 · 排名 #18</div>
+            </div>
+            <div class="trade-pnl">
+                <div class="trade-pnl-val profit">+850 H</div>
+                <div class="trade-pnl-rate">≈ $0.30</div>
+            </div>
+        </div>
+        <div class="trade-item">
+            <div class="trade-icon" style="background:rgba(239,68,68,0.08);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round"><path d="M17 7L7 17M7 7h10v10"/></svg>
+            </div>
+            <div class="trade-info">
+                <div class="trade-title">卖出 H Token</div>
+                <div class="trade-meta">2026-02-28 · 5,000 H @ $0.000280</div>
+            </div>
+            <div class="trade-pnl">
+                <div class="trade-pnl-val loss">-$0.18</div>
+                <div class="trade-pnl-rate">-11.4%</div>
+            </div>
+        </div>
+    </div>
+
+    <div style="height: 100px;"></div>
+</div>
+
+<div class="bottom-nav">
+    <a href="index.html" class="nav-item"><div class="nav-icon">🏠</div><span>首页</span></a>
+    <a href="stake.html" class="nav-item"><div class="nav-icon">💎</div><span>质押</span></a>
+    <a href="contest.html" class="nav-item"><div class="nav-icon">🏆</div><span>交易赛</span></a>
+    <a href="im.html" class="nav-item"><div class="nav-icon">💬</div><span>IM</span></a>
+    <a href="wallet.html" class="nav-item"><div class="nav-icon">👛</div><span>钱包</span></a>
+</div>
+
+<script src="common.js"></script>
+<script src="nav.js"></script>
+<script>
+function switchTime(period, el) {
+    document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    drawPnlChart(period);
+}
+
+function drawPnlChart(period) {
+    const canvas = document.getElementById('pnlChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    ctx.scale(dpr, dpr);
+
+    // 模拟数据
+    const points = {
+        '7d': [120, 180, 160, 240, 280, 320, 347],
+        '30d': [80, 120, 100, 180, 220, 260, 300, 280, 340, 380, 420, 400, 460, 500, 520, 480, 560, 600, 580, 640, 680, 700, 720, 760, 800, 820, 780, 860, 900, 940],
+        '90d': Array.from({length: 90}, (_, i) => Math.round(50 + i * 10 + Math.sin(i/5) * 80)),
+        'all': Array.from({length: 68}, (_, i) => Math.round(30 + i * 12 + Math.sin(i/4) * 60))
+    };
+    const data = points[period] || points['30d'];
+    const stakeData = data.map(v => Math.round(v * 0.12));
+
+    const pad = { top: 10, bottom: 10, left: 4, right: 4 };
+    const cw = w - pad.left - pad.right;
+    const ch = h - pad.top - pad.bottom;
+    const maxVal = Math.max(...data);
+    const minVal = 0;
+    const range = maxVal - minVal || 1;
+
+    ctx.clearRect(0, 0, w, h);
+
+    // 绘制渐变面积
+    function drawArea(vals, color, alpha) {
+        const grad = ctx.createLinearGradient(0, pad.top, 0, h);
+        grad.addColorStop(0, color.replace(')', `, ${alpha})`).replace('rgb', 'rgba'));
+        grad.addColorStop(1, color.replace(')', ', 0)').replace('rgb', 'rgba'));
+
+        ctx.beginPath();
+        vals.forEach((v, i) => {
+            const x = pad.left + (i / (vals.length - 1)) * cw;
+            const y = pad.top + ch - ((v - minVal) / range) * ch;
+            i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        });
+        ctx.lineTo(pad.left + cw, pad.top + ch);
+        ctx.lineTo(pad.left, pad.top + ch);
+        ctx.closePath();
+        ctx.fillStyle = grad;
+        ctx.fill();
+    }
+
+    // 绘制折线
+    function drawLine(vals, color, lineWidth) {
+        ctx.beginPath();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = lineWidth;
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+        vals.forEach((v, i) => {
+            const x = pad.left + (i / (vals.length - 1)) * cw;
+            const y = pad.top + ch - ((v - minVal) / range) * ch;
+            if (i === 0) ctx.moveTo(x, y);
+            else {
+                const px = pad.left + ((i-1) / (vals.length - 1)) * cw;
+                const py = pad.top + ch - ((vals[i-1] - minVal) / range) * ch;
+                const cpx = (px + x) / 2;
+                ctx.bezierCurveTo(cpx, py, cpx, y, x, y);
+            }
+        });
+        ctx.stroke();
+    }
+
+    drawArea(stakeData, 'rgb(16,185,129)', 0.15);
+    drawArea(data, 'rgb(124,58,237)', 0.12);
+    drawLine(stakeData, '#10B981', 1.5);
+    drawLine(data, '#7C3AED', 2);
+
+    // 最后一点高亮
+    const lastX = pad.left + cw;
+    const lastY = pad.top + ch - ((data[data.length-1] - minVal) / range) * ch;
+    ctx.beginPath();
+    ctx.arc(lastX, lastY, 4, 0, Math.PI * 2);
+    ctx.fillStyle = '#7C3AED';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(lastX, lastY, 7, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(124,58,237,0.3)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    drawPnlChart('30d');
+});
+</script>
+</body>
+</html>

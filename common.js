@@ -397,21 +397,73 @@ function generateHotTokens() {
 }
 
 // ============================================================
-// 工具网格
+// 设置中心入口（6个）
 // ============================================================
 const tools = [
-    { name: "签到", icon: "📅", url: "profile.html" },
-    { name: "抽奖", icon: "🎰", url: "profile.html" },
-    { name: "积分", icon: "⭐", url: "profile.html" },
-    { name: "行情", icon: "📈", url: "market.html" },
-    { name: "查询系统", icon: "🔍", url: null },
-    { name: "便捷访问", icon: "⚡", url: null },
-    { name: "交易", icon: "🔄", url: "wallet.html" },
-    { name: "连接OKX", icon: "🔗", url: null },
-    { name: "团队详情", icon: "👥", url: "profile.html" },
-    { name: "邀请好友", icon: "🎁", url: "profile.html" },
-    { name: "我的收益", icon: "💰", url: "profile.html" },
-    { name: "设置昵称", icon: "✏️", url: "profile.html" }
+    {
+        name: "盈亏分析",
+        url: "pnl.html",
+        icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>`,
+        color: '#7C3AED',
+        bg: 'rgba(124,58,237,0.1)',
+        desc: '个人数据'
+    },
+    {
+        name: "数据总览",
+        url: "overview.html",
+        icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+            <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+        </svg>`,
+        color: '#3B82F6',
+        bg: 'rgba(59,130,246,0.1)',
+        desc: '社区数据'
+    },
+    {
+        name: "社区模型",
+        url: "tokenomics.html",
+        icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 8v4l3 3"/>
+        </svg>`,
+        color: '#F59E0B',
+        bg: 'rgba(245,158,11,0.1)',
+        desc: '代币经济'
+    },
+    {
+        name: "行情中心",
+        url: "market.html",
+        icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+            <polyline points="17 6 23 6 23 12"/>
+        </svg>`,
+        color: '#10B981',
+        bg: 'rgba(16,185,129,0.1)',
+        desc: '实时行情'
+    },
+    {
+        name: "钱包备份",
+        url: "backup.html",
+        icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>`,
+        color: '#EF4444',
+        bg: 'rgba(239,68,68,0.08)',
+        desc: '安全备份'
+    },
+    {
+        name: "修改密码",
+        url: "password.html",
+        icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0110 0v4"/>
+        </svg>`,
+        color: '#6366F1',
+        bg: 'rgba(99,102,241,0.1)',
+        desc: '账户安全'
+    }
 ];
 
 function generateTools() {
@@ -421,12 +473,25 @@ function generateTools() {
     tools.forEach(t => {
         const div = document.createElement('div');
         div.className = 'tool-card';
-        div.innerHTML = `<div class="tool-icon">${t.icon}</div><div class="tool-name">${t.name}</div>`;
+        div.innerHTML = `
+            <div class="tool-icon-svg" style="background:${t.bg};color:${t.color};width:44px;height:44px;border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;">
+                ${t.icon}
+            </div>
+            <div class="tool-name" style="font-size:0.78rem;font-weight:700;color:#2D1B69;">${t.name}</div>
+            <div style="font-size:0.62rem;color:#94A3B8;margin-top:2px;font-weight:600;">${t.desc}</div>
+        `;
+        div.style.cssText = 'display:flex;flex-direction:column;align-items:center;padding:14px 8px;background:rgba(255,255,255,0.78);border:1px solid rgba(255,255,255,0.9);border-radius:20px;cursor:pointer;transition:all 0.2s;box-shadow:0 3px 12px rgba(45,27,105,0.06);';
         div.addEventListener('click', () => {
             if (t.url) window.location.href = t.url;
-            else alert(`「${t.name}」功能开发中`);
         });
+        div.addEventListener('touchstart', () => { div.style.transform = 'scale(0.97)'; }, { passive: true });
+        div.addEventListener('touchend', () => { div.style.transform = ''; });
         container.appendChild(div);
+    });
+    // 设置 SVG 图标尺寸
+    container.querySelectorAll('.tool-icon-svg svg').forEach(svg => {
+        svg.style.width = '22px';
+        svg.style.height = '22px';
     });
 }
 
