@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>海豚社区 - 行情</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* 搜索栏 */
+        .search-bar {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(16px);
+            border: 1.5px solid rgba(255, 255, 255, 0.7);
+            border-radius: 20px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 16px rgba(45, 27, 105, 0.06);
+        }
+        .search-bar input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-size: 0.9rem;
+            color: #1C1C28;
+            font-family: inherit;
+        }
+        .search-bar input::placeholder { color: var(--text-muted); }
+        .search-icon { font-size: 1rem; color: var(--text-muted); }
+
+        /* 分类 Tab */
+        .market-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            padding-bottom: 2px;
+        }
+        .market-tabs::-webkit-scrollbar { display: none; }
+        .market-tab {
+            flex-shrink: 0;
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: rgba(255, 255, 255, 0.6);
+            color: var(--text-muted);
+            border: 1.5px solid rgba(255, 255, 255, 0.7);
+        }
+        .market-tab.active {
+            background: linear-gradient(135deg, #2D1B69, var(--primary));
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
+        }
+        .market-tab:active { transform: scale(0.95); }
+
+        /* 排序行 */
+        .sort-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 8px;
+            padding: 0 4px 10px;
+            border-bottom: 1px solid rgba(124, 58, 237, 0.08);
+            margin-bottom: 8px;
+        }
+        .sort-col {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .sort-col:last-child { justify-content: flex-end; }
+        .sort-col.active { color: var(--primary); }
+
+        /* 代币行 */
+        .token-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 8px;
+            padding: 14px 4px;
+            border-bottom: 1px solid rgba(124, 58, 237, 0.05);
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.15s;
+            border-radius: 16px;
+        }
+        .token-row:active { background: rgba(124, 58, 237, 0.05); }
+
+        .token-row-info { display: flex; align-items: center; gap: 12px; }
+        .token-row-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+        .token-row-name { font-size: 0.9rem; font-weight: 800; color: #2D1B69; }
+        .token-row-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+
+        .token-row-price {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #1C1C28;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+        }
+        .token-row-price-sub {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .token-row-change {
+            text-align: right;
+        }
+        .change-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+        }
+        .change-badge.up { background: rgba(16, 185, 129, 0.12); color: #10B981; }
+        .change-badge.down { background: rgba(239, 68, 68, 0.1); color: #EF4444; }
+        .change-badge.flat { background: rgba(100, 116, 139, 0.1); color: #64748B; }
+
+        /* 迷你 K 线 */
+        .mini-kline {
+            width: 60px;
+            height: 28px;
+        }
+
+        /* 市场概览卡片 */
+        .market-overview {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .overview-card {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 24px;
+            padding: 16px;
+            box-shadow: 0 4px 16px rgba(45, 27, 105, 0.06);
+        }
+        .overview-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+        .overview-value {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #2D1B69;
+        }
+        .overview-change {
+            font-size: 0.72rem;
+            font-weight: 700;
+            margin-top: 3px;
+        }
+
+        /* 涨跌榜 */
+        .gainer-list {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            padding-bottom: 4px;
+        }
+        .gainer-list::-webkit-scrollbar { display: none; }
+        .gainer-card {
+            flex-shrink: 0;
+            width: 100px;
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 20px;
+            padding: 12px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .gainer-card:active { transform: scale(0.95); }
+        .gainer-icon { font-size: 1.4rem; margin-bottom: 4px; }
+        .gainer-symbol { font-size: 0.8rem; font-weight: 800; color: #2D1B69; }
+        .gainer-change { font-size: 0.72rem; font-weight: 700; margin-top: 3px; }
+
+        /* 详情弹层 */
+        .detail-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 10, 40, 0.5);
+            backdrop-filter: blur(8px);
+            z-index: 300;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .detail-overlay.active { opacity: 1; pointer-events: auto; }
+
+        .detail-sheet {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%) translateY(100%);
+            width: 100%;
+            max-width: 500px;
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(24px);
+            border-radius: 32px 32px 0 0;
+            padding: 24px 24px calc(32px + env(safe-area-inset-bottom));
+            z-index: 301;
+            transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+        }
+        .detail-sheet.active { transform: translateX(-50%) translateY(0); }
+
+        .sheet-handle {
+            width: 40px;
+            height: 4px;
+            background: #E2E8F0;
+            border-radius: 4px;
+            margin: 0 auto 20px;
+        }
+
+        .detail-chart-area {
+            background: rgba(45, 27, 105, 0.04);
+            border-radius: 20px;
+            padding: 12px;
+            margin: 16px 0;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .detail-chart-area canvas { width: 100%; height: 100%; }
+
+        .period-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+        .period-tab {
+            flex: 1;
+            text-align: center;
+            padding: 6px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: all 0.2s;
+        }
+        .period-tab.active {
+            background: linear-gradient(135deg, #2D1B69, var(--primary));
+            color: white;
+        }
+
+        .detail-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .detail-stat {
+            background: rgba(124, 58, 237, 0.05);
+            border-radius: 16px;
+            padding: 12px;
+        }
+        .detail-stat-label { font-size: 0.68rem; font-weight: 600; color: var(--text-muted); }
+        .detail-stat-value { font-size: 0.9rem; font-weight: 800; color: #2D1B69; margin-top: 3px; }
+
+        .detail-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="ambient-bg"></div>
+<div class="container">
+
+    <div class="text-center" style="margin-bottom: 20px;">
+        <h1 style="font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, #2D1B69, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">行情中心</h1>
+        <p style="color: var(--text-muted); font-weight: 500;">实时链上数据 · X Layer 生态</p>
+    </div>
+
+    <!-- 搜索栏 -->
+    <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="搜索代币名称或合约地址..." oninput="filterTokens()">
+        <span style="font-size:0.8rem; color:var(--primary); font-weight:700; cursor:pointer;" onclick="clearSearch()">清除</span>
+    </div>
+
+    <!-- 市场概览 -->
+    <div class="market-overview">
+        <div class="overview-card">
+            <div class="overview-label">📈 市场总市值</div>
+            <div class="overview-value">$2.84B</div>
+            <div class="overview-change positive">+3.2% 今日</div>
+        </div>
+        <div class="overview-card">
+            <div class="overview-label">💧 24h 总成交额</div>
+            <div class="overview-value">$128M</div>
+            <div class="overview-change positive">+12.5% 较昨日</div>
+        </div>
+        <div class="overview-card">
+            <div class="overview-label">🔥 涨幅最大</div>
+            <div class="overview-value">H Token</div>
+            <div class="overview-change positive">+18.4% 今日</div>
+        </div>
+        <div class="overview-card">
+            <div class="overview-label">❄️ 跌幅最大</div>
+            <div class="overview-value">PEPE</div>
+            <div class="overview-change negative">-7.2% 今日</div>
+        </div>
+    </div>
+
+    <!-- 今日涨幅榜 -->
+    <div class="section-header"><h3>🚀 今日涨幅榜</h3><span class="badge">实时排名</span></div>
+    <div class="card" style="padding: 16px 16px 8px;">
+        <div class="gainer-list" id="gainerList"></div>
+    </div>
+
+    <!-- 分类 Tab -->
+    <div class="market-tabs" id="marketTabs">
+        <div class="market-tab active" onclick="switchTab('all', this)">全部</div>
+        <div class="market-tab" onclick="switchTab('xlayer', this)">X Layer</div>
+        <div class="market-tab" onclick="switchTab('defi', this)">DeFi</div>
+        <div class="market-tab" onclick="switchTab('meme', this)">Meme</div>
+        <div class="market-tab" onclick="switchTab('stable', this)">稳定币</div>
+        <div class="market-tab" onclick="switchTab('watchlist', this)">⭐ 自选</div>
+    </div>
+
+    <!-- 排序行 -->
+    <div class="sort-row">
+        <div class="sort-col active" onclick="sortBy('name')">代币 ↕</div>
+        <div class="sort-col" onclick="sortBy('price')">最新价 ↕</div>
+        <div class="sort-col" onclick="sortBy('change')">24h涨跌 ↕</div>
+    </div>
+
+    <!-- 代币列表 -->
+    <div id="tokenList"></div>
+
+</div>
+
+<!-- 详情弹层 -->
+<div class="detail-overlay" id="detailOverlay" onclick="closeDetail()"></div>
+<div class="detail-sheet" id="detailSheet">
+    <div class="sheet-handle"></div>
+    <div style="display:flex; align-items:center; gap:14px; margin-bottom:8px;">
+        <div id="detailIcon" style="width:48px;height:48px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;background:rgba(124,58,237,0.1);">H</div>
+        <div>
+            <div id="detailSymbol" style="font-size:1.4rem;font-weight:800;color:#2D1B69;">H Token</div>
+            <div id="detailName" style="font-size:0.78rem;color:var(--text-muted);">X Layer Network</div>
+        </div>
+        <div style="margin-left:auto;">
+            <div id="detailStar" style="font-size:1.4rem;cursor:pointer;" onclick="toggleWatchlist()">☆</div>
+        </div>
+    </div>
+
+    <div style="display:flex;align-items:baseline;gap:10px;">
+        <div id="detailPrice" style="font-size:2rem;font-weight:800;color:#2D1B69;font-family:monospace;">--</div>
+        <div id="detailChange" class="change-badge up">--</div>
+    </div>
+
+    <!-- 周期选择 -->
+    <div class="period-tabs" style="margin-top:16px;">
+        <div class="period-tab active">1H</div>
+        <div class="period-tab">4H</div>
+        <div class="period-tab">1D</div>
+        <div class="period-tab">1W</div>
+        <div class="period-tab">1M</div>
+    </div>
+
+    <!-- K线图 -->
+    <div class="detail-chart-area">
+        <canvas id="detailKline" width="400" height="100"></canvas>
+    </div>
+
+    <!-- 统计数据 -->
+    <div class="detail-stats">
+        <div class="detail-stat">
+            <div class="detail-stat-label">24h 最高</div>
+            <div class="detail-stat-value" id="detailHigh">--</div>
+        </div>
+        <div class="detail-stat">
+            <div class="detail-stat-label">24h 最低</div>
+            <div class="detail-stat-value" id="detailLow">--</div>
+        </div>
+        <div class="detail-stat">
+            <div class="detail-stat-label">24h 成交量</div>
+            <div class="detail-stat-value" id="detailVol">--</div>
+        </div>
+        <div class="detail-stat">
+            <div class="detail-stat-label">市值</div>
+            <div class="detail-stat-value" id="detailMcap">--</div>
+        </div>
+    </div>
+
+    <!-- 操作按钮 -->
+    <div class="detail-actions">
+        <button class="btn-gradient" onclick="closeDetail(); window.location.href='wallet.html'">买入</button>
+        <button class="btn-outline" onclick="closeDetail(); window.location.href='wallet.html'">卖出</button>
+    </div>
+</div>
+
+<div class="bottom-nav">
+    <a href="index.html" class="nav-item"><div class="nav-icon">🏠</div><span>首页</span></a>
+    <a href="stake.html" class="nav-item"><div class="nav-icon">💎</div><span>质押</span></a>
+    <a href="contest.html" class="nav-item"><div class="nav-icon">🏆</div><span>交易赛</span></a>
+    <a href="im.html" class="nav-item"><div class="nav-icon">💬</div><span>IM</span></a>
+    <a href="wallet.html" class="nav-item"><div class="nav-icon">👛</div><span>钱包</span></a>
+</div>
+
+<script src="common.js"></script>
+<script>
+    // 代币数据（含 H Token 实时价格占位）
+    const allTokens = [
+        { symbol: 'H', name: 'H Token', icon: '🐬', price: null, change: null, vol: '2.4M U', mcap: '$12.8M', cat: ['xlayer', 'defi'], live: true },
+        { symbol: 'OKB', name: 'OKB', icon: '⬛', price: '60.12', change: '+2.34', vol: '18.5M U', mcap: '$3.6B', cat: ['xlayer'] },
+        { symbol: 'WOKB', name: 'Wrapped OKB', icon: '🔷', price: '60.08', change: '+2.31', vol: '5.2M U', mcap: '$1.2B', cat: ['xlayer', 'defi'] },
+        { symbol: 'USDT', name: 'Tether USD', icon: '💵', price: '1.0000', change: '+0.01', vol: '45.0M U', mcap: '$110B', cat: ['stable'] },
+        { symbol: 'USDC', name: 'USD Coin', icon: '🔵', price: '1.0001', change: '+0.00', vol: '22.3M U', mcap: '$42B', cat: ['stable'] },
+        { symbol: 'ETH', name: 'Ethereum', icon: '💎', price: '3,420.00', change: '+1.85', vol: '88.0M U', mcap: '$410B', cat: ['defi'] },
+        { symbol: 'BNB', name: 'BNB', icon: '🟡', price: '585.40', change: '+0.92', vol: '12.0M U', mcap: '$85B', cat: ['defi'] },
+        { symbol: 'PEPE', name: 'Pepe', icon: '🐸', price: '0.00001234', change: '-7.20', vol: '3.1M U', mcap: '$5.2B', cat: ['meme'] },
+        { symbol: 'DOGE', name: 'Dogecoin', icon: '🐶', price: '0.1820', change: '+4.50', vol: '9.8M U', mcap: '$26B', cat: ['meme'] },
+        { symbol: 'SHIB', name: 'Shiba Inu', icon: '🦊', price: '0.00002341', change: '+2.10', vol: '4.5M U', mcap: '$13B', cat: ['meme'] },
+    ];
+
+    let currentTab = 'all';
+    let watchlist = JSON.parse(localStorage.getItem('watchlist') || '[]');
+    let currentDetailSymbol = null;
+
+    // 渲染涨幅榜
+    function renderGainers() {
+        const sorted = [...allTokens].filter(t => parseFloat(t.change) > 0).sort((a, b) => parseFloat(b.change) - parseFloat(a.change)).slice(0, 6);
+        const container = document.getElementById('gainerList');
+        container.innerHTML = '';
+        sorted.forEach(t => {
+            const div = document.createElement('div');
+            div.className = 'gainer-card';
+            div.innerHTML = `<div class="gainer-icon">${t.icon}</div><div class="gainer-symbol">${t.symbol}</div><div class="gainer-change positive">+${t.change}%</div>`;
+            div.onclick = () => openDetail(t.symbol);
+            container.appendChild(div);
+        });
+    }
+
+    // 渲染代币列表
+    function renderTokenList(tokens) {
+        const container = document.getElementById('tokenList');
+        container.innerHTML = '';
+        if (tokens.length === 0) {
+            container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted);">暂无匹配代币</div>';
+            return;
+        }
+        tokens.forEach(t => {
+            const price = t.live && window._liveHPrice ? formatPriceShort(window._liveHPrice) : t.price || '--';
+            const change = t.live && window._liveHChange !== undefined ? window._liveHChange : t.change;
+            const isUp = parseFloat(change) >= 0;
+            const changeStr = change ? (isUp ? '+' + change + '%' : change + '%') : '--';
+            const changeClass = change ? (isUp ? 'up' : 'down') : 'flat';
+
+            const div = document.createElement('div');
+            div.className = 'token-row';
+            div.innerHTML = `
+                <div class="token-row-info">
+                    <div class="token-row-icon" style="background:rgba(124,58,237,0.08)">${t.icon}</div>
+                    <div>
+                        <div class="token-row-name">${t.symbol}</div>
+                        <div class="token-row-sub">${t.name}</div>
+                    </div>
+                </div>
+                <div>
+                    <div class="token-row-price">${price}</div>
+                    <div class="token-row-price-sub">Vol: ${t.vol}</div>
+                </div>
+                <div class="token-row-change">
+                    <div class="change-badge ${changeClass}">${changeStr}</div>
+                </div>`;
+            div.onclick = () => openDetail(t.symbol);
+            container.appendChild(div);
+        });
+    }
+
+    function formatPriceShort(price) {
+        if (price >= 1) return '$' + price.toFixed(4);
+        if (price >= 0.01) return '$' + price.toFixed(6);
+        const str = price.toFixed(18);
+        const afterDot = str.split('.')[1];
+        let zeros = 0;
+        for (let c of afterDot) { if (c === '0') zeros++; else break; }
+        const sig = afterDot.slice(zeros, zeros + 4);
+        return `$0.0{${zeros}}${sig}`;
+    }
+
+    function switchTab(tab, el) {
+        currentTab = tab;
+        document.querySelectorAll('.market-tab').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+        applyFilter();
+    }
+
+    function applyFilter() {
+        let tokens = allTokens;
+        const q = document.getElementById('searchInput').value.trim().toLowerCase();
+        if (q) tokens = tokens.filter(t => t.symbol.toLowerCase().includes(q) || t.name.toLowerCase().includes(q));
+        if (currentTab === 'watchlist') tokens = tokens.filter(t => watchlist.includes(t.symbol));
+        else if (currentTab !== 'all') tokens = tokens.filter(t => t.cat.includes(currentTab));
+        renderTokenList(tokens);
+    }
+
+    function filterTokens() { applyFilter(); }
+    function clearSearch() { document.getElementById('searchInput').value = ''; applyFilter(); }
+
+    // 详情弹层
+    function openDetail(symbol) {
+        const t = allTokens.find(x => x.symbol === symbol);
+        if (!t) return;
+        currentDetailSymbol = symbol;
+        const price = t.live && window._liveHPrice ? formatPriceShort(window._liveHPrice) : (t.price ? '$' + t.price : '--');
+        const change = t.live && window._liveHChange !== undefined ? window._liveHChange : t.change;
+        const isUp = parseFloat(change) >= 0;
+
+        document.getElementById('detailIcon').textContent = t.icon;
+        document.getElementById('detailSymbol').textContent = t.symbol;
+        document.getElementById('detailName').textContent = t.name;
+        document.getElementById('detailPrice').textContent = price;
+        const chgEl = document.getElementById('detailChange');
+        chgEl.textContent = change ? (isUp ? '+' + change + '%' : change + '%') : '--';
+        chgEl.className = 'change-badge ' + (change ? (isUp ? 'up' : 'down') : 'flat');
+        document.getElementById('detailHigh').textContent = price;
+        document.getElementById('detailLow').textContent = price;
+        document.getElementById('detailVol').textContent = t.vol;
+        document.getElementById('detailMcap').textContent = t.mcap;
+        document.getElementById('detailStar').textContent = watchlist.includes(symbol) ? '⭐' : '☆';
+
+        // 绘制示意 K 线
+        drawDemoKline();
+
+        document.getElementById('detailOverlay').classList.add('active');
+        document.getElementById('detailSheet').classList.add('active');
+    }
+
+    function closeDetail() {
+        document.getElementById('detailOverlay').classList.remove('active');
+        document.getElementById('detailSheet').classList.remove('active');
+    }
+
+    function toggleWatchlist() {
+        if (!currentDetailSymbol) return;
+        const idx = watchlist.indexOf(currentDetailSymbol);
+        if (idx >= 0) {
+            watchlist.splice(idx, 1);
+            document.getElementById('detailStar').textContent = '☆';
+        } else {
+            watchlist.push(currentDetailSymbol);
+            document.getElementById('detailStar').textContent = '⭐';
+        }
+        localStorage.setItem('watchlist', JSON.stringify(watchlist));
+    }
+
+    function drawDemoKline() {
+        const canvas = document.getElementById('detailKline');
+        const ctx = canvas.getContext('2d');
+        const w = canvas.clientWidth || 400;
+        const h = canvas.clientHeight || 100;
+        canvas.width = w * (window.devicePixelRatio || 1);
+        canvas.height = h * (window.devicePixelRatio || 1);
+        ctx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
+        ctx.clearRect(0, 0, w, h);
+
+        // 生成随机 K 线数据
+        const n = 30;
+        let price = 100;
+        const data = [];
+        for (let i = 0; i < n; i++) {
+            const open = price;
+            const change = (Math.random() - 0.48) * 4;
+            const close = open + change;
+            const high = Math.max(open, close) + Math.random() * 2;
+            const low = Math.min(open, close) - Math.random() * 2;
+            data.push({ open, high, low, close });
+            price = close;
+        }
+
+        const allH = data.map(d => d.high);
+        const allL = data.map(d => d.low);
+        const maxP = Math.max(...allH);
+        const minP = Math.min(...allL);
+        const range = maxP - minP || 1;
+        const pad = { t: 6, b: 6, l: 4, r: 4 };
+        const cw = w - pad.l - pad.r;
+        const ch = h - pad.t - pad.b;
+        const bw = cw / n;
+
+        data.forEach((d, i) => {
+            const x = pad.l + i * bw + bw / 2;
+            const isUp = d.close >= d.open;
+            const color = isUp ? '#10B981' : '#EF4444';
+            const oy = pad.t + (maxP - d.open) / range * ch;
+            const cy = pad.t + (maxP - d.close) / range * ch;
+            const hy = pad.t + (maxP - d.high) / range * ch;
+            const ly = pad.t + (maxP - d.low) / range * ch;
+
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(x, hy);
+            ctx.lineTo(x, ly);
+            ctx.stroke();
+
+            ctx.fillStyle = color;
+            const bodyTop = Math.min(oy, cy);
+            const bodyH = Math.max(Math.abs(cy - oy), 1.5);
+            ctx.fillRect(x - bw * 0.3, bodyTop, bw * 0.6, bodyH);
+        });
+
+        // 均线
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(124,58,237,0.5)';
+        ctx.lineWidth = 1.5;
+        data.forEach((d, i) => {
+            const x = pad.l + i * bw + bw / 2;
+            const y = pad.t + (maxP - d.close) / range * ch;
+            i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+    }
+
+    // 接收实时价格
+    const origUpdate = window.updatePriceUI;
+    window.updatePriceUI = function(price) {
+        if (origUpdate) origUpdate(price);
+        window._liveHPrice = price;
+        const changePercent = window._firstPriceForMarket ? ((price - window._firstPriceForMarket) / window._firstPriceForMarket * 100) : 0;
+        if (!window._firstPriceForMarket) window._firstPriceForMarket = price;
+        window._liveHChange = changePercent.toFixed(2);
+        // 更新 H Token 行
+        applyFilter();
+    };
+
+    // 初始化
+    renderGainers();
+    applyFilter();
+
+    // 周期 tab 点击
+    document.querySelectorAll('.period-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.period-tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            drawDemoKline();
+        });
+    });
+</script>
+</body>
+</html>

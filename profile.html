@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>海豚社区 - 个人中心</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* 个人信息头部 */
+        .profile-hero {
+            background: linear-gradient(135deg, #2D1B69, var(--primary));
+            border-radius: 32px;
+            padding: 28px 24px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .profile-hero::before {
+            content: '';
+            position: absolute;
+            top: -40%;
+            right: -20%;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 50%;
+        }
+        .profile-hero::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -10%;
+            width: 150px;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+        }
+
+        .profile-avatar-wrap {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            margin-bottom: 16px;
+        }
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 28px;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.4rem;
+            border: 3px solid rgba(255, 255, 255, 0.4);
+        }
+        .avatar-edit-btn {
+            position: absolute;
+            bottom: -4px;
+            right: -4px;
+            width: 26px;
+            height: 26px;
+            background: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .profile-name {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 4px;
+        }
+        .profile-address {
+            font-size: 0.78rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-family: monospace;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px 12px;
+            border-radius: 20px;
+            display: inline-block;
+            cursor: pointer;
+        }
+        .profile-address:active { background: rgba(255, 255, 255, 0.2); }
+
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0;
+            margin-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            padding-top: 16px;
+        }
+        .profile-stat {
+            text-align: center;
+            position: relative;
+        }
+        .profile-stat + .profile-stat::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 10%;
+            height: 80%;
+            width: 1px;
+            background: rgba(255, 255, 255, 0.15);
+        }
+        .profile-stat-value {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: white;
+        }
+        .profile-stat-label {
+            font-size: 0.68rem;
+            color: rgba(255, 255, 255, 0.65);
+            margin-top: 3px;
+        }
+
+        /* 等级徽章 */
+        .level-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(245, 158, 11, 0.2);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            border-radius: 40px;
+            padding: 4px 12px;
+            margin-top: 8px;
+        }
+        .level-badge span { font-size: 0.78rem; font-weight: 700; color: #F59E0B; }
+
+        /* 收益卡片 */
+        .earnings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .earnings-card {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 24px;
+            padding: 18px;
+            box-shadow: 0 4px 16px rgba(45, 27, 105, 0.06);
+        }
+        .earnings-icon { font-size: 1.4rem; margin-bottom: 8px; }
+        .earnings-label { font-size: 0.7rem; font-weight: 600; color: var(--text-muted); }
+        .earnings-value { font-size: 1.1rem; font-weight: 800; color: #2D1B69; margin-top: 4px; }
+        .earnings-sub { font-size: 0.68rem; color: var(--text-muted); margin-top: 2px; }
+
+        /* 功能列表 */
+        .menu-section {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 28px;
+            overflow: hidden;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 16px rgba(45, 27, 105, 0.06);
+        }
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px 20px;
+            cursor: pointer;
+            transition: background 0.15s;
+            border-bottom: 1px solid rgba(124, 58, 237, 0.06);
+        }
+        .menu-item:last-child { border-bottom: none; }
+        .menu-item:active { background: rgba(124, 58, 237, 0.05); }
+        .menu-item-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        .menu-item-text { flex: 1; }
+        .menu-item-title { font-size: 0.9rem; font-weight: 700; color: #2D1B69; }
+        .menu-item-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+        .menu-item-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+        .menu-item-arrow { font-size: 0.9rem; color: #CBD5E1; }
+
+        /* 邀请卡片 */
+        .invite-card {
+            background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+            border-radius: 28px;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .invite-card::after {
+            content: '🐬';
+            position: absolute;
+            right: 20px;
+            bottom: -10px;
+            font-size: 4rem;
+            opacity: 0.2;
+        }
+        .invite-title { font-size: 1rem; font-weight: 800; color: #2D1B69; margin-bottom: 6px; }
+        .invite-desc { font-size: 0.78rem; color: #6D5C00; margin-bottom: 14px; }
+        .invite-code-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .invite-code {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 14px;
+            padding: 10px 16px;
+            font-size: 1rem;
+            font-weight: 800;
+            color: #2D1B69;
+            font-family: monospace;
+            letter-spacing: 2px;
+        }
+        .invite-copy-btn {
+            background: #2D1B69;
+            color: white;
+            border-radius: 14px;
+            padding: 10px 16px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .invite-copy-btn:active { transform: scale(0.95); }
+
+        /* 昵称编辑弹层 */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 10, 40, 0.5);
+            backdrop-filter: blur(8px);
+            z-index: 300;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-box {
+            background: white;
+            border-radius: 28px;
+            padding: 28px 24px;
+            width: calc(100% - 48px);
+            max-width: 380px;
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+        }
+        .modal-overlay.active .modal-box { transform: scale(1); }
+        .modal-title { font-size: 1.1rem; font-weight: 800; color: #2D1B69; margin-bottom: 16px; }
+        .modal-input {
+            width: 100%;
+            background: rgba(124, 58, 237, 0.06);
+            border: 1.5px solid rgba(124, 58, 237, 0.15);
+            border-radius: 16px;
+            padding: 14px 16px;
+            font-size: 1rem;
+            font-family: inherit;
+            color: #1C1C28;
+            outline: none;
+            margin-bottom: 16px;
+        }
+        .modal-input:focus { border-color: var(--primary); }
+        .modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    </style>
+</head>
+<body>
+<div class="ambient-bg"></div>
+<div class="container">
+
+    <!-- 个人信息头部 -->
+    <div class="profile-hero">
+        <div class="profile-avatar-wrap">
+            <div class="profile-avatar" id="profileAvatar">🐟</div>
+            <div class="avatar-edit-btn" onclick="openAvatarPicker()">✏️</div>
+        </div>
+        <div class="profile-name" id="profileName">海豚用户</div>
+        <div class="profile-address" onclick="copyAddress()" id="profileAddr">0x71C...e4c2</div>
+        <div class="level-badge">
+            <span>⭐</span>
+            <span id="profileLevel">Lv.3 · 银牌海豚</span>
+        </div>
+        <div class="profile-stats">
+            <div class="profile-stat">
+                <div class="profile-stat-value" id="statInvites">12</div>
+                <div class="profile-stat-label">邀请人数</div>
+            </div>
+            <div class="profile-stat">
+                <div class="profile-stat-value" id="statDays">38</div>
+                <div class="profile-stat-label">入驻天数</div>
+            </div>
+            <div class="profile-stat">
+                <div class="profile-stat-value" id="statRank">#23</div>
+                <div class="profile-stat-label">交易赛排名</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 我的收益 -->
+    <div class="section-header"><h3>💰 我的收益</h3><span class="badge">实时数据</span></div>
+    <div class="earnings-grid">
+        <div class="earnings-card">
+            <div class="earnings-icon">💎</div>
+            <div class="earnings-label">质押累计收益</div>
+            <div class="earnings-value">324.5 U</div>
+            <div class="earnings-sub">+ 87.2 H</div>
+        </div>
+        <div class="earnings-card">
+            <div class="earnings-icon">👥</div>
+            <div class="earnings-label">团队推荐收益</div>
+            <div class="earnings-value">1,200 H</div>
+            <div class="earnings-sub">12 位直推成员</div>
+        </div>
+        <div class="earnings-card">
+            <div class="earnings-icon">🏆</div>
+            <div class="earnings-label">交易赛预估奖励</div>
+            <div class="earnings-value">1,525 H</div>
+            <div class="earnings-sub">活动结束后发放</div>
+        </div>
+        <div class="earnings-card">
+            <div class="earnings-icon">🎁</div>
+            <div class="earnings-label">签到积分</div>
+            <div class="earnings-value">2,840 pts</div>
+            <div class="earnings-sub">连续签到 38 天</div>
+        </div>
+    </div>
+
+    <!-- 邀请好友 -->
+    <div class="invite-card">
+        <div class="invite-title">🎉 邀请好友，共享收益</div>
+        <div class="invite-desc">每邀请一位好友，获得其质押收益的 5% 作为推荐奖励，二级团队额外 2%</div>
+        <div class="invite-code-row">
+            <div class="invite-code" id="inviteCode">DOLPHIN38</div>
+            <div class="invite-copy-btn" onclick="copyInviteCode()">复制邀请码</div>
+        </div>
+    </div>
+
+    <!-- 账户功能 -->
+    <div class="section-header"><h3>⚙️ 账户管理</h3></div>
+    <div class="menu-section">
+        <div class="menu-item" onclick="openNicknameModal()">
+            <div class="menu-item-icon" style="background:rgba(124,58,237,0.1);">✏️</div>
+            <div class="menu-item-text">
+                <div class="menu-item-title">设置昵称</div>
+                <div class="menu-item-sub" id="currentNickname">当前：海豚用户</div>
+            </div>
+            <div class="menu-item-right"><span class="menu-item-arrow">›</span></div>
+        </div>
+        <div class="menu-item" onclick="showToast('头像选择功能开发中')">
+            <div class="menu-item-icon" style="background:rgba(16,185,129,0.1);">🖼️</div>
+            <div class="menu-item-text">
+                <div class="menu-item-title">更换头像</div>
+                <div class="menu-item-sub">从预设表情中选择</div>
+            </div>
+            <div class="menu-item-right"><span class="menu-item-arrow">›</span></div>
+        </div>
+        <div class="menu-item" onclick="showToast('绑定功能开发中')">
+            <div class="menu-item-icon" style="background:rgba(245,158,11,0.1);">🔗</div>
+            <div class="menu-item-text">
+                <div class="menu-item-title">绑定 OKX 钱包</div>
+                <div class="menu-item-sub">连接后可参与链上交互</div>
+            </div>
+            <div class="menu-item-right"><span style="font-size:0.72rem;color:#10B981;font-weight:700;">已连接</span><span class="menu-item-arrow">›</span></div>
+        </div>
+    </div>
+
+    <!-- 团队详情 -->
+    <div class="section-header"><h3>👥 我的团队</h3></div>
+    <div class="menu-section">
+        <div class="menu-item" onclick="showToast('团队详情功能开发中')">
+            <div class="menu-item-icon" style="background:rgba(124,58,237,0.1);">📊</div>
+            <div class="menu-item-text">
+                <div class="menu-item-title">团队业绩详情</div>
+                <div class="menu-item-sub">查看团队成员及贡献</div>
+            </div>
+            <div class="menu-item-right"><span style="font-size:0.72rem;color:var(--text-muted);">12 人</span><span class="menu-item-arrow">›</span></div>
+        </div>
+        <div class="menu-item" onclick="showToast('邀请链接已复制')">
+            <div class="menu-item-icon" style="background:rgba(16,185,129,0.1);">🔗</div>
+            <div class="menu-item-text">
+                <div class="menu-item-title">邀请好友加入</div>
+                <div class="menu-item-sub">分享专属邀请链接</div>
+            </div>
+            <div class="menu-item-right"><span class="menu-item-arrow">›</span></div>
+        </div>
+        <div class="menu-item" onclick="showToast('奖励明细功能开发中')">
+            <div class="menu-item-icon" style="background:rgba(245,158,11,0.1);">💰</div>
+            <div class="menu-item-text">
+                <div class="menu-item-title">推荐奖励明细</div>
+                <div class="menu-item-sub">查看每笔推荐收益记录</div>
+            </div>
+            <div class="menu-item-right"><span class="menu-item-arrow">›</span></div>
+        </div>
+    </div>
+
+    <!-- 更多功能 -->
+    <div class="section-header"><h3>🛠️ 更多功能</h3></div>
+    <div class="menu-section">
+        <div class="menu-item" onclick="showToast('签到成功！获得 10 积分')">
+            <div class="menu-item-icon" style="background:rgba(239,68,68,0.1);">📅</div>
+            <div class="menu-item-text">
+                <div class="menu-item-title">每日签到</div>
+                <div class="menu-item-sub">连续签到 38 天 · 今日已签</div>
+            </div>
+            <div class="menu-item-right"><span style="font-size:0.72rem;color:#10B981;font-weight:700;">✓ 已签到</span></div>
+        </div>
+        <div class="menu-item" onclick="showToast('抽奖功能开发中')">
+            <div class="menu-item-icon" style="background:rgba(245,158,11,0.1);">🎰</div>
+            <div class="menu-item-text">
+                <div class="menu-item-title">幸运抽奖</div>
+                <div class="menu-item-sub">消耗积分参与抽奖</div>
+            </div>
+            <div class="menu-item-right"><span class="menu-item-arrow">›</span></div>
+        </div>
+        <div class="menu-item" onclick="showToast('积分明细功能开发中')">
+            <div class="menu-item-icon" style="background:rgba(124,58,237,0.1);">⭐</div>
+            <div class="menu-item-text">
+                <div class="menu-item-title">积分中心</div>
+                <div class="menu-item-sub">当前积分：2,840 pts</div>
+            </div>
+            <div class="menu-item-right"><span class="menu-item-arrow">›</span></div>
+        </div>
+        <div class="menu-item" onclick="window.location.href='market.html'">
+            <div class="menu-item-icon" style="background:rgba(16,185,129,0.1);">📈</div>
+            <div class="menu-item-text">
+                <div class="menu-item-title">行情中心</div>
+                <div class="menu-item-sub">查看 H Token 及市场行情</div>
+            </div>
+            <div class="menu-item-right"><span class="menu-item-arrow">›</span></div>
+        </div>
+    </div>
+
+    <!-- 退出 -->
+    <div class="menu-section" style="margin-bottom:40px;">
+        <div class="menu-item" onclick="showToast('已断开钱包连接')" style="color:#EF4444;">
+            <div class="menu-item-icon" style="background:rgba(239,68,68,0.1);">🚪</div>
+            <div class="menu-item-text">
+                <div class="menu-item-title" style="color:#EF4444;">断开钱包连接</div>
+                <div class="menu-item-sub">退出当前账户</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- 昵称编辑弹层 -->
+<div class="modal-overlay" id="nicknameModal" onclick="closeNicknameModal(event)">
+    <div class="modal-box">
+        <div class="modal-title">✏️ 设置昵称</div>
+        <input type="text" class="modal-input" id="nicknameInput" placeholder="输入您的昵称（最多12字）" maxlength="12">
+        <div class="modal-actions">
+            <button class="btn-outline" onclick="closeNicknameModal()">取消</button>
+            <button class="btn-gradient" onclick="saveNickname()">保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast 提示 -->
+<div id="toast" style="position:fixed;bottom:120px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(45,27,105,0.9);color:white;padding:10px 20px;border-radius:40px;font-size:0.85rem;font-weight:600;opacity:0;transition:all 0.3s;z-index:999;pointer-events:none;white-space:nowrap;"></div>
+
+<div class="bottom-nav">
+    <a href="index.html" class="nav-item"><div class="nav-icon">🏠</div><span>首页</span></a>
+    <a href="stake.html" class="nav-item"><div class="nav-icon">💎</div><span>质押</span></a>
+    <a href="contest.html" class="nav-item"><div class="nav-icon">🏆</div><span>交易赛</span></a>
+    <a href="im.html" class="nav-item"><div class="nav-icon">💬</div><span>IM</span></a>
+    <a href="wallet.html" class="nav-item"><div class="nav-icon">👛</div><span>钱包</span></a>
+</div>
+
+<script src="common.js"></script>
+<script>
+    // 加载本地存储的昵称
+    const savedNick = localStorage.getItem('nickname') || '海豚用户';
+    document.getElementById('profileName').textContent = savedNick;
+    document.getElementById('currentNickname').textContent = '当前：' + savedNick;
+
+    // 复制地址
+    function copyAddress() {
+        navigator.clipboard.writeText('0x71Cd4d9dA0f0b1a2a3b4c5d6e7f8g9h0i1j2k3l4m5n').catch(() => {});
+        showToast('✓ 地址已复制');
+    }
+
+    // 复制邀请码
+    function copyInviteCode() {
+        const code = document.getElementById('inviteCode').textContent;
+        navigator.clipboard.writeText(code).catch(() => {});
+        showToast('✓ 邀请码已复制：' + code);
+    }
+
+    // 昵称弹层
+    function openNicknameModal() {
+        document.getElementById('nicknameInput').value = localStorage.getItem('nickname') || '';
+        document.getElementById('nicknameModal').classList.add('active');
+        setTimeout(() => document.getElementById('nicknameInput').focus(), 300);
+    }
+    function closeNicknameModal(e) {
+        if (!e || e.target === document.getElementById('nicknameModal')) {
+            document.getElementById('nicknameModal').classList.remove('active');
+        }
+    }
+    function saveNickname() {
+        const val = document.getElementById('nicknameInput').value.trim();
+        if (!val) { showToast('昵称不能为空'); return; }
+        localStorage.setItem('nickname', val);
+        document.getElementById('profileName').textContent = val;
+        document.getElementById('currentNickname').textContent = '当前：' + val;
+        closeNicknameModal();
+        showToast('✓ 昵称已更新');
+    }
+
+    // 头像选择
+    const avatars = ['🐟', '🐬', '🐳', '🦈', '🐠', '🦭', '🐙', '🦑', '🐡', '🦀'];
+    let avatarIdx = 0;
+    function openAvatarPicker() {
+        avatarIdx = (avatarIdx + 1) % avatars.length;
+        document.getElementById('profileAvatar').textContent = avatars[avatarIdx];
+        showToast('头像已更换');
+    }
+
+    // Toast
+    let toastTimer;
+    function showToast(msg) {
+        const el = document.getElementById('toast');
+        el.textContent = msg;
+        el.style.opacity = '1';
+        el.style.transform = 'translateX(-50%) translateY(0)';
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateX(-50%) translateY(20px)';
+        }, 2200);
+    }
+</script>
+</body>
+</html>

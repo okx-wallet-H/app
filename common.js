@@ -399,17 +399,33 @@ function generateHotTokens() {
 // ============================================================
 // 工具网格
 // ============================================================
-const tools = ["签到", "抽奖", "积分", "行情", "查询系统", "便捷访问", "交易", "连接OKX", "团队详情", "邀请好友", "我的收益", "设置昵称"];
+const tools = [
+    { name: "签到", icon: "📅", url: "profile.html" },
+    { name: "抽奖", icon: "🎰", url: "profile.html" },
+    { name: "积分", icon: "⭐", url: "profile.html" },
+    { name: "行情", icon: "📈", url: "market.html" },
+    { name: "查询系统", icon: "🔍", url: null },
+    { name: "便捷访问", icon: "⚡", url: null },
+    { name: "交易", icon: "🔄", url: "wallet.html" },
+    { name: "连接OKX", icon: "🔗", url: null },
+    { name: "团队详情", icon: "👥", url: "profile.html" },
+    { name: "邀请好友", icon: "🎁", url: "profile.html" },
+    { name: "我的收益", icon: "💰", url: "profile.html" },
+    { name: "设置昵称", icon: "✏️", url: "profile.html" }
+];
 
 function generateTools() {
     const container = document.getElementById('toolsGrid');
     if (!container) return;
     container.innerHTML = '';
-    tools.forEach(name => {
+    tools.forEach(t => {
         const div = document.createElement('div');
         div.className = 'tool-card';
-        div.innerHTML = `<div class="tool-icon">🔧</div><div class="tool-name">${name}</div>`;
-        div.addEventListener('click', () => alert(`「${name}」功能开发中`));
+        div.innerHTML = `<div class="tool-icon">${t.icon}</div><div class="tool-name">${t.name}</div>`;
+        div.addEventListener('click', () => {
+            if (t.url) window.location.href = t.url;
+            else alert(`「${t.name}」功能开发中`);
+        });
         container.appendChild(div);
     });
 }

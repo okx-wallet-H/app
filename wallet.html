@@ -2,52 +2,659 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>海豚社区 - 我的钱包</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* 钱包主卡片 */
+        .wallet-hero {
+            background: linear-gradient(135deg, #1a0a4e 0%, #2D1B69 50%, var(--primary) 100%);
+            border-radius: 32px;
+            padding: 28px 24px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .wallet-hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 220px;
+            height: 220px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 50%;
+        }
+        .wallet-hero::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -10%;
+            width: 160px;
+            height: 160px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 50%;
+        }
+
+        .wallet-network-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        .network-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 40px;
+            padding: 6px 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .network-selector:active { background: rgba(255, 255, 255, 0.2); }
+        .network-dot { width: 8px; height: 8px; background: #10B981; border-radius: 50%; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+        .network-name { font-size: 0.78rem; font-weight: 700; color: rgba(255,255,255,0.9); }
+        .network-arrow { font-size: 0.6rem; color: rgba(255,255,255,0.6); }
+
+        .wallet-scan-btn {
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .wallet-balance-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.65);
+            margin-bottom: 6px;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .eye-btn { cursor: pointer; font-size: 0.85rem; }
+
+        .wallet-balance {
+            font-size: 2.4rem;
+            font-weight: 800;
+            color: white;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            letter-spacing: -1px;
+            position: relative;
+            z-index: 1;
+            margin-bottom: 12px;
+        }
+        .wallet-balance .currency { font-size: 1.4rem; opacity: 0.7; margin-right: 4px; }
+
+        .wallet-address-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        .wallet-address {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 0.78rem;
+            font-family: monospace;
+            color: rgba(255, 255, 255, 0.85);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .wallet-address:active { background: rgba(255, 255, 255, 0.2); }
+
+        /* 快捷操作按钮 */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .quick-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        .quick-btn-icon {
+            width: 56px;
+            height: 56px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            box-shadow: 0 4px 16px rgba(45, 27, 105, 0.1);
+            transition: all 0.2s;
+        }
+        .quick-btn-icon:active { transform: scale(0.92); }
+        .quick-btn-label { font-size: 0.72rem; font-weight: 700; color: #2D1B69; }
+
+        /* 资产列表 */
+        .asset-tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 1px solid rgba(124, 58, 237, 0.1);
+            margin-bottom: 16px;
+        }
+        .asset-tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .asset-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .asset-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(124, 58, 237, 0.05);
+            cursor: pointer;
+            transition: background 0.15s;
+            border-radius: 16px;
+        }
+        .asset-item:last-child { border-bottom: none; }
+        .asset-item:active { background: rgba(124, 58, 237, 0.04); }
+
+        .asset-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+        .asset-info { flex: 1; min-width: 0; }
+        .asset-symbol { font-size: 0.92rem; font-weight: 800; color: #2D1B69; }
+        .asset-name { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+        .asset-right { text-align: right; }
+        .asset-amount { font-size: 0.9rem; font-weight: 800; color: #2D1B69; font-family: monospace; }
+        .asset-usd { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+        .asset-change { font-size: 0.72rem; font-weight: 700; }
+
+        /* 交易记录 */
+        .tx-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(124, 58, 237, 0.05);
+        }
+        .tx-item:last-child { border-bottom: none; }
+        .tx-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        .tx-info { flex: 1; }
+        .tx-type { font-size: 0.88rem; font-weight: 700; color: #2D1B69; }
+        .tx-time { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+        .tx-amount { text-align: right; }
+        .tx-value { font-size: 0.9rem; font-weight: 800; font-family: monospace; }
+        .tx-hash { font-size: 0.68rem; color: var(--text-muted); margin-top: 2px; font-family: monospace; }
+
+        /* 底部弹层 */
+        .sheet-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 10, 40, 0.5);
+            backdrop-filter: blur(8px);
+            z-index: 300;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .sheet-overlay.active { opacity: 1; pointer-events: auto; }
+
+        .bottom-sheet {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%) translateY(100%);
+            width: 100%;
+            max-width: 500px;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 32px 32px 0 0;
+            padding: 24px 24px calc(32px + env(safe-area-inset-bottom));
+            z-index: 301;
+            transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+        }
+        .bottom-sheet.active { transform: translateX(-50%) translateY(0); }
+
+        .sheet-handle {
+            width: 40px;
+            height: 4px;
+            background: #E2E8F0;
+            border-radius: 4px;
+            margin: 0 auto 20px;
+        }
+        .sheet-title { font-size: 1.1rem; font-weight: 800; color: #2D1B69; margin-bottom: 20px; }
+
+        .sheet-input-group {
+            background: rgba(124, 58, 237, 0.05);
+            border: 1.5px solid rgba(124, 58, 237, 0.12);
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 14px;
+        }
+        .sheet-input-label { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; }
+        .sheet-input-row { display: flex; align-items: center; gap: 10px; }
+        .sheet-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #2D1B69;
+            font-family: inherit;
+        }
+        .sheet-input::placeholder { color: #CBD5E1; font-weight: 400; }
+        .sheet-max-btn {
+            background: rgba(124, 58, 237, 0.1);
+            color: var(--primary);
+            border-radius: 10px;
+            padding: 4px 10px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .sheet-token-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: white;
+            border: 1px solid rgba(124, 58, 237, 0.15);
+            border-radius: 14px;
+            padding: 6px 12px;
+            cursor: pointer;
+        }
+        .sheet-token-badge span { font-size: 0.85rem; font-weight: 800; color: #2D1B69; }
+
+        .sheet-fee-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin: 10px 0;
+            padding: 0 4px;
+        }
+        .sheet-fee-row span:last-child { font-weight: 700; color: #2D1B69; }
+
+        /* QR 码展示 */
+        .qr-area {
+            text-align: center;
+            padding: 20px 0;
+        }
+        .qr-placeholder {
+            width: 160px;
+            height: 160px;
+            background: rgba(124, 58, 237, 0.06);
+            border: 2px dashed rgba(124, 58, 237, 0.2);
+            border-radius: 24px;
+            margin: 0 auto 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+        .qr-address {
+            font-family: monospace;
+            font-size: 0.82rem;
+            color: #2D1B69;
+            background: rgba(124, 58, 237, 0.06);
+            border-radius: 14px;
+            padding: 10px 16px;
+            word-break: break-all;
+            margin-bottom: 16px;
+        }
+
+        /* Toast */
+        #walletToast {
+            position: fixed;
+            bottom: 120px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: rgba(45, 27, 105, 0.9);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 999;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+    </style>
 </head>
 <body>
 <div class="ambient-bg"></div>
 <div class="container">
-    <div class="text-center" style="margin-bottom: 24px;">
-        <h1 style="font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, #2D1B69, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">我的数字钱包</h1>
-        <p style="color: var(--text-muted);">去中心化资产管理中心</p>
-    </div>
 
-    <div class="card price-hero" style="padding: 24px;">
-        <div class="metric-label">总资产折合 (USD)</div>
-        <div class="metric-value" style="font-size: 2rem;">$ 12,450.00</div>
-        <div class="flex-between" style="margin-top:20px;">
-            <span style="font-family:monospace; background:rgba(0,0,0,0.2); padding:6px 12px; border-radius:20px;">0x71C...e4c2</span>
-            <span style="background:rgba(255,255,255,0.2); padding:6px 12px; border-radius:20px;">BNB Chain ▼</span>
+    <!-- 钱包主卡片 -->
+    <div class="wallet-hero">
+        <div class="wallet-network-row">
+            <div class="network-selector" onclick="showToast('网络切换功能开发中')">
+                <div class="network-dot"></div>
+                <span class="network-name">BNB Chain</span>
+                <span class="network-arrow">▼</span>
+            </div>
+            <div class="wallet-scan-btn" onclick="showToast('扫码功能开发中')">📷</div>
+        </div>
+
+        <div class="wallet-balance-label">
+            总资产估值 (USD)
+            <span class="eye-btn" id="eyeBtn" onclick="toggleBalance()">👁️</span>
+        </div>
+        <div class="wallet-balance" id="walletBalance">
+            <span class="currency">$</span><span id="balanceNum">12,450.00</span>
+        </div>
+
+        <div class="wallet-address-row">
+            <div class="wallet-address" onclick="copyAddress()">0x71C...e4c2</div>
+            <div style="background:rgba(255,255,255,0.12);border-radius:12px;padding:6px 10px;cursor:pointer;font-size:0.72rem;color:rgba(255,255,255,0.8);font-weight:600;" onclick="copyAddress()">复制</div>
         </div>
     </div>
 
+    <!-- 快捷操作 -->
+    <div class="quick-actions">
+        <div class="quick-btn" onclick="openSheet('deposit')">
+            <div class="quick-btn-icon">📥</div>
+            <span class="quick-btn-label">充币</span>
+        </div>
+        <div class="quick-btn" onclick="openSheet('withdraw')">
+            <div class="quick-btn-icon">📤</div>
+            <span class="quick-btn-label">提币</span>
+        </div>
+        <div class="quick-btn" onclick="openSheet('swap')">
+            <div class="quick-btn-icon">🔄</div>
+            <span class="quick-btn-label">兑换</span>
+        </div>
+        <div class="quick-btn" onclick="showToast('买币功能开发中')">
+            <div class="quick-btn-icon">💳</div>
+            <span class="quick-btn-label">买币</span>
+        </div>
+    </div>
+
+    <!-- 资产列表 -->
+    <div class="card" style="padding: 20px 20px 8px;">
+        <div class="asset-tabs">
+            <div class="asset-tab active" onclick="switchAssetTab('tokens', this)">代币</div>
+            <div class="asset-tab" onclick="switchAssetTab('nft', this)">NFT</div>
+            <div class="asset-tab" onclick="switchAssetTab('history', this)">交易记录</div>
+        </div>
+
+        <!-- 代币列表 -->
+        <div id="tab-tokens">
+            <div class="asset-item" onclick="openSheet('detail', 'H')">
+                <div class="asset-icon" style="background:rgba(124,58,237,0.1);">🐬</div>
+                <div class="asset-info">
+                    <div class="asset-symbol">H Token</div>
+                    <div class="asset-name">X Layer Network</div>
+                </div>
+                <div class="asset-right">
+                    <div class="asset-amount">125,000 H</div>
+                    <div class="asset-usd">≈ $<span id="hTokenUsd">--</span></div>
+                    <div class="asset-change positive" id="hTokenChange">--</div>
+                </div>
+            </div>
+            <div class="asset-item" onclick="openSheet('detail', 'BNB')">
+                <div class="asset-icon" style="background:rgba(245,158,11,0.1);">🟡</div>
+                <div class="asset-info">
+                    <div class="asset-symbol">BNB</div>
+                    <div class="asset-name">BNB Chain</div>
+                </div>
+                <div class="asset-right">
+                    <div class="asset-amount">0.85 BNB</div>
+                    <div class="asset-usd">≈ $497.42</div>
+                    <div class="asset-change positive">+0.92%</div>
+                </div>
+            </div>
+            <div class="asset-item" onclick="openSheet('detail', 'USDT')">
+                <div class="asset-icon" style="background:rgba(16,185,129,0.1);">💵</div>
+                <div class="asset-info">
+                    <div class="asset-symbol">USDT</div>
+                    <div class="asset-name">BNB Chain (BEP-20)</div>
+                </div>
+                <div class="asset-right">
+                    <div class="asset-amount">11,262.58 USDT</div>
+                    <div class="asset-usd">≈ $11,262.58</div>
+                    <div class="asset-change" style="color:#64748B;">0.00%</div>
+                </div>
+            </div>
+            <div class="asset-item" onclick="openSheet('detail', 'OKB')">
+                <div class="asset-icon" style="background:rgba(30,30,30,0.08);">⬛</div>
+                <div class="asset-info">
+                    <div class="asset-symbol">OKB</div>
+                    <div class="asset-name">X Layer Network</div>
+                </div>
+                <div class="asset-right">
+                    <div class="asset-amount">2.00 OKB</div>
+                    <div class="asset-usd">≈ $120.24</div>
+                    <div class="asset-change positive">+2.34%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NFT 占位 -->
+        <div id="tab-nft" style="display:none;">
+            <div style="text-align:center;padding:40px 20px;color:var(--text-muted);">
+                <div style="font-size:2.5rem;margin-bottom:12px;">🖼️</div>
+                <div style="font-weight:700;margin-bottom:6px;">暂无 NFT</div>
+                <div style="font-size:0.8rem;">您的 NFT 资产将在这里展示</div>
+            </div>
+        </div>
+
+        <!-- 交易记录 -->
+        <div id="tab-history" style="display:none;">
+            <div class="tx-item">
+                <div class="tx-icon" style="background:rgba(16,185,129,0.1);">📥</div>
+                <div class="tx-info">
+                    <div class="tx-type">收到 H Token</div>
+                    <div class="tx-time">2026-03-23 · 来自 0x3f...a1b9</div>
+                </div>
+                <div class="tx-amount">
+                    <div class="tx-value positive">+5,000 H</div>
+                    <div class="tx-hash">0xabc...123</div>
+                </div>
+            </div>
+            <div class="tx-item">
+                <div class="tx-icon" style="background:rgba(124,58,237,0.1);">💎</div>
+                <div class="tx-info">
+                    <div class="tx-type">质押 H Token</div>
+                    <div class="tx-time">2026-03-22 · 质押合约</div>
+                </div>
+                <div class="tx-amount">
+                    <div class="tx-value" style="color:#2D1B69;">-12,500 H</div>
+                    <div class="tx-hash">0xdef...456</div>
+                </div>
+            </div>
+            <div class="tx-item">
+                <div class="tx-icon" style="background:rgba(16,185,129,0.1);">💰</div>
+                <div class="tx-info">
+                    <div class="tx-type">领取质押收益</div>
+                    <div class="tx-time">2026-03-21 · 质押合约</div>
+                </div>
+                <div class="tx-amount">
+                    <div class="tx-value positive">+24.5 U</div>
+                    <div class="tx-hash">0xghi...789</div>
+                </div>
+            </div>
+            <div class="tx-item">
+                <div class="tx-icon" style="background:rgba(239,68,68,0.1);">📤</div>
+                <div class="tx-info">
+                    <div class="tx-type">发送 USDT</div>
+                    <div class="tx-time">2026-03-20 · 至 0x92...d7f5</div>
+                </div>
+                <div class="tx-amount">
+                    <div class="tx-value negative">-500 USDT</div>
+                    <div class="tx-hash">0xjkl...012</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DeFi 仓位 -->
+    <div class="section-header"><h3>💎 DeFi 仓位</h3><a href="stake.html">管理 →</a></div>
     <div class="card">
-        <div class="tools-grid" style="margin-top:0;">
-            <div class="tool-card" id="depositBtn"><div class="tool-icon">📥</div><div>充币</div></div>
-            <div class="tool-card" id="withdrawBtn"><div class="tool-icon">📤</div><div>提币</div></div>
-            <div class="tool-card" id="tradeBtn"><div class="tool-icon">🔄</div><div>交易</div></div>
-            <div class="tool-card" id="buyBtn"><div class="tool-icon">💳</div><div>买币</div></div>
+        <div class="flex-between" style="margin-bottom:14px;">
+            <div>
+                <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);">质押 H → 得 U</div>
+                <div style="font-size:1.1rem;font-weight:800;color:#2D1B69;margin-top:3px;">12,500 H</div>
+            </div>
+            <div style="text-align:right;">
+                <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);">累计收益</div>
+                <div style="font-size:1.1rem;font-weight:800;color:#10B981;margin-top:3px;">324.5 U</div>
+            </div>
         </div>
+        <div class="flex-between">
+            <div>
+                <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);">质押 U → 得 H</div>
+                <div style="font-size:1.1rem;font-weight:800;color:#2D1B69;margin-top:3px;">1,200 U</div>
+            </div>
+            <div style="text-align:right;">
+                <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);">累计收益</div>
+                <div style="font-size:1.1rem;font-weight:800;color:#10B981;margin-top:3px;">87.2 H</div>
+            </div>
+        </div>
+        <button class="btn-gradient" style="margin-top:16px;" onclick="window.location.href='stake.html'">查看质押详情</button>
     </div>
 
-    <div class="card">
-        <div class="flex-between"><span style="font-weight:700;">💰 资产列表</span><span style="font-size:1.2rem; cursor:pointer;" id="settingsBtn">⚙️</span></div>
-        <div class="chat-item" style="justify-content: space-between;">
-            <div><div class="flex-between"><span style="font-weight:800;">H Token</span><span style="font-size:0.7rem;">+2.34%</span></div><div>125,000 H</div></div>
-            <div>$690.00</div>
+</div>
+
+<!-- 底部弹层遮罩 -->
+<div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet()"></div>
+
+<!-- 充币弹层 -->
+<div class="bottom-sheet" id="sheet-deposit">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">📥 充币</div>
+    <div class="qr-area">
+        <div class="qr-placeholder">📱</div>
+        <div style="font-size:0.82rem;font-weight:600;color:var(--text-muted);margin-bottom:8px;">扫描二维码或复制地址充币</div>
+        <div class="qr-address">0x71Cd4d9dA0f0b1a2a3b4c5d6e7f8g9h0i1j2k3l4m5n</div>
+        <div class="sheet-fee-row"><span>网络</span><span>BNB Chain (BEP-20)</span></div>
+        <div class="sheet-fee-row"><span>最小充值</span><span>0.01 BNB</span></div>
+    </div>
+    <button class="btn-gradient" onclick="copyAddress(); closeSheet()">复制充值地址</button>
+</div>
+
+<!-- 提币弹层 -->
+<div class="bottom-sheet" id="sheet-withdraw">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">📤 提币</div>
+    <div class="sheet-input-group">
+        <div class="sheet-input-label">收款地址</div>
+        <div class="sheet-input-row">
+            <input class="sheet-input" type="text" placeholder="输入或粘贴钱包地址" id="withdrawAddr">
+            <span style="font-size:0.9rem;cursor:pointer;" onclick="showToast('扫码功能开发中')">📷</span>
         </div>
-        <div class="chat-item" style="justify-content: space-between;">
-            <div><div class="flex-between"><span style="font-weight:800;">BNB</span><span>+1.20%</span></div><div>0.85 BNB</div></div>
-            <div>$497.42</div>
+    </div>
+    <div class="sheet-input-group">
+        <div class="sheet-input-label">提币数量</div>
+        <div class="sheet-input-row">
+            <input class="sheet-input" type="number" placeholder="0.00" id="withdrawAmount">
+            <div class="sheet-max-btn" onclick="document.getElementById('withdrawAmount').value='11262.58'; calcWithdraw()">MAX</div>
+            <div class="sheet-token-badge" onclick="showToast('代币选择功能开发中')">
+                <span>💵</span><span>USDT</span><span style="font-size:0.6rem;color:var(--text-muted);">▼</span>
+            </div>
         </div>
-        <div class="chat-item" style="justify-content: space-between;">
-            <div><div class="flex-between"><span style="font-weight:800;">USDT</span><span>0.00%</span></div><div>11,262.58 USDT</div></div>
-            <div>$11,262.58</div>
+    </div>
+    <div class="sheet-fee-row"><span>可用余额</span><span>11,262.58 USDT</span></div>
+    <div class="sheet-fee-row"><span>网络手续费</span><span>~0.5 USDT</span></div>
+    <div class="sheet-fee-row"><span>实际到账</span><span id="withdrawActual">-- USDT</span></div>
+    <button class="btn-gradient" onclick="confirmWithdraw()">确认提币</button>
+</div>
+
+<!-- 兑换弹层 -->
+<div class="bottom-sheet" id="sheet-swap">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">🔄 代币兑换</div>
+    <div class="sheet-input-group">
+        <div class="sheet-input-label">卖出</div>
+        <div class="sheet-input-row">
+            <input class="sheet-input" type="number" placeholder="0.00" id="swapFrom" oninput="calcSwap()">
+            <div class="sheet-token-badge">
+                <span>🐬</span><span>H</span><span style="font-size:0.6rem;color:var(--text-muted);">▼</span>
+            </div>
         </div>
+    </div>
+    <div style="text-align:center;margin:8px 0;font-size:1.2rem;cursor:pointer;color:var(--primary);">⇅</div>
+    <div class="sheet-input-group">
+        <div class="sheet-input-label">买入（预估）</div>
+        <div class="sheet-input-row">
+            <input class="sheet-input" type="text" placeholder="0.00" id="swapTo" readonly>
+            <div class="sheet-token-badge">
+                <span>💵</span><span>USDT</span><span style="font-size:0.6rem;color:var(--text-muted);">▼</span>
+            </div>
+        </div>
+    </div>
+    <div class="sheet-fee-row"><span>汇率</span><span id="swapRate">1 H ≈ -- USDT</span></div>
+    <div class="sheet-fee-row"><span>滑点</span><span>0.5%</span></div>
+    <div class="sheet-fee-row"><span>手续费</span><span>~0.1%</span></div>
+    <button class="btn-gradient" onclick="showToast('兑换功能开发中')">确认兑换</button>
+</div>
+
+<!-- 资产详情弹层 -->
+<div class="bottom-sheet" id="sheet-detail">
+    <div class="sheet-handle"></div>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
+        <div id="detailAssetIcon" style="width:48px;height:48px;border-radius:18px;background:rgba(124,58,237,0.1);display:flex;align-items:center;justify-content:center;font-size:1.5rem;">🐬</div>
+        <div>
+            <div id="detailAssetSymbol" style="font-size:1.3rem;font-weight:800;color:#2D1B69;">H Token</div>
+            <div id="detailAssetNet" style="font-size:0.75rem;color:var(--text-muted);">X Layer Network</div>
+        </div>
+    </div>
+    <div style="background:rgba(124,58,237,0.05);border-radius:20px;padding:16px;margin-bottom:16px;">
+        <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);">持有数量</div>
+        <div id="detailAssetAmount" style="font-size:1.8rem;font-weight:800;color:#2D1B69;margin:4px 0;font-family:monospace;">125,000 H</div>
+        <div id="detailAssetUsd" style="font-size:0.85rem;color:var(--text-muted);">≈ $-- USD</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <button class="btn-gradient" onclick="closeSheet(); openSheet('deposit')">充值</button>
+        <button class="btn-outline" onclick="closeSheet(); openSheet('withdraw')">发送</button>
     </div>
 </div>
+
+<div id="walletToast"></div>
 
 <div class="bottom-nav">
     <a href="index.html" class="nav-item"><div class="nav-icon">🏠</div><span>首页</span></a>
@@ -58,5 +665,115 @@
 </div>
 
 <script src="common.js"></script>
+<script>
+    let balanceVisible = true;
+    let currentSheet = null;
+
+    const assets = {
+        H: { icon: '🐬', symbol: 'H Token', net: 'X Layer Network', amount: '125,000 H', usd: '--' },
+        BNB: { icon: '🟡', symbol: 'BNB', net: 'BNB Chain', amount: '0.85 BNB', usd: '$497.42' },
+        USDT: { icon: '💵', symbol: 'USDT', net: 'BNB Chain (BEP-20)', amount: '11,262.58 USDT', usd: '$11,262.58' },
+        OKB: { icon: '⬛', symbol: 'OKB', net: 'X Layer Network', amount: '2.00 OKB', usd: '$120.24' },
+    };
+
+    function toggleBalance() {
+        balanceVisible = !balanceVisible;
+        document.getElementById('balanceNum').textContent = balanceVisible ? '12,450.00' : '••••••';
+        document.getElementById('eyeBtn').textContent = balanceVisible ? '👁️' : '🙈';
+    }
+
+    function copyAddress() {
+        navigator.clipboard.writeText('0x71Cd4d9dA0f0b1a2a3b4c5d6e7f8g9h0i1j2k3l4m5n').catch(() => {});
+        showToast('✓ 地址已复制');
+    }
+
+    function switchAssetTab(tab, el) {
+        document.querySelectorAll('.asset-tab').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+        ['tokens', 'nft', 'history'].forEach(id => {
+            document.getElementById('tab-' + id).style.display = id === tab ? 'block' : 'none';
+        });
+    }
+
+    function openSheet(type, token) {
+        closeSheet();
+        if (type === 'detail' && token) {
+            const a = assets[token];
+            if (a) {
+                document.getElementById('detailAssetIcon').textContent = a.icon;
+                document.getElementById('detailAssetSymbol').textContent = a.symbol;
+                document.getElementById('detailAssetNet').textContent = a.net;
+                document.getElementById('detailAssetAmount').textContent = a.amount;
+                document.getElementById('detailAssetUsd').textContent = '≈ ' + a.usd;
+            }
+        }
+        currentSheet = 'sheet-' + type;
+        document.getElementById(currentSheet).classList.add('active');
+        document.getElementById('sheetOverlay').classList.add('active');
+    }
+
+    function closeSheet() {
+        if (currentSheet) {
+            document.getElementById(currentSheet).classList.remove('active');
+            currentSheet = null;
+        }
+        document.getElementById('sheetOverlay').classList.remove('active');
+    }
+
+    function calcWithdraw() {
+        const val = parseFloat(document.getElementById('withdrawAmount').value) || 0;
+        document.getElementById('withdrawActual').textContent = Math.max(val - 0.5, 0).toFixed(2) + ' USDT';
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('withdrawAmount').addEventListener('input', calcWithdraw);
+    });
+
+    function confirmWithdraw() {
+        const addr = document.getElementById('withdrawAddr').value.trim();
+        const amount = document.getElementById('withdrawAmount').value;
+        if (!addr) { showToast('请输入收款地址'); return; }
+        if (!amount || parseFloat(amount) <= 0) { showToast('请输入提币数量'); return; }
+        showToast('提币功能开发中，实际将连接智能合约');
+        closeSheet();
+    }
+
+    let liveHPrice = null;
+    function calcSwap() {
+        const from = parseFloat(document.getElementById('swapFrom').value) || 0;
+        const rate = liveHPrice || 0.00001;
+        document.getElementById('swapTo').value = (from * rate).toFixed(6);
+        document.getElementById('swapRate').textContent = `1 H ≈ ${rate.toFixed(8)} USDT`;
+    }
+
+    const origUpdate = window.updatePriceUI;
+    window.updatePriceUI = function(price) {
+        if (origUpdate) origUpdate(price);
+        liveHPrice = price;
+        const hUsd = (125000 * price).toFixed(2);
+        document.getElementById('hTokenUsd').textContent = parseFloat(hUsd).toLocaleString();
+        document.getElementById('swapRate').textContent = `1 H ≈ ${price.toFixed(8)} USDT`;
+        if (window._firstPriceForWallet) {
+            const chg = ((price - window._firstPriceForWallet) / window._firstPriceForWallet * 100).toFixed(2);
+            const el = document.getElementById('hTokenChange');
+            el.textContent = (parseFloat(chg) >= 0 ? '+' : '') + chg + '%';
+            el.className = 'asset-change ' + (parseFloat(chg) >= 0 ? 'positive' : 'negative');
+        } else {
+            window._firstPriceForWallet = price;
+        }
+    };
+
+    let toastTimer;
+    function showToast(msg) {
+        const el = document.getElementById('walletToast');
+        el.textContent = msg;
+        el.style.opacity = '1';
+        el.style.transform = 'translateX(-50%) translateY(0)';
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateX(-50%) translateY(20px)';
+        }, 2200);
+    }
+</script>
 </body>
 </html>
