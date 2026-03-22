@@ -6,303 +6,303 @@
     <title>海豚社区 - 消息</title>
     <link rel="stylesheet" href="styles.css">
     <style>
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
 
         body {
-            background: #0D0620;
-            margin: 0;
+            background: #F5F5F7;
             font-family: -apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif;
             min-height: 100vh;
-        }
-
-        /* 星空背景 */
-        .ambient-bg {
-            position: fixed; inset: 0; z-index: 0; pointer-events: none;
-            background:
-                radial-gradient(ellipse 80% 60% at 20% 10%, rgba(124,58,237,0.2) 0%, transparent 60%),
-                radial-gradient(ellipse 60% 50% at 80% 80%, rgba(45,27,105,0.28) 0%, transparent 55%),
-                radial-gradient(ellipse 40% 40% at 60% 30%, rgba(168,85,247,0.09) 0%, transparent 50%);
-        }
-        .stars { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
-        .star {
-            position: absolute; background: white; border-radius: 50%;
-            animation: twinkle var(--d,3s) ease-in-out infinite var(--delay,0s);
-        }
-        @keyframes twinkle {
-            0%,100% { opacity: var(--min-op,0.12); transform: scale(1); }
-            50% { opacity: var(--max-op,0.65); transform: scale(1.3); }
+            color: #1A1A2E;
         }
 
         .container {
-            max-width: 480px; margin: 0 auto;
-            background: transparent;
+            max-width: 480px;
+            margin: 0 auto;
+            background: #F5F5F7;
             min-height: 100vh;
             padding-bottom: 80px;
-            position: relative; z-index: 1;
         }
 
-        /* ===== 顶部导航 ===== */
+        /* ===== 顶部导航栏 ===== */
         .im-navbar {
             position: sticky; top: 0; z-index: 100;
             display: flex; align-items: center; justify-content: space-between;
-            padding: 14px 16px 12px;
-            background: rgba(13,6,32,0.88);
+            padding: 16px 20px 14px;
+            background: rgba(245,245,247,0.92);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(124,58,237,0.18);
+            border-bottom: 1px solid rgba(0,0,0,0.06);
         }
         .im-navbar-title {
-            font-size: 1.1rem; font-weight: 800;
-            background: linear-gradient(135deg, #E9D5FF, #C4B5FD, #A78BFA);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            letter-spacing: 0.3px;
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #1A1A2E;
+            letter-spacing: -0.3px;
         }
         .plus-btn {
-            width: 32px; height: 32px;
+            width: 34px; height: 34px;
             display: flex; align-items: center; justify-content: center;
-            border-radius: 9px;
-            background: rgba(124,58,237,0.18);
-            border: 1px solid rgba(124,58,237,0.3);
-            cursor: pointer; transition: all 0.2s;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #7C3AED, #A855F7);
+            box-shadow: 0 4px 12px rgba(124,58,237,0.35);
+            cursor: pointer;
+            transition: all 0.2s;
         }
-        .plus-btn:active { background: rgba(124,58,237,0.38); transform: scale(0.93); }
-        .plus-btn svg { width: 17px; height: 17px; color: #C4B5FD; }
+        .plus-btn:active { transform: scale(0.92); box-shadow: 0 2px 8px rgba(124,58,237,0.25); }
+        .plus-btn svg { width: 17px; height: 17px; color: white; }
 
         /* ===== 搜索栏 ===== */
-        .im-search-bar { padding: 10px 16px 6px; }
+        .im-search-bar {
+            padding: 10px 16px 8px;
+            background: #F5F5F7;
+        }
         .im-search-inner {
             display: flex; align-items: center; gap: 8px;
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(124,58,237,0.18);
-            border-radius: 12px; padding: 8px 13px;
-            backdrop-filter: blur(10px);
-            transition: border-color 0.2s;
+            background: white;
+            border-radius: 12px;
+            padding: 10px 14px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.07);
         }
-        .im-search-inner:focus-within {
-            border-color: rgba(124,58,237,0.45);
-            background: rgba(255,255,255,0.09);
-        }
-        .im-search-inner svg { width: 13px; height: 13px; color: rgba(196,181,253,0.5); flex-shrink: 0; }
+        .im-search-inner svg { width: 14px; height: 14px; color: #9CA3AF; flex-shrink: 0; }
         .im-search-inner input {
             border: none; background: transparent; outline: none;
-            font-size: 0.84rem; color: rgba(255,255,255,0.82); width: 100%;
+            font-size: 0.85rem; color: #374151; width: 100%;
         }
-        .im-search-inner input::placeholder { color: rgba(196,181,253,0.38); }
+        .im-search-inner input::placeholder { color: #9CA3AF; }
 
-        /* ===== 分组标题：贴左，极小上下间距 ===== */
-        .chat-section-title {
-            padding: 16px 16px 4px;
+        /* ===== 分组标题 ===== */
+        .section-header {
+            padding: 18px 20px 6px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .section-header-line {
+            flex: 1; height: 1px;
+            background: linear-gradient(90deg, rgba(124,58,237,0.25), transparent);
+        }
+        .section-header-text {
             font-size: 0.68rem;
-            color: rgba(196,181,253,0.42);
             font-weight: 700;
-            letter-spacing: 1.2px;
+            color: #7C3AED;
+            letter-spacing: 1.5px;
             text-transform: uppercase;
+            white-space: nowrap;
         }
 
-        /* ===== 对话列表：无左右 padding，贴满屏幕 ===== */
-        .chat-list { padding: 0; }
+        /* ===== 对话列表容器 ===== */
+        .chat-list {
+            background: white;
+            margin: 0;
+        }
 
-        /* ===== 对话行：全宽，仅底部细线分隔，无圆角无卡片感 ===== */
+        /* ===== 对话行 ===== */
         .chat-item {
             display: flex; align-items: center;
-            padding: 11px 16px;
-            gap: 12px;
+            padding: 13px 20px;
+            gap: 14px;
             cursor: pointer; position: relative;
-            background: transparent;
-            border-bottom: 1px solid rgba(124,58,237,0.08);
+            background: white;
+            border-bottom: 1px solid #F3F4F6;
             transition: background 0.15s;
-            border-radius: 0;
         }
         .chat-item:last-child { border-bottom: none; }
-        .chat-item:active { background: rgba(124,58,237,0.1); }
+        .chat-item:active { background: #FAF5FF; }
 
-        /* 官方频道行：左侧紫色细线强调 */
+        /* 官方频道：左侧紫色渐变细线 */
         .chat-item.official {
-            border-left: 3px solid rgba(167,139,250,0.5);
-            padding-left: 13px;
-            background: rgba(124,58,237,0.04);
+            border-left: 3px solid #7C3AED;
+            padding-left: 17px;
+            background: linear-gradient(90deg, rgba(124,58,237,0.03) 0%, white 40%);
         }
+        .chat-item.official:active { background: linear-gradient(90deg, rgba(124,58,237,0.08) 0%, #FAF5FF 40%); }
 
         /* ===== H 字母头像 ===== */
         .h-avatar {
-            width: 48px; height: 48px;
-            border-radius: 13px;
+            width: 50px; height: 50px;
+            border-radius: 14px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.35rem; font-weight: 900; color: white;
+            font-size: 1.4rem; font-weight: 900; color: white;
             flex-shrink: 0; position: relative;
             letter-spacing: -1px;
         }
-        .h-avatar.official-purple {
-            background: linear-gradient(135deg, #2D1B69 0%, #7C3AED 60%, #A855F7 100%);
-            box-shadow: 0 3px 12px rgba(124,58,237,0.45);
+        /* 官方系列 */
+        .h-avatar.av-system {
+            background: linear-gradient(135deg, #1D4ED8, #3B82F6);
+            box-shadow: 0 4px 14px rgba(29,78,216,0.3);
         }
-        .h-avatar.official-blue {
-            background: linear-gradient(135deg, #1E3A5F 0%, #1D4ED8 60%, #3B82F6 100%);
-            box-shadow: 0 3px 12px rgba(29,78,216,0.4);
+        .h-avatar.av-official {
+            background: linear-gradient(135deg, #5B21B6, #7C3AED, #A855F7);
+            box-shadow: 0 4px 14px rgba(124,58,237,0.35);
         }
-        .h-avatar.official-red {
-            background: linear-gradient(135deg, #7C2D12 0%, #DC2626 50%, #F97316 100%);
-            box-shadow: 0 3px 12px rgba(220,38,38,0.38);
+        .h-avatar.av-ai {
+            background: linear-gradient(135deg, #BE185D, #EC4899, #F9A8D4);
+            box-shadow: 0 4px 14px rgba(236,72,153,0.3);
         }
-        .h-avatar.group-gold {
-            background: linear-gradient(135deg, #92400E 0%, #D97706 50%, #FCD34D 100%);
-            box-shadow: 0 3px 10px rgba(217,119,6,0.38);
+        /* 群组系列 */
+        .h-avatar.av-gold {
+            background: linear-gradient(135deg, #B45309, #D97706, #FCD34D);
+            box-shadow: 0 4px 12px rgba(217,119,6,0.3);
         }
-        .h-avatar.group-blue {
-            background: linear-gradient(135deg, #1E3A5F 0%, #1D4ED8 60%, #60A5FA 100%);
-            box-shadow: 0 3px 10px rgba(29,78,216,0.35);
+        .h-avatar.av-blue {
+            background: linear-gradient(135deg, #1E40AF, #2563EB, #60A5FA);
+            box-shadow: 0 4px 12px rgba(37,99,235,0.3);
         }
-        .h-avatar.group-green {
-            background: linear-gradient(135deg, #064E3B 0%, #059669 50%, #34D399 100%);
-            box-shadow: 0 3px 10px rgba(5,150,105,0.38);
+        .h-avatar.av-teal {
+            background: linear-gradient(135deg, #0F766E, #0D9488, #2DD4BF);
+            box-shadow: 0 4px 12px rgba(13,148,136,0.3);
         }
-        .h-avatar.user-staked {
-            background: linear-gradient(135deg, #0891B2 0%, #7C3AED 60%, #EC4899 100%);
-            box-shadow: 0 3px 10px rgba(124,58,237,0.3);
+        /* 私信：有质押 */
+        .h-avatar.av-staked-1 {
+            background: linear-gradient(135deg, #6D28D9, #8B5CF6, #C4B5FD);
+            box-shadow: 0 4px 12px rgba(109,40,217,0.28);
         }
-        .h-avatar.user-staked-gold {
-            background: linear-gradient(135deg, #D97706 0%, #F59E0B 50%, #FCD34D 100%);
-            box-shadow: 0 3px 10px rgba(217,119,6,0.35);
+        .h-avatar.av-staked-2 {
+            background: linear-gradient(135deg, #0369A1, #0EA5E9, #7DD3FC);
+            box-shadow: 0 4px 12px rgba(14,165,233,0.28);
         }
-        .h-avatar.user-unstaked {
-            background: linear-gradient(135deg, #374151 0%, #4B5563 100%);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+        /* 私信：无质押 */
+        .h-avatar.av-unstaked {
+            background: linear-gradient(135deg, #D1D5DB, #9CA3AF);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
         /* 认证徽章 */
-        .verified-badge {
-            position: absolute; bottom: -3px; right: -3px;
-            width: 18px; height: 18px;
-            background: linear-gradient(135deg, #7C3AED, #A855F7);
-            border-radius: 50%; border: 2px solid #0D0620;
+        .v-badge {
+            position: absolute; bottom: -4px; right: -4px;
+            width: 20px; height: 20px;
+            border-radius: 50%; border: 2.5px solid white;
             display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 1px 6px rgba(124,58,237,0.5);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
         }
-        .verified-badge.blue {
-            background: linear-gradient(135deg, #1D4ED8, #3B82F6);
-            box-shadow: 0 1px 6px rgba(29,78,216,0.5);
-        }
-        .verified-badge svg { width: 8px; height: 8px; color: white; }
+        .v-badge.purple { background: linear-gradient(135deg, #7C3AED, #A855F7); }
+        .v-badge.blue   { background: linear-gradient(135deg, #1D4ED8, #3B82F6); }
+        .v-badge svg { width: 9px; height: 9px; color: white; }
 
         /* 在线绿点 */
         .online-dot {
-            position: absolute; bottom: 1px; right: 1px;
-            width: 9px; height: 9px;
+            position: absolute; bottom: 0; right: 0;
+            width: 12px; height: 12px;
             background: #10B981; border-radius: 50%;
-            border: 2px solid #0D0620;
-            box-shadow: 0 0 5px rgba(16,185,129,0.7);
+            border: 2.5px solid white;
+            box-shadow: 0 0 0 1px rgba(16,185,129,0.3);
         }
 
         /* ===== 对话内容 ===== */
         .chat-body { flex: 1; min-width: 0; }
+
         .chat-row-top {
             display: flex; align-items: center;
-            justify-content: space-between; margin-bottom: 4px;
+            justify-content: space-between;
+            margin-bottom: 4px;
         }
         .chat-name-wrap {
-            display: flex; align-items: center; gap: 5px; min-width: 0; flex: 1;
+            display: flex; align-items: center; gap: 5px;
+            min-width: 0; flex: 1;
         }
         .chat-name {
-            font-size: 0.94rem; font-weight: 700;
-            color: rgba(255,255,255,0.9);
+            font-size: 0.95rem; font-weight: 700;
+            color: #111827;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         /* 名称旁认证V */
-        .v-badge {
+        .name-v {
             display: inline-flex; align-items: center; justify-content: center;
-            width: 14px; height: 14px;
-            background: linear-gradient(135deg, #7C3AED, #A855F7);
-            border-radius: 50%; flex-shrink: 0;
+            width: 15px; height: 15px; border-radius: 50%; flex-shrink: 0;
         }
-        .v-badge.blue { background: linear-gradient(135deg, #1D4ED8, #3B82F6); }
-        .v-badge svg { width: 7px; height: 7px; color: white; }
+        .name-v.purple { background: linear-gradient(135deg, #7C3AED, #A855F7); }
+        .name-v.blue   { background: linear-gradient(135deg, #1D4ED8, #3B82F6); }
+        .name-v svg { width: 7px; height: 7px; color: white; }
 
         /* 成员数标签 */
         .member-tag {
-            display: inline-flex; align-items: center; gap: 2px;
-            background: rgba(124,58,237,0.14);
-            border: 1px solid rgba(124,58,237,0.2);
-            border-radius: 5px; padding: 1px 5px;
-            font-size: 0.58rem; color: rgba(196,181,253,0.65); font-weight: 600;
+            display: inline-flex; align-items: center; gap: 3px;
+            background: #EDE9FE;
+            border-radius: 6px; padding: 2px 7px;
+            font-size: 0.6rem; color: #7C3AED; font-weight: 700;
             flex-shrink: 0;
         }
 
         .chat-time {
-            font-size: 0.67rem; color: rgba(196,181,253,0.4);
+            font-size: 0.68rem; color: #9CA3AF;
             flex-shrink: 0; margin-left: 8px;
         }
         .chat-preview {
-            font-size: 0.77rem; color: rgba(196,181,253,0.5);
+            font-size: 0.78rem; color: #6B7280;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            line-height: 1.4;
+            line-height: 1.45;
         }
 
         /* 未读红点 */
-        .unread-badge {
-            position: absolute; top: 10px; right: 14px;
-            min-width: 19px; height: 19px;
-            background: linear-gradient(135deg, #EF4444, #F97316);
+        .unread-dot {
+            position: absolute; top: 12px; right: 18px;
+            min-width: 20px; height: 20px;
+            background: linear-gradient(135deg, #7C3AED, #A855F7);
             border-radius: 10px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 0.62rem; font-weight: 800; color: white;
-            padding: 0 5px;
-            box-shadow: 0 2px 7px rgba(239,68,68,0.5);
+            font-size: 0.63rem; font-weight: 800; color: white;
+            padding: 0 6px;
+            box-shadow: 0 2px 8px rgba(124,58,237,0.4);
         }
 
         /* ===== + 号菜单弹层 ===== */
-        .plus-menu-overlay {
+        .plus-overlay {
             position: fixed; inset: 0; z-index: 200; display: none;
         }
-        .plus-menu-overlay.show { display: block; }
+        .plus-overlay.show { display: block; }
         .plus-menu {
-            position: absolute; top: 58px; right: 12px;
-            background: rgba(22,10,50,0.96);
-            backdrop-filter: blur(24px);
-            border: 1px solid rgba(124,58,237,0.28);
-            border-radius: 14px; overflow: hidden;
-            min-width: 165px;
-            box-shadow: 0 16px 48px rgba(0,0,0,0.55);
+            position: absolute; top: 62px; right: 14px;
+            background: white;
+            border-radius: 16px; overflow: hidden;
+            min-width: 170px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
         }
         .plus-menu::before {
             content: ''; position: absolute; top: -7px; right: 16px;
             width: 0; height: 0;
             border-left: 7px solid transparent;
             border-right: 7px solid transparent;
-            border-bottom: 8px solid rgba(124,58,237,0.35);
+            border-bottom: 8px solid white;
+            filter: drop-shadow(0 -2px 2px rgba(0,0,0,0.06));
         }
         .plus-menu-item {
-            display: flex; align-items: center; gap: 11px;
-            padding: 12px 16px; cursor: pointer;
+            display: flex; align-items: center; gap: 12px;
+            padding: 13px 18px; cursor: pointer;
             transition: background 0.15s;
-            border-bottom: 1px solid rgba(124,58,237,0.1);
+            border-bottom: 1px solid #F3F4F6;
         }
         .plus-menu-item:last-child { border-bottom: none; }
-        .plus-menu-item:active { background: rgba(124,58,237,0.18); }
-        .plus-menu-item svg { width: 17px; height: 17px; color: #C4B5FD; flex-shrink: 0; }
-        .plus-menu-item span { font-size: 0.83rem; color: rgba(255,255,255,0.86); font-weight: 500; }
+        .plus-menu-item:active { background: #FAF5FF; }
+        .plus-menu-icon {
+            width: 34px; height: 34px; border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .plus-menu-icon svg { width: 17px; height: 17px; color: white; }
+        .plus-menu-item span { font-size: 0.85rem; color: #374151; font-weight: 600; }
 
-        /* 底部导航适配深色 */
+        /* ===== 底部导航适配白色主题 ===== */
         .bottom-nav {
-            background: rgba(13,6,32,0.92) !important;
-            border-top: 1px solid rgba(124,58,237,0.18) !important;
+            background: rgba(255,255,255,0.95) !important;
+            border-top: 1px solid rgba(0,0,0,0.07) !important;
             backdrop-filter: blur(20px);
         }
+        /* 覆盖 nav.js 生成的底部导航颜色 */
+        #bottomNav .nav-item { color: #9CA3AF !important; }
+        #bottomNav .nav-item.active { color: #7C3AED !important; }
+        #bottomNav .nav-dot { background: #7C3AED !important; }
     </style>
 </head>
 <body>
-<div class="ambient-bg"></div>
-<div class="stars" id="starsContainer"></div>
-
 <div class="container">
 
     <!-- 顶部导航 -->
     <div class="im-navbar">
-        <div style="width:32px;"></div>
+        <div style="width:34px;"></div>
         <div class="im-navbar-title">消息</div>
-        <div onclick="togglePlusMenu()">
+        <div onclick="togglePlus()">
             <div class="plus-btn">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
                 </svg>
             </div>
         </div>
@@ -312,24 +312,28 @@
     <div class="im-search-bar">
         <div class="im-search-inner">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
             </svg>
-            <input type="text" placeholder="搜索消息" id="imSearchInput" oninput="filterChats(this.value)">
+            <input type="text" placeholder="搜索" id="searchInput" oninput="filterChats(this.value)">
         </div>
     </div>
 
     <!-- ===== 官方频道 ===== -->
-    <div class="chat-section-title" id="section-official">官方频道</div>
+    <div class="section-header" id="sec-official">
+        <span class="section-header-text">官方频道</span>
+        <div class="section-header-line"></div>
+    </div>
     <div class="chat-list" id="list-official">
 
         <!-- 系统通知 -->
         <div class="chat-item official" onclick="location.href='im-chat.html?room=system'">
-            <div class="h-avatar official-blue">
+            <div class="h-avatar av-system">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round">
                     <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
                     <path d="M13.73 21a2 2 0 01-3.46 0"/>
                 </svg>
-                <div class="verified-badge blue">
+                <div class="v-badge blue">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                 </div>
             </div>
@@ -337,20 +341,20 @@
                 <div class="chat-row-top">
                     <div class="chat-name-wrap">
                         <span class="chat-name">系统通知</span>
-                        <span class="v-badge blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+                        <span class="name-v blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
                     </div>
                     <span class="chat-time">刚刚</span>
                 </div>
                 <div class="chat-preview">质押收益已到账，今日收益 +12.5 U</div>
             </div>
-            <div class="unread-badge">3</div>
+            <div class="unread-dot">3</div>
         </div>
 
         <!-- 海豚官方大厅 -->
         <div class="chat-item official" onclick="location.href='im-chat.html?room=hall'">
-            <div class="h-avatar official-purple">
+            <div class="h-avatar av-official">
                 H
-                <div class="verified-badge">
+                <div class="v-badge purple">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                 </div>
                 <div class="online-dot"></div>
@@ -359,26 +363,26 @@
                 <div class="chat-row-top">
                     <div class="chat-name-wrap">
                         <span class="chat-name">海豚官方大厅</span>
-                        <span class="v-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+                        <span class="name-v purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
                         <span class="member-tag">🟢 1.2k</span>
                     </div>
                     <span class="chat-time">刚刚</span>
                 </div>
                 <div class="chat-preview">AI小豚：今晚 8 点交易赛准时开启！</div>
             </div>
-            <div class="unread-badge">12</div>
+            <div class="unread-dot">12</div>
         </div>
 
         <!-- AI 客服小豚 -->
         <div class="chat-item official" onclick="location.href='im-chat.html?room=ai'">
-            <div class="h-avatar official-red">
+            <div class="h-avatar av-ai">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round">
                     <rect x="3" y="11" width="18" height="10" rx="2"/>
                     <path d="M9 11V7a3 3 0 016 0v4"/>
                     <circle cx="9" cy="16" r="1" fill="white" stroke="none"/>
                     <circle cx="15" cy="16" r="1" fill="white" stroke="none"/>
                 </svg>
-                <div class="verified-badge">
+                <div class="v-badge purple">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                 </div>
                 <div class="online-dot"></div>
@@ -387,7 +391,7 @@
                 <div class="chat-row-top">
                     <div class="chat-name-wrap">
                         <span class="chat-name">AI 客服小豚</span>
-                        <span class="v-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+                        <span class="name-v purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
                     </div>
                     <span class="chat-time">10:32</span>
                 </div>
@@ -398,11 +402,14 @@
     </div>
 
     <!-- ===== 社区群组 ===== -->
-    <div class="chat-section-title" id="section-group">社区群组</div>
+    <div class="section-header" id="sec-group">
+        <span class="section-header-text">社区群组</span>
+        <div class="section-header-line"></div>
+    </div>
     <div class="chat-list" id="list-group">
 
         <div class="chat-item" onclick="location.href='im-chat.html?room=stake'">
-            <div class="h-avatar group-gold">H</div>
+            <div class="h-avatar av-gold">H</div>
             <div class="chat-body">
                 <div class="chat-row-top">
                     <div class="chat-name-wrap">
@@ -416,7 +423,7 @@
         </div>
 
         <div class="chat-item" onclick="location.href='im-chat.html?room=contest'">
-            <div class="h-avatar group-blue">H</div>
+            <div class="h-avatar av-blue">H</div>
             <div class="chat-body">
                 <div class="chat-row-top">
                     <div class="chat-name-wrap">
@@ -427,11 +434,11 @@
                 </div>
                 <div class="chat-preview">海豚088：我现在排第 7 名，冲了！</div>
             </div>
-            <div class="unread-badge">5</div>
+            <div class="unread-dot">5</div>
         </div>
 
         <div class="chat-item" onclick="location.href='im-chat.html?room=tech'">
-            <div class="h-avatar group-green">H</div>
+            <div class="h-avatar av-teal">H</div>
             <div class="chat-body">
                 <div class="chat-row-top">
                     <div class="chat-name-wrap">
@@ -447,11 +454,14 @@
     </div>
 
     <!-- ===== 私信 ===== -->
-    <div class="chat-section-title" id="section-dm">私信</div>
+    <div class="section-header" id="sec-dm">
+        <span class="section-header-text">私信</span>
+        <div class="section-header-line"></div>
+    </div>
     <div class="chat-list" id="list-dm">
 
         <div class="chat-item" onclick="location.href='im-chat.html?room=user1'">
-            <div class="h-avatar user-staked">H<div class="online-dot"></div></div>
+            <div class="h-avatar av-staked-1">H<div class="online-dot"></div></div>
             <div class="chat-body">
                 <div class="chat-row-top">
                     <span class="chat-name">海豚 · 0x3F2a</span>
@@ -462,7 +472,7 @@
         </div>
 
         <div class="chat-item" onclick="location.href='im-chat.html?room=user2'">
-            <div class="h-avatar user-staked-gold">H</div>
+            <div class="h-avatar av-staked-2">H</div>
             <div class="chat-body">
                 <div class="chat-row-top">
                     <span class="chat-name">海豚 · 0xA8c1</span>
@@ -473,7 +483,7 @@
         </div>
 
         <div class="chat-item" onclick="location.href='im-chat.html?room=user3'">
-            <div class="h-avatar user-unstaked">H</div>
+            <div class="h-avatar av-unstaked">H</div>
             <div class="chat-body">
                 <div class="chat-row-top">
                     <span class="chat-name">海豚 · 0xB72e</span>
@@ -484,7 +494,7 @@
         </div>
 
         <div class="chat-item" onclick="location.href='im-chat.html?room=user4'">
-            <div class="h-avatar user-unstaked">H</div>
+            <div class="h-avatar av-unstaked">H</div>
             <div class="chat-body">
                 <div class="chat-row-top">
                     <span class="chat-name">海豚 · 0xD04f</span>
@@ -496,72 +506,72 @@
 
     </div>
 
-    <div style="height:20px;"></div>
+    <div style="height:24px;"></div>
 </div>
 
 <!-- + 号菜单 -->
-<div class="plus-menu-overlay" id="plusMenuOverlay" onclick="closePlusMenu()">
+<div class="plus-overlay" id="plusOverlay" onclick="closePlus()">
     <div class="plus-menu" onclick="event.stopPropagation()">
-        <div class="plus-menu-item" onclick="closePlusMenu()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-                <line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
-            </svg>
+        <div class="plus-menu-item" onclick="closePlus()">
+            <div class="plus-menu-icon" style="background:linear-gradient(135deg,#7C3AED,#A855F7);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
+                </svg>
+            </div>
             <span>添加好友</span>
         </div>
-        <div class="plus-menu-item" onclick="closePlusMenu()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
-            </svg>
+        <div class="plus-menu-item" onclick="closePlus()">
+            <div class="plus-menu-icon" style="background:linear-gradient(135deg,#0EA5E9,#38BDF8);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                </svg>
+            </div>
             <span>发起群聊</span>
         </div>
-        <div class="plus-menu-item" onclick="closePlusMenu()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="3" width="18" height="18" rx="2"/>
-                <line x1="3" y1="9" x2="21" y2="9"/>
-                <line x1="9" y1="21" x2="9" y2="9"/>
-            </svg>
+        <div class="plus-menu-item" onclick="closePlus()">
+            <div class="plus-menu-icon" style="background:linear-gradient(135deg,#059669,#34D399);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <line x1="3" y1="9" x2="21" y2="9"/>
+                    <line x1="9" y1="21" x2="9" y2="9"/>
+                </svg>
+            </div>
             <span>扫一扫</span>
         </div>
-        <div class="plus-menu-item" onclick="location.href='profile.html'; closePlusMenu()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
-                <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
-            </svg>
+        <div class="plus-menu-item" onclick="location.href='profile.html'; closePlus()">
+            <div class="plus-menu-icon" style="background:linear-gradient(135deg,#F59E0B,#FCD34D);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
+                    <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
+                </svg>
+            </div>
             <span>我的邀请码</span>
         </div>
     </div>
 </div>
 
-<div class="bottom-nav" id="bottomNav"></div>
+<div id="bottomNav"></div>
 <script src="common.js"></script>
 <script src="nav.js"></script>
 <script>
-// 星星粒子
-(function() {
-    const c = document.getElementById('starsContainer');
-    for (let i = 0; i < 55; i++) {
-        const s = document.createElement('div');
-        s.className = 'star';
-        const sz = Math.random() * 1.8 + 0.7;
-        s.style.cssText = `width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${2.5+Math.random()*3}s;--delay:${Math.random()*4}s;--min-op:${0.08+Math.random()*0.12};--max-op:${0.45+Math.random()*0.4};`;
-        c.appendChild(s);
-    }
-})();
-
-function togglePlusMenu() {
-    document.getElementById('plusMenuOverlay').classList.toggle('show');
+function togglePlus() {
+    document.getElementById('plusOverlay').classList.toggle('show');
 }
-function closePlusMenu() {
-    document.getElementById('plusMenuOverlay').classList.remove('show');
+function closePlus() {
+    document.getElementById('plusOverlay').classList.remove('show');
 }
 
 function filterChats(kw) {
     kw = kw.trim().toLowerCase();
-    [['list-official','section-official'],['list-group','section-group'],['list-dm','section-dm']].forEach(([lid,tid]) => {
-        const list = document.getElementById(lid);
-        const title = document.getElementById(tid);
+    [
+        ['list-official', 'sec-official'],
+        ['list-group',    'sec-group'],
+        ['list-dm',       'sec-dm'],
+    ].forEach(([lid, sid]) => {
+        const list  = document.getElementById(lid);
+        const sec   = document.getElementById(sid);
         if (!list) return;
         let any = false;
         list.querySelectorAll('.chat-item').forEach(item => {
@@ -571,7 +581,7 @@ function filterChats(kw) {
             item.style.display = match ? 'flex' : 'none';
             if (match) any = true;
         });
-        if (title) title.style.display = any ? 'block' : 'none';
+        if (sec) sec.style.display = any ? 'flex' : 'none';
     });
 }
 </script>
