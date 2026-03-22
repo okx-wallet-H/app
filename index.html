@@ -5,6 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>海豚社区 - 首页</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js" type="application/javascript"></script>
+    <style>
+        /* 优化图表容器 */
+        .kline-container {
+            width: 100%;
+            height: 120px;
+            margin-top: 12px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .kline-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .price-hero {
+            background: linear-gradient(135deg, var(--primary), #4F46E5);
+            color: white;
+        }
+    </style>
 </head>
 <body>
 <div class="ambient-bg"></div>
@@ -15,10 +37,15 @@
     </div>
 
     <div class="card price-hero">
-        <div class="metric-label">H Token 实时价格</div>
-        <div class="metric-value">0.00552 U</div>
+        <div class="metric-label" style="color: rgba(255,255,255,0.8);">H Token 链上实时价格 (X Layer)</div>
+        <div class="metric-value" id="hTokenPrice" style="font-size: 2.2rem;">加载中...</div>
+        
         <div class="kline-canvas"><canvas id="priceKline" width="500" height="80"></canvas></div>
-        <div class="flex-between" style="margin-top: 8px;"><span class="badge" style="background: rgba(255,255,255,0.2); color:white;">+2.34%</span><span style="font-size:0.7rem; color:rgba(255,255,255,0.7);">24h 交易量 1.85万 U</span></div>
+
+        <div class="flex-between" style="margin-top: 12px;">
+            <span class="badge" style="background: rgba(255,255,255,0.2); color:white;">实时同步中</span>
+            <span style="font-size:0.75rem; color:rgba(255,255,255,0.8);">数据源: 私有 RPC 节点</span>
+        </div>
     </div>
 
     <div class="section-header"><h3>社区数据</h3><span class="badge">实时更新</span></div>
