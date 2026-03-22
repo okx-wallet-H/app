@@ -2,58 +2,1017 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>海豚社区 - 交易赛</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* ===== 赛事英雄区 ===== */
+        .contest-hero {
+            background: linear-gradient(135deg, #0f0528 0%, #1e0a5e 40%, #3b1fa8 80%, #6d28d9 100%);
+            border-radius: 32px;
+            padding: 28px 24px 24px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .contest-hero::before {
+            content: '';
+            position: absolute;
+            top: -60px; right: -60px;
+            width: 220px; height: 220px;
+            background: radial-gradient(circle, rgba(245,158,11,0.25) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        .contest-hero::after {
+            content: '';
+            position: absolute;
+            bottom: -40px; left: -40px;
+            width: 180px; height: 180px;
+            background: radial-gradient(circle, rgba(124,58,237,0.3) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        /* 赛事状态标签 */
+        .contest-status-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+            position: relative; z-index: 1;
+        }
+        .status-live {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(16,185,129,0.2);
+            border: 1px solid rgba(16,185,129,0.4);
+            border-radius: 40px;
+            padding: 5px 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #6EE7B7;
+        }
+        .live-dot {
+            width: 7px; height: 7px;
+            background: #10B981;
+            border-radius: 50%;
+            animation: blink 1.2s ease-in-out infinite;
+        }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+        .contest-round {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: rgba(255,255,255,0.6);
+            background: rgba(255,255,255,0.1);
+            border-radius: 40px;
+            padding: 5px 12px;
+        }
+
+        /* 奖池 */
+        .prize-pool-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: rgba(255,255,255,0.55);
+            letter-spacing: 0.5px;
+            position: relative; z-index: 1;
+            margin-bottom: 4px;
+        }
+        .prize-pool-value {
+            font-size: 2.6rem;
+            font-weight: 900;
+            color: #FCD34D;
+            font-family: 'SF Mono', monospace;
+            letter-spacing: -1px;
+            position: relative; z-index: 1;
+            line-height: 1.1;
+            text-shadow: 0 0 30px rgba(252,211,77,0.4);
+        }
+        .prize-pool-sub {
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.5);
+            position: relative; z-index: 1;
+            margin-top: 4px;
+            margin-bottom: 18px;
+        }
+
+        /* 倒计时 */
+        .countdown-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative; z-index: 1;
+            margin-bottom: 20px;
+        }
+        .countdown-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: rgba(255,255,255,0.55);
+            margin-right: 4px;
+        }
+        .countdown-unit {
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 12px;
+            padding: 6px 10px;
+            text-align: center;
+            min-width: 44px;
+        }
+        .countdown-num {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: white;
+            font-family: monospace;
+            line-height: 1;
+        }
+        .countdown-unit-label {
+            font-size: 0.58rem;
+            color: rgba(255,255,255,0.5);
+            margin-top: 2px;
+        }
+        .countdown-sep {
+            font-size: 1rem;
+            font-weight: 800;
+            color: rgba(255,255,255,0.4);
+        }
+
+        /* 我的战况 */
+        .my-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0;
+            border-top: 1px solid rgba(255,255,255,0.12);
+            padding-top: 16px;
+            position: relative; z-index: 1;
+        }
+        .my-stat {
+            text-align: center;
+            position: relative;
+        }
+        .my-stat + .my-stat::before {
+            content: '';
+            position: absolute; left: 0; top: 10%; height: 80%;
+            width: 1px; background: rgba(255,255,255,0.12);
+        }
+        .my-stat-value {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: white;
+        }
+        .my-stat-label {
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.5);
+            margin-top: 3px;
+        }
+
+        /* 进度条 */
+        .progress-card {
+            background: rgba(255,255,255,0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.85);
+            border-radius: 24px;
+            padding: 18px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 16px rgba(45,27,105,0.07);
+        }
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .progress-title {
+            font-size: 0.88rem;
+            font-weight: 800;
+            color: #2D1B69;
+        }
+        .progress-target {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+        .progress-bar-wrap {
+            background: rgba(124,58,237,0.1);
+            border-radius: 40px;
+            height: 10px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 40px;
+            background: linear-gradient(90deg, #7C3AED, #A855F7, #F59E0B);
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        .progress-bar-fill::after {
+            content: '';
+            position: absolute;
+            right: 0; top: 0; bottom: 0;
+            width: 20px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4));
+            border-radius: 40px;
+        }
+        .progress-milestones {
+            display: flex;
+            justify-content: space-between;
+        }
+        .milestone {
+            text-align: center;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+        }
+        .milestone.reached { color: var(--primary); font-weight: 700; }
+
+        /* 排行榜 */
+        .leaderboard-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .lb-tab {
+            flex: 1;
+            text-align: center;
+            padding: 8px 4px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            background: rgba(124,58,237,0.06);
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1.5px solid transparent;
+        }
+        .lb-tab.active {
+            color: var(--primary);
+            background: rgba(124,58,237,0.12);
+            border-color: rgba(124,58,237,0.25);
+        }
+
+        /* 前三名特殊展示 */
+        .podium-row {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .podium-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        .podium-avatar {
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            border: 3px solid transparent;
+            position: relative;
+        }
+        .podium-avatar.rank1 {
+            width: 64px; height: 64px;
+            background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+            border-color: #F59E0B;
+            box-shadow: 0 0 20px rgba(245,158,11,0.4);
+        }
+        .podium-avatar.rank2 {
+            width: 52px; height: 52px;
+            background: linear-gradient(135deg, #F1F5F9, #E2E8F0);
+            border-color: #94A3B8;
+        }
+        .podium-avatar.rank3 {
+            width: 48px; height: 48px;
+            background: linear-gradient(135deg, #FEF3C7, #FDE8C7);
+            border-color: #D97706;
+        }
+        .podium-crown {
+            position: absolute;
+            top: -14px;
+            font-size: 1rem;
+        }
+        .podium-name {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #2D1B69;
+            text-align: center;
+        }
+        .podium-vol {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+        }
+        .podium-prize {
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: #F59E0B;
+        }
+        .podium-stand {
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 900;
+            color: white;
+        }
+        .podium-stand.s1 {
+            width: 72px; height: 52px;
+            background: linear-gradient(135deg, #F59E0B, #D97706);
+        }
+        .podium-stand.s2 {
+            width: 60px; height: 38px;
+            background: linear-gradient(135deg, #94A3B8, #64748B);
+        }
+        .podium-stand.s3 {
+            width: 56px; height: 30px;
+            background: linear-gradient(135deg, #D97706, #B45309);
+        }
+
+        /* 普通排行榜条目 */
+        .lb-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(124,58,237,0.05);
+            cursor: pointer;
+            transition: background 0.15s;
+            border-radius: 14px;
+        }
+        .lb-item:last-child { border-bottom: none; }
+        .lb-item:active { background: rgba(124,58,237,0.04); }
+        .lb-item.is-me {
+            background: rgba(124,58,237,0.07);
+            border: 1.5px solid rgba(124,58,237,0.2);
+            border-radius: 16px;
+            padding: 12px 12px;
+            margin: 4px 0;
+        }
+        .lb-rank {
+            width: 28px;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+        .lb-rank.top3 { color: #F59E0B; font-size: 1rem; }
+        .lb-avatar {
+            width: 38px; height: 38px;
+            border-radius: 14px;
+            background: rgba(124,58,237,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        .lb-info { flex: 1; min-width: 0; }
+        .lb-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #2D1B69;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .lb-addr { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; font-family: monospace; }
+        .lb-right { text-align: right; flex-shrink: 0; }
+        .lb-vol { font-size: 0.85rem; font-weight: 800; color: #2D1B69; font-family: monospace; }
+        .lb-prize { font-size: 0.7rem; font-weight: 700; color: #F59E0B; margin-top: 2px; }
+        .lb-change {
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 6px;
+        }
+        .lb-change.up { background: rgba(16,185,129,0.1); color: #10B981; }
+        .lb-change.down { background: rgba(239,68,68,0.1); color: #EF4444; }
+        .lb-change.same { background: rgba(100,116,139,0.1); color: #64748B; }
+
+        /* 奖励分配表 */
+        .prize-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .prize-table th {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-align: left;
+            padding: 8px 4px;
+            border-bottom: 1px solid rgba(124,58,237,0.08);
+        }
+        .prize-table td {
+            font-size: 0.82rem;
+            padding: 10px 4px;
+            border-bottom: 1px solid rgba(124,58,237,0.05);
+            color: #2D1B69;
+        }
+        .prize-table tr:last-child td { border-bottom: none; }
+        .prize-table td:last-child { font-weight: 800; color: #F59E0B; text-align: right; }
+        .prize-table td:first-child { font-weight: 700; }
+
+        /* 我的奖励预估卡 */
+        .reward-estimate-card {
+            background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 50%, #FCD34D 100%);
+            border-radius: 28px;
+            padding: 22px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .reward-estimate-card::after {
+            content: '🏆';
+            position: absolute;
+            right: 20px; bottom: -8px;
+            font-size: 4.5rem;
+            opacity: 0.18;
+        }
+        .reward-est-label { font-size: 0.75rem; font-weight: 700; color: #78350F; margin-bottom: 4px; }
+        .reward-est-value { font-size: 2rem; font-weight: 900; color: #2D1B69; font-family: monospace; }
+        .reward-est-sub { font-size: 0.75rem; color: #92400E; margin-top: 4px; margin-bottom: 16px; }
+        .reward-breakdown {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .reward-item {
+            background: rgba(255,255,255,0.6);
+            border-radius: 14px;
+            padding: 10px 12px;
+        }
+        .reward-item-label { font-size: 0.68rem; font-weight: 600; color: #78350F; }
+        .reward-item-value { font-size: 0.92rem; font-weight: 800; color: #2D1B69; margin-top: 3px; }
+
+        /* 规则 FAQ */
+        .faq-item {
+            border-bottom: 1px solid rgba(124,58,237,0.07);
+        }
+        .faq-item:last-child { border-bottom: none; }
+        .faq-question {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 0;
+            cursor: pointer;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #2D1B69;
+            user-select: none;
+        }
+        .faq-arrow {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            transition: transform 0.3s;
+        }
+        .faq-item.open .faq-arrow { transform: rotate(180deg); }
+        .faq-answer {
+            font-size: 0.82rem;
+            color: #4B5563;
+            line-height: 1.7;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s;
+            padding-bottom: 0;
+        }
+        .faq-item.open .faq-answer {
+            max-height: 300px;
+            padding-bottom: 14px;
+        }
+
+        /* 历史战绩 */
+        .history-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(124,58,237,0.05);
+        }
+        .history-item:last-child { border-bottom: none; }
+        .history-season {
+            width: 44px; height: 44px;
+            border-radius: 16px;
+            background: rgba(124,58,237,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        .history-info { flex: 1; }
+        .history-title { font-size: 0.85rem; font-weight: 700; color: #2D1B69; }
+        .history-date { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+        .history-right { text-align: right; }
+        .history-rank { font-size: 0.88rem; font-weight: 800; color: #2D1B69; }
+        .history-reward { font-size: 0.72rem; font-weight: 700; color: #10B981; margin-top: 2px; }
+
+        /* Toast */
+        #contestToast {
+            position: fixed;
+            bottom: 120px; left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: rgba(45,27,105,0.92);
+            color: white;
+            padding: 10px 22px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 999;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        /* 分享按钮 */
+        .share-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+        }
+        .share-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: rgba(124,58,237,0.08);
+            border: 1.5px solid rgba(124,58,237,0.15);
+            border-radius: 16px;
+            padding: 10px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .share-btn:active { background: rgba(124,58,237,0.15); }
+
+        /* 赛事进度步骤 */
+        .timeline {
+            position: relative;
+            padding-left: 24px;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 7px; top: 8px; bottom: 8px;
+            width: 2px;
+            background: linear-gradient(to bottom, var(--primary), rgba(124,58,237,0.1));
+        }
+        .timeline-item {
+            position: relative;
+            margin-bottom: 16px;
+        }
+        .timeline-item:last-child { margin-bottom: 0; }
+        .timeline-dot {
+            position: absolute;
+            left: -20px; top: 3px;
+            width: 14px; height: 14px;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+            background: white;
+        }
+        .timeline-dot.done {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+        .timeline-dot.active {
+            background: white;
+            border-color: #10B981;
+            box-shadow: 0 0 0 4px rgba(16,185,129,0.2);
+        }
+        .timeline-title { font-size: 0.85rem; font-weight: 700; color: #2D1B69; }
+        .timeline-desc { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+        .timeline-date { font-size: 0.68rem; color: var(--primary); font-weight: 600; margin-top: 2px; }
+    </style>
 </head>
 <body>
 <div class="ambient-bg"></div>
 <div class="container">
-    <div class="text-center" style="margin-bottom: 24px;">
-        <h1 style="font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, #2D1B69, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">海豚交易赛</h1>
-        <p style="color: var(--text-muted); font-weight: 500;">交易即荣耀 · 共赢未来</p>
-    </div>
 
-    <div class="card price-hero" style="padding: 24px;">
-        <div class="metric-label">🔥 赛事总奖池</div>
-        <div class="metric-value" style="font-size: 2rem;">500,000 H</div>
-        <div class="flex-between" style="margin-top: 16px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 16px;">
-            <div><div class="metric-label">我的排名</div><div style="color:white; font-weight:700;">#23</div></div>
-            <div><div class="metric-label">我的交易量</div><div style="color:white; font-weight:700;">12,500 U</div></div>
+    <!-- ===== 赛事英雄区 ===== -->
+    <div class="contest-hero">
+        <div class="contest-status-row">
+            <div class="status-live">
+                <div class="live-dot"></div>
+                进行中
+            </div>
+            <div class="contest-round">第 3 期 · 2026 Q1</div>
+        </div>
+
+        <div class="prize-pool-label">🔥 赛事总奖池</div>
+        <div class="prize-pool-value">500,000 <span style="font-size:1.6rem;color:rgba(252,211,77,0.7);">H</span></div>
+        <div class="prize-pool-sub">≈ $5,000 USD · 前 100 名瓜分</div>
+
+        <div class="countdown-row">
+            <span class="countdown-label">距结束</span>
+            <div class="countdown-unit">
+                <div class="countdown-num" id="cdDays">11</div>
+                <div class="countdown-unit-label">天</div>
+            </div>
+            <span class="countdown-sep">:</span>
+            <div class="countdown-unit">
+                <div class="countdown-num" id="cdHours">08</div>
+                <div class="countdown-unit-label">时</div>
+            </div>
+            <span class="countdown-sep">:</span>
+            <div class="countdown-unit">
+                <div class="countdown-num" id="cdMins">42</div>
+                <div class="countdown-unit-label">分</div>
+            </div>
+            <span class="countdown-sep">:</span>
+            <div class="countdown-unit">
+                <div class="countdown-num" id="cdSecs">17</div>
+                <div class="countdown-unit-label">秒</div>
+            </div>
+        </div>
+
+        <div class="my-stats-grid">
+            <div class="my-stat">
+                <div class="my-stat-value" id="myRank">#23</div>
+                <div class="my-stat-label">我的排名</div>
+            </div>
+            <div class="my-stat">
+                <div class="my-stat-value">12,500 U</div>
+                <div class="my-stat-label">我的交易量</div>
+            </div>
+            <div class="my-stat">
+                <div class="my-stat-value" style="color:#FCD34D;">1,525 H</div>
+                <div class="my-stat-label">预估奖励</div>
+            </div>
         </div>
     </div>
 
-    <div class="card">
-        <div class="flex-between" style="margin-bottom: 12px;"><span style="font-weight:700;">📊 实时排行榜</span><span class="badge">距结束 12 天</span></div>
-        <div class="chat-item" style="border-left: 4px solid #F59E0B;"><div class="flex-between" style="width:100%;"><div><span style="font-weight:800;">🥇</span> 0x71...c4e2 <span class="badge" style="margin-left:8px;">团队+5%</span></div><span>12.5万 U</span></div></div>
-        <div class="chat-item" style="border-left: 4px solid #9CA3AF;"><div class="flex-between" style="width:100%;"><div><span style="font-weight:800;">🥈</span> 0x3f...a1b9</div><span>8.9万 U</span></div></div>
-        <div class="chat-item" style="border-left: 4px solid #B45309;"><div class="flex-between" style="width:100%;"><div><span style="font-weight:800;">🥉</span> 0x92...d7f5</div><span>6.7万 U</span></div></div>
-        <div class="chat-item" style="background: rgba(124,58,237,0.1); border-color: var(--primary);"><div class="flex-between" style="width:100%;"><div><span style="font-weight:800;">23</span> 我的位置 · 差1,280 U进前20</div><span>1.2万 U</span></div></div>
-    </div>
-
-    <div class="card">
-        <div class="section-header"><h3>👥 团队战绩</h3><span class="badge">奖励加成</span></div>
-        <div class="grid-2">
-            <div class="metric-card"><div class="metric-label">团队总交易量</div><div class="metric-value">42.3万 U</div></div>
-            <div class="metric-card"><div class="metric-label">个人奖励预估</div><div class="metric-value">325 H</div></div>
-            <div class="metric-card"><div class="metric-label">团队奖励预估</div><div class="metric-value">1,200 H</div></div>
-            <div class="metric-card"><div class="metric-label">加成比例</div><div class="metric-value">5% (一级) + 2% (二级)</div></div>
+    <!-- ===== 进入前 20 进度条 ===== -->
+    <div class="progress-card">
+        <div class="progress-header">
+            <div class="progress-title">🎯 冲击前 20 进度</div>
+            <div class="progress-target">差 <strong style="color:var(--primary);">1,280 U</strong> 进前20</div>
         </div>
-        <div class="reward-box" style="margin-top: 16px;">
-            <span style="font-weight:800;">🎁 你的预估总奖励</span>
-            <div style="font-size:1.5rem; font-weight:800;">1,525 H</div>
-            <button class="btn-gradient" style="margin-top:12px; padding:10px;">立即领取奖励</button>
+        <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" id="progressFill" style="width: 72%;"></div>
+        </div>
+        <div class="progress-milestones">
+            <div class="milestone reached">Top 100</div>
+            <div class="milestone reached">Top 50</div>
+            <div class="milestone">Top 20</div>
+            <div class="milestone">Top 10</div>
+            <div class="milestone">Top 3</div>
         </div>
     </div>
 
-    <div class="card">
-        <div class="section-header"><h3>📜 规则说明 &amp; FAQ</h3></div>
-        <details><summary>📌 活动规则</summary><p style="margin-top:8px;">时间：2026.4.1-4.30，统计 H 代币在 Uniswap 上的交易量（买入+卖出），排名前100名瓜分50万H奖励池，团队业绩额外加成。奖励可在活动结束后统一领取。</p></details>
-        <details><summary>🏅 团队奖励机制</summary><p style="margin-top:8px;">一级团队交易量贡献5%加成，二级团队2%加成，最终奖励叠加至个人总奖励。</p></details>
-        <details><summary>❓ 奖励发放与领取</summary><p style="margin-top:8px;">活动结束后7个工作日内开放领取，届时“领取奖励”按钮将激活。当前为模拟演示，点击按钮提示操作。</p></details>
-        <details><summary>🔔 交易量更新频率</summary><p style="margin-top:8px;">排行榜每10分钟更新一次，最终排名以活动结束时刻的快照为准。</p></details>
+    <!-- ===== 实时排行榜 ===== -->
+    <div class="section-header"><h3>🏆 实时排行榜</h3><span class="badge" style="background:rgba(16,185,129,0.1);color:#10B981;border:1px solid rgba(16,185,129,0.2);">每10分钟更新</span></div>
+    <div class="card" style="padding: 20px;">
+
+        <div class="leaderboard-tabs">
+            <div class="lb-tab active" onclick="switchLbTab('personal', this)">个人榜</div>
+            <div class="lb-tab" onclick="switchLbTab('team', this)">团队榜</div>
+            <div class="lb-tab" onclick="switchLbTab('daily', this)">日榜</div>
+        </div>
+
+        <!-- 个人榜 -->
+        <div id="lb-personal">
+            <!-- 前三名颁奖台 -->
+            <div class="podium-row">
+                <!-- 第2名 -->
+                <div class="podium-item">
+                    <div class="podium-name">鲸鱼大佬</div>
+                    <div class="podium-vol">8.9万 U</div>
+                    <div class="podium-prize">80,000 H</div>
+                    <div class="podium-avatar rank2">🐋</div>
+                    <div class="podium-stand s2">2</div>
+                </div>
+                <!-- 第1名 -->
+                <div class="podium-item">
+                    <div class="podium-name">海豚王者</div>
+                    <div class="podium-vol">12.5万 U</div>
+                    <div class="podium-prize">150,000 H</div>
+                    <div class="podium-avatar rank1">🐬<span class="podium-crown">👑</span></div>
+                    <div class="podium-stand s1">1</div>
+                </div>
+                <!-- 第3名 -->
+                <div class="podium-item">
+                    <div class="podium-name">深海猎手</div>
+                    <div class="podium-vol">6.7万 U</div>
+                    <div class="podium-prize">50,000 H</div>
+                    <div class="podium-avatar rank3">🦈</div>
+                    <div class="podium-stand s3">3</div>
+                </div>
+            </div>
+
+            <!-- 4-10名 -->
+            <div class="lb-item">
+                <div class="lb-rank">4</div>
+                <div class="lb-avatar">🐟</div>
+                <div class="lb-info">
+                    <div class="lb-name">0x8a...f3d1 <span class="lb-change up">↑2</span></div>
+                    <div class="lb-addr">团队加成 +5%</div>
+                </div>
+                <div class="lb-right">
+                    <div class="lb-vol">5.4万 U</div>
+                    <div class="lb-prize">30,000 H</div>
+                </div>
+            </div>
+            <div class="lb-item">
+                <div class="lb-rank">5</div>
+                <div class="lb-avatar">🐡</div>
+                <div class="lb-info">
+                    <div class="lb-name">0x2c...b7e8 <span class="lb-change same">—</span></div>
+                    <div class="lb-addr">独立参赛</div>
+                </div>
+                <div class="lb-right">
+                    <div class="lb-vol">4.8万 U</div>
+                    <div class="lb-prize">25,000 H</div>
+                </div>
+            </div>
+            <div class="lb-item">
+                <div class="lb-rank">6</div>
+                <div class="lb-avatar">🦭</div>
+                <div class="lb-info">
+                    <div class="lb-name">0x5f...c2a4 <span class="lb-change down">↓1</span></div>
+                    <div class="lb-addr">团队加成 +5%</div>
+                </div>
+                <div class="lb-right">
+                    <div class="lb-vol">3.9万 U</div>
+                    <div class="lb-prize">20,000 H</div>
+                </div>
+            </div>
+            <div style="text-align:center;padding:8px 0;color:var(--text-muted);font-size:0.75rem;">· · · 更多排名 · · ·</div>
+
+            <!-- 我的位置 -->
+            <div class="lb-item is-me">
+                <div class="lb-rank" style="color:var(--primary);">23</div>
+                <div class="lb-avatar" style="background:rgba(124,58,237,0.15);">🐠</div>
+                <div class="lb-info">
+                    <div class="lb-name" style="color:var(--primary);">我的位置 <span class="lb-change up">↑3</span></div>
+                    <div class="lb-addr">0x71C...e4c2 · 差1,280U进前20</div>
+                </div>
+                <div class="lb-right">
+                    <div class="lb-vol">1.2万 U</div>
+                    <div class="lb-prize">1,525 H</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 团队榜 -->
+        <div id="lb-team" style="display:none;">
+            <div class="lb-item">
+                <div class="lb-rank top3">🥇</div>
+                <div class="lb-avatar" style="background:rgba(245,158,11,0.1);">🐬</div>
+                <div class="lb-info">
+                    <div class="lb-name">海豚精英团</div>
+                    <div class="lb-addr">成员 24 人</div>
+                </div>
+                <div class="lb-right">
+                    <div class="lb-vol">42.3万 U</div>
+                    <div class="lb-prize">+5% 加成</div>
+                </div>
+            </div>
+            <div class="lb-item">
+                <div class="lb-rank top3">🥈</div>
+                <div class="lb-avatar" style="background:rgba(148,163,184,0.15);">🐋</div>
+                <div class="lb-info">
+                    <div class="lb-name">鲸鱼联盟</div>
+                    <div class="lb-addr">成员 18 人</div>
+                </div>
+                <div class="lb-right">
+                    <div class="lb-vol">38.7万 U</div>
+                    <div class="lb-prize">+5% 加成</div>
+                </div>
+            </div>
+            <div class="lb-item">
+                <div class="lb-rank top3">🥉</div>
+                <div class="lb-avatar" style="background:rgba(217,119,6,0.1);">🦈</div>
+                <div class="lb-info">
+                    <div class="lb-name">深海猎手团</div>
+                    <div class="lb-addr">成员 31 人</div>
+                </div>
+                <div class="lb-right">
+                    <div class="lb-vol">29.1万 U</div>
+                    <div class="lb-prize">+3% 加成</div>
+                </div>
+            </div>
+            <div class="lb-item is-me">
+                <div class="lb-rank" style="color:var(--primary);">我</div>
+                <div class="lb-avatar" style="background:rgba(124,58,237,0.15);">🐠</div>
+                <div class="lb-info">
+                    <div class="lb-name" style="color:var(--primary);">我的团队</div>
+                    <div class="lb-addr">成员 12 人 · 第 1 名</div>
+                </div>
+                <div class="lb-right">
+                    <div class="lb-vol">42.3万 U</div>
+                    <div class="lb-prize">+5% 加成</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 日榜 -->
+        <div id="lb-daily" style="display:none;">
+            <div style="text-align:center;padding:12px 0 6px;font-size:0.75rem;color:var(--text-muted);">今日 2026-03-23 · 实时更新</div>
+            <div class="lb-item">
+                <div class="lb-rank top3">🥇</div>
+                <div class="lb-avatar" style="background:rgba(245,158,11,0.1);">🐬</div>
+                <div class="lb-info">
+                    <div class="lb-name">海豚王者</div>
+                    <div class="lb-addr">今日交易量</div>
+                </div>
+                <div class="lb-right">
+                    <div class="lb-vol">8,420 U</div>
+                    <div class="lb-prize">日榜奖励</div>
+                </div>
+            </div>
+            <div class="lb-item is-me">
+                <div class="lb-rank" style="color:var(--primary);">8</div>
+                <div class="lb-avatar" style="background:rgba(124,58,237,0.15);">🐠</div>
+                <div class="lb-info">
+                    <div class="lb-name" style="color:var(--primary);">我的今日</div>
+                    <div class="lb-addr">0x71C...e4c2</div>
+                </div>
+                <div class="lb-right">
+                    <div class="lb-vol">1,850 U</div>
+                    <div class="lb-prize">+120 H</div>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <!-- ===== 我的奖励预估 ===== -->
+    <div class="section-header"><h3>💰 我的奖励预估</h3></div>
+    <div class="reward-estimate-card">
+        <div class="reward-est-label">预估总奖励</div>
+        <div class="reward-est-value">1,525 H</div>
+        <div class="reward-est-sub">活动结束后 7 个工作日内发放 · 实时更新</div>
+        <div class="reward-breakdown">
+            <div class="reward-item">
+                <div class="reward-item-label">个人排名奖励</div>
+                <div class="reward-item-value">325 H</div>
+            </div>
+            <div class="reward-item">
+                <div class="reward-item-label">一级团队加成</div>
+                <div class="reward-item-value">+1,000 H</div>
+            </div>
+            <div class="reward-item">
+                <div class="reward-item-label">二级团队加成</div>
+                <div class="reward-item-value">+200 H</div>
+            </div>
+            <div class="reward-item">
+                <div class="reward-item-label">日榜累计奖励</div>
+                <div class="reward-item-value">+0 H</div>
+            </div>
+        </div>
+        <div class="share-row">
+            <div class="share-btn" onclick="showToast('邀请链接已复制！')">🔗 邀请好友参赛</div>
+            <div class="share-btn" onclick="showToast('分享功能开发中')">📤 分享战绩</div>
+        </div>
+    </div>
+
+    <!-- ===== 奖励分配表 ===== -->
+    <div class="section-header"><h3>🎁 奖励分配规则</h3></div>
+    <div class="card" style="padding: 20px;">
+        <table class="prize-table">
+            <thead>
+                <tr>
+                    <th>排名区间</th>
+                    <th>奖励比例</th>
+                    <th style="text-align:right;">预估奖励</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>🥇 第 1 名</td>
+                    <td>30%</td>
+                    <td>150,000 H</td>
+                </tr>
+                <tr>
+                    <td>🥈 第 2 名</td>
+                    <td>16%</td>
+                    <td>80,000 H</td>
+                </tr>
+                <tr>
+                    <td>🥉 第 3 名</td>
+                    <td>10%</td>
+                    <td>50,000 H</td>
+                </tr>
+                <tr>
+                    <td>4 - 10 名</td>
+                    <td>各 3%</td>
+                    <td>各 15,000 H</td>
+                </tr>
+                <tr>
+                    <td>11 - 30 名</td>
+                    <td>各 0.8%</td>
+                    <td>各 4,000 H</td>
+                </tr>
+                <tr>
+                    <td>31 - 100 名</td>
+                    <td>各 0.2%</td>
+                    <td>各 1,000 H</td>
+                </tr>
+            </tbody>
+        </table>
+        <div style="margin-top:14px;padding:12px;background:rgba(245,158,11,0.08);border-radius:14px;font-size:0.78rem;color:#92400E;line-height:1.6;">
+            <strong>团队加成：</strong>一级团队成员交易量贡献 <strong>5%</strong> 额外奖励，二级团队贡献 <strong>2%</strong>，叠加至个人总奖励。
+        </div>
+    </div>
+
+    <!-- ===== 赛事时间线 ===== -->
+    <div class="section-header"><h3>📅 赛事进程</h3></div>
+    <div class="card" style="padding: 20px;">
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-dot done"></div>
+                <div class="timeline-title">报名开放</div>
+                <div class="timeline-desc">连接 OKX 钱包即自动参赛</div>
+                <div class="timeline-date">2026-03-01 已完成</div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot done"></div>
+                <div class="timeline-title">赛事开始</div>
+                <div class="timeline-desc">开始统计 H Token 链上交易量</div>
+                <div class="timeline-date">2026-03-10 已完成</div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot active"></div>
+                <div class="timeline-title">激烈角逐中 🔥</div>
+                <div class="timeline-desc">排行榜每 10 分钟实时更新</div>
+                <div class="timeline-date">进行中 · 2026-04-03 结束</div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-title">赛事结束 & 快照</div>
+                <div class="timeline-desc">以结束时刻链上数据为最终排名</div>
+                <div class="timeline-date">2026-04-03 20:00</div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-title">奖励发放</div>
+                <div class="timeline-desc">H Token 直接发送至参赛钱包</div>
+                <div class="timeline-date">2026-04-10 前</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 历史战绩 ===== -->
+    <div class="section-header"><h3>📜 历史战绩</h3><span style="font-size:0.78rem;color:var(--text-muted);">共参赛 3 期</span></div>
+    <div class="card" style="padding: 20px; margin-bottom: 20px;">
+        <div class="history-item">
+            <div class="history-season">🏆</div>
+            <div class="history-info">
+                <div class="history-title">第 2 期 · 2025 Q4</div>
+                <div class="history-date">2025-10-01 ~ 2025-10-31</div>
+            </div>
+            <div class="history-right">
+                <div class="history-rank">#18</div>
+                <div class="history-reward">+4,200 H</div>
+            </div>
+        </div>
+        <div class="history-item">
+            <div class="history-season">🥈</div>
+            <div class="history-info">
+                <div class="history-title">第 1 期 · 2025 Q3</div>
+                <div class="history-date">2025-07-01 ~ 2025-07-31</div>
+            </div>
+            <div class="history-right">
+                <div class="history-rank">#42</div>
+                <div class="history-reward">+1,000 H</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== FAQ ===== -->
+    <div class="section-header"><h3>❓ 常见问题</h3></div>
+    <div class="card" style="padding: 4px 20px; margin-bottom: 40px;">
+        <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-question">📌 如何参与交易赛？<span class="faq-arrow">▼</span></div>
+            <div class="faq-answer">连接 OKX 钱包后自动参赛，无需额外报名。在 Uniswap 上交易 H Token（买入+卖出均计入），系统自动统计您的链上交易量并实时排名。</div>
+        </div>
+        <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-question">🏅 团队奖励如何计算？<span class="faq-arrow">▼</span></div>
+            <div class="faq-answer">您直接邀请的成员（一级）交易量的 5% 将作为额外奖励叠加至您的总奖励；一级成员邀请的成员（二级）交易量的 2% 同样叠加。团队加成无上限。</div>
+        </div>
+        <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-question">💰 奖励何时发放？<span class="faq-arrow">▼</span></div>
+            <div class="faq-answer">赛事结束后 7 个工作日内，H Token 将直接发送至您参赛的钱包地址，届时"领取奖励"按钮将激活。请确保钱包地址正确连接。</div>
+        </div>
+        <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-question">🔔 排行榜多久更新一次？<span class="faq-arrow">▼</span></div>
+            <div class="faq-answer">排行榜每 10 分钟自动更新一次，最终排名以赛事结束时刻的链上快照为准，不受后续交易影响。</div>
+        </div>
+        <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-question">⚠️ 有哪些注意事项？<span class="faq-arrow">▼</span></div>
+            <div class="faq-answer">仅统计 X Layer 主网上的 H Token 交易；刷量、机器人交易等异常行为将被系统识别并取消资格；每个钱包地址只能参赛一次。</div>
+        </div>
+    </div>
+
 </div>
+
+<div id="contestToast"></div>
 
 <div class="bottom-nav">
     <a href="index.html" class="nav-item"><div class="nav-icon">🏠</div><span>首页</span></a>
@@ -64,5 +1023,67 @@
 </div>
 
 <script src="common.js"></script>
+<script>
+    // ===== 倒计时 =====
+    function updateCountdown() {
+        const end = new Date('2026-04-03T20:00:00+08:00');
+        const now = new Date();
+        let diff = Math.max(0, Math.floor((end - now) / 1000));
+        const d = Math.floor(diff / 86400); diff %= 86400;
+        const h = Math.floor(diff / 3600); diff %= 3600;
+        const m = Math.floor(diff / 60);
+        const s = diff % 60;
+        document.getElementById('cdDays').textContent = String(d).padStart(2, '0');
+        document.getElementById('cdHours').textContent = String(h).padStart(2, '0');
+        document.getElementById('cdMins').textContent = String(m).padStart(2, '0');
+        document.getElementById('cdSecs').textContent = String(s).padStart(2, '0');
+    }
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+
+    // ===== 进度条动画 =====
+    setTimeout(() => {
+        document.getElementById('progressFill').style.width = '72%';
+    }, 300);
+
+    // ===== 排行榜 Tab =====
+    function switchLbTab(tab, el) {
+        document.querySelectorAll('.lb-tab').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+        ['personal', 'team', 'daily'].forEach(id => {
+            document.getElementById('lb-' + id).style.display = id === tab ? 'block' : 'none';
+        });
+    }
+
+    // ===== FAQ 折叠 =====
+    function toggleFaq(item) {
+        const isOpen = item.classList.contains('open');
+        document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+        if (!isOpen) item.classList.add('open');
+    }
+
+    // ===== Toast =====
+    let toastTimer;
+    function showToast(msg) {
+        const el = document.getElementById('contestToast');
+        el.textContent = msg;
+        el.style.opacity = '1';
+        el.style.transform = 'translateX(-50%) translateY(0)';
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateX(-50%) translateY(20px)';
+        }, 2200);
+    }
+
+    // ===== 接收实时 H 价格更新奖励估值 =====
+    const _origUpdate = window.updatePriceUI;
+    window.updatePriceUI = function(price) {
+        if (_origUpdate) _origUpdate(price);
+        // 动态更新奖励估值（1525 H * price）
+        const usdVal = (1525 * price).toFixed(2);
+        // 可在此更新 UI 显示
+    };
+</script>
 </body>
 </html>
