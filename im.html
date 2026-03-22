@@ -282,13 +282,14 @@
         /* ===== 底部导航适配白色主题 ===== */
         .bottom-nav {
             background: rgba(255,255,255,0.95) !important;
-            border-top: 1px solid rgba(0,0,0,0.07) !important;
-            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0,0,0,0.06) !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08), 0 1px 0 rgba(255,255,255,0.9) inset !important;
         }
         /* 覆盖 nav.js 生成的底部导航颜色 */
-        #bottomNav .nav-item { color: #9CA3AF !important; }
-        #bottomNav .nav-item.active { color: #7C3AED !important; }
-        #bottomNav .nav-dot { background: #7C3AED !important; }
+        .bottom-nav .nav-item { color: #9CA3AF !important; }
+        .bottom-nav .nav-item.active { color: #7C3AED !important; }
+        .bottom-nav .nav-item.active .nav-icon svg { stroke: #7C3AED !important; }
+        .bottom-nav .nav-dot { background: #7C3AED !important; }
     </style>
 </head>
 <body>
@@ -552,7 +553,7 @@
     </div>
 </div>
 
-<div id="bottomNav"></div>
+<div class="bottom-nav" id="bottomNav"></div>
 <script src="common.js"></script>
 <script src="nav.js"></script>
 <script>
