@@ -189,13 +189,18 @@ function updatePriceUI(price) {
     previousPrice = price;
 
     // 同步更新热门代币列表
-    if (hotTokens && hotTokens.length > 0) {
-        const changePercent = firstPrice > 0 ? ((price - firstPrice) / firstPrice * 100) : 0;
-        const changeStr = (changePercent >= 0 ? '+' : '') + changePercent.toFixed(2) + '%';
-        hotTokens[0].price = formatted.plain.replace('{', '₍').replace('}', '₎');
-        hotTokens[0].change = changeStr;
-        hotTokens[0].up = changePercent >= 0;
-        generateHotTokens();
+    try {
+        if (typeof hotTokens !== 'undefined' && hotTokens && hotTokens.length > 0) {
+            const changePercent = firstPrice > 0 ? ((price - firstPrice) / firstPrice * 100) : 0;
+            const changeStr = (changePercent >= 0 ? '+' : '') + changePercent.toFixed(2) + '%';
+            hotTokens[0].price = formatted.plain.replace('{', '₍').replace('}', '₎');
+            hotTokens[0].change = changeStr;
+            hotTokens[0].up = changePercent >= 0;
+            if (typeof generateHotTokens === 'function') generateHotTokens();
+            if (typeof renderHotTokens === 'function') renderHotTokens();
+        }
+    } catch (e) {
+        // 新版首页可能不用 hotTokens 全局变量
     }
 }
 
@@ -215,22 +220,28 @@ function updateChangePercent(price, direction) {
     let cssClass, arrow, displayText;
     if (changePercent > 0.001) {
         cssClass = 'up';
-        arrow = '▲';
+        arrow = '▲ ';
         displayText = `+${absChange.toFixed(2)}%`;
     } else if (changePercent < -0.001) {
         cssClass = 'down';
-        arrow = '▼';
+        arrow = '▼ ';
         displayText = `-${absChange.toFixed(2)}%`;
     } else {
         cssClass = 'neutral';
-        arrow = '●';
+        arrow = '';
         displayText = `0.00%`;
     }
 
-    // 平滑更新
+    // 平滑更新 — 兼容新旧 HTML 结构
     badge.className = `price-change-badge ${cssClass}`;
-    badge.querySelector('.arrow').textContent = arrow;
-    text.textContent = displayText;
+    const arrowEl = badge.querySelector('.arrow');
+    if (arrowEl) {
+        arrowEl.textContent = arrow;
+        text.textContent = displayText;
+    } else {
+        // 新版 HTML 没有 .arrow 子元素，直接更新 text
+        text.textContent = `${arrow}${displayText}`;
+    }
 }
 
 // ============================================================
