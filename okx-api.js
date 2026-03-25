@@ -1,34 +1,27 @@
 // ============================================================
 // 海豚社区 - okx-api.js
-// OKX Web3 API 前端调用封装（通过本地代理 server.js）
+// OKX Web3 API 前端调用封装（通过 Supabase Edge Function 代理）
 // ============================================================
 
 const OKX_API = {
-    // 代理服务地址（server.js 运行在同源）
-    baseUrl: '',
+    // Supabase Edge Function 代理地址
+    edgeProxy: 'https://pheeyaobcvdlujmrzouj.supabase.co/functions/v1/okx-proxy',
 
-    // 缓存
+    // 缓存（60秒有效）
     _cache: {},
     _cacheExpiry: {},
-    _pending: {},  // 请求去重：同一 URL 只发一次
+    _pending: {},
 
     // ============================================================
-    // 通用请求
+    // 通用 POST 请求（到 Edge Function）
     // ============================================================
-    async request(endpoint, params = {}) {
-        const qs = Object.entries(params)
-            .filter(([_, v]) => v !== undefined && v !== null && v !== '')
-            .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
-            .join('&');
-        const url = `${this.baseUrl}/api/${endpoint}${qs ? '?' + qs : ''}`;
+    async postEdge(route, body = {}) {
+        const url = this.edgeProxy + route;
+        const cacheKey = url + JSON.stringify(body);
 
-        // 缓存检查（30秒有效）
-        const cacheKey = url;
         if (this._cache[cacheKey] && this._cacheExpiry[cacheKey] > Date.now()) {
             return this._cache[cacheKey];
         }
-
-        // 请求去重：如果同一 URL 正在请求中，等待已有请求完成
         if (this._pending[cacheKey]) {
             return this._pending[cacheKey];
         }
@@ -37,19 +30,23 @@ const OKX_API = {
             try {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 15000);
-                const resp = await fetch(url, { signal: controller.signal });
+                const resp = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body),
+                    signal: controller.signal
+                });
                 clearTimeout(timeoutId);
                 const data = await resp.json();
-
-                if (data.code === '0' && data.data) {
+                if (data.code === '0' && data.data !== undefined) {
                     this._cache[cacheKey] = data.data;
-                    this._cacheExpiry[cacheKey] = Date.now() + 30000;
+                    this._cacheExpiry[cacheKey] = Date.now() + 60000;
                     return data.data;
                 }
-                console.warn(`OKX API ${endpoint} 返回:`, data.code, data.msg);
+                console.warn(`OKX Edge ${route} 返回:`, data.code, data.msg);
                 return null;
             } catch (e) {
-                console.error(`OKX API ${endpoint} 请求失败:`, e.message);
+                console.error(`OKX Edge ${route} 请求失败:`, e.message);
                 return null;
             } finally {
                 delete this._pending[cacheKey];
@@ -61,81 +58,85 @@ const OKX_API = {
     },
 
     // ============================================================
-    // 热门代币
-    // rankingType: 1=涨幅, 2=跌幅, 3=新币, 4=热门
-    // rankingTimeFrame: 1=1h, 2=4h, 3=12h, 4=24h
+    // 热门代币（调用 /trending 接口）
+    // rankingType: 1=涨幅, 2=跌幅, 3=新币, 4=热门（此处用 trending）
     // ============================================================
     async getHotTokens(options = {}) {
-        return this.request('hot-tokens', {
-            rankingType: options.rankingType || '4',
-            rankingTimeFrame: options.rankingTimeFrame || '2',
-            chainIndex: options.chainIndex || ''
-        });
+        const chainIndex = options.chainIndex || 'all';
+        const raw = await this.postEdge('/trending', { chainIndex });
+        if (!raw || !Array.isArray(raw)) return null;
+
+        // 转换为 market.html 期望的格式
+        return raw.map(t => ({
+            tokenSymbol: t.symbol,
+            tokenName: t.name,
+            tokenFullName: t.name,
+            tokenLogoUrl: t.logoUrl || '',
+            tokenContractAddress: t.tokenContractAddress || '',
+            chainIndex: t.chainIndex || '196',
+            price: t.price || '0',
+            change: t.priceChange24h || '0',
+            volume24H: '0',
+            volume: '0',
+            marketCap: '0',
+        }));
     },
 
     // ============================================================
-    // 代币榜单
-    // sortBy: 1=市值, 2=价格, 3=涨幅, 4=跌幅, 5=交易量
-    // timeFrame: 1=5m, 2=1h, 3=4h, 4=24h
+    // 代币搜索（调用 /search 接口）
     // ============================================================
-    async getTokenToplist(options = {}) {
-        return this.request('token-toplist', {
-            chains: options.chains || '196',
-            sortBy: options.sortBy || '5',
-            timeFrame: options.timeFrame || '4'
-        });
-    },
-
-    // ============================================================
-    // 代币搜索
-    // ============================================================
-    async searchTokens(keyword, chains = '196') {
+    async searchTokens(keyword, chains = 'all') {
         if (!keyword || keyword.trim().length === 0) return null;
-        return this.request('token-search', {
-            chains: chains,
-            search: keyword.trim()
+        // chains 参数可能是 '196,1,56' 格式，取第一个或 'all'
+        const chainIndex = chains === 'all' || chains.includes(',') ? 'all' : chains;
+        const raw = await this.postEdge('/search', {
+            keyword: keyword.trim(),
+            chainIndex
         });
+        if (!raw || !Array.isArray(raw)) return null;
+
+        // 转换为 market.html 期望的格式
+        return raw.map(t => ({
+            tokenSymbol: t.symbol,
+            tokenName: t.name,
+            tokenFullName: t.name,
+            tokenLogoUrl: t.logoUrl || '',
+            tokenContractAddress: t.contract || t.tokenContractAddress || '',
+            chainIndex: t.chain || t.chainIndex || '196',
+            price: t.price || '0',
+            change: t.priceChange24h || '0',
+            volume24H: '0',
+            volume: '0',
+            marketCap: '0',
+        }));
     },
 
     // ============================================================
-    // 代币基础信息 (POST via proxy)
+    // 代币基础信息（暂时返回 null，等待后续扩展）
     // ============================================================
     async getTokenBasicInfo(address, chainIndex = '196') {
-        return this.request('token-basic-info', {
-            chainIndex: chainIndex,
-            address: address
-        });
+        return null;
     },
 
     // ============================================================
-    // 代币交易信息 (POST via proxy)
+    // 代币交易信息（暂时返回 null）
     // ============================================================
     async getTokenPriceInfo(address, chainIndex = '196') {
-        return this.request('token-price-info', {
-            chainIndex: chainIndex,
-            address: address
-        });
+        return null;
     },
 
     // ============================================================
-    // 代币交易活动
+    // 代币交易活动（暂时返回 null）
     // ============================================================
     async getTokenTrades(address, chainIndex = '196', limit = 50) {
-        return this.request('token-trades', {
-            chainIndex: chainIndex,
-            tokenContractAddress: address,
-            limit: limit
-        });
+        return null;
     },
 
     // ============================================================
-    // 代币持有者信息
+    // 代币持有者信息（暂时返回 null）
     // ============================================================
     async getTokenHolders(address, chainIndex = '196') {
-        return this.request('token-holders', {
-            chainIndex: chainIndex,
-            tokenContractAddress: address
-        });
+        return null;
     },
 
     // ============================================================

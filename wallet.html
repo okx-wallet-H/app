@@ -192,17 +192,19 @@
             border: 1px solid var(--glass-border);
             border-radius: 28px; overflow: hidden;
             box-shadow: var(--card-shadow); margin-bottom: 20px;
+            margin-top: 0;
         }
         .token-list-header {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 18px 20px 14px;
+            display: flex; align-items: center; justify-content: flex-start;
+            padding: 0 16px;
             border-bottom: 1px solid rgba(0,0,0,0.04);
+            gap: 4px;
         }
         .token-list-title { font-size: 0.9rem; font-weight: 800; color: var(--text-main); }
         .token-list-manage { font-size: 0.75rem; font-weight: 600; color: #7C3AED; cursor: pointer; }
         /* 代币/交易记录 Tab */
         .token-section-tab {
-            padding: 14px 20px 12px;
+            padding: 10px 16px 9px;
             font-size: 0.88rem; font-weight: 700;
             color: var(--text-muted);
             cursor: pointer; position: relative;
@@ -211,7 +213,7 @@
         .token-section-tab.active { color: var(--text-main); }
         .token-section-tab.active::after {
             content: ''; position: absolute;
-            bottom: -1px; left: 0; right: 0;
+            bottom: 0; left: 0; right: 0;
             height: 2px; background: #7C3AED;
             border-radius: 2px 2px 0 0;
         }
@@ -566,7 +568,7 @@
 
         <!-- 代币列表 -->
         <div class="token-list-card">
-            <div class="token-list-header" style="padding:0 20px;border-bottom:1px solid var(--glass-border);">
+            <div class="token-list-header" style="padding:0 16px;border-bottom:1px solid var(--glass-border);">
                 <div id="tabTokens" class="token-section-tab active" onclick="switchTokenTab('tokens')">代币</div>
                 <div id="tabTxHistory" class="token-section-tab" onclick="switchTokenTab('txhistory')">交易记录</div>
             </div>
@@ -1130,54 +1132,61 @@ function updateTotalBalance() {
 // ============================================================
 // 价格加载
 // ============================================================
+// 代币配置（地址、链、符号映射）
+const TOKEN_CONFIG = [
+    { symbol: 'H',    chain: '196', contract: '0x867fdd2eef548f80808d0c9065cd55f57e207777', decimals: 18 },
+    { symbol: 'OKB',  chain: '196', contract: '',                                             decimals: 18 },
+    { symbol: 'USDT', chain: '56',  contract: '0x55d398326f99059fF775485246999027B3197955', decimals: 18 },
+    { symbol: 'BNB',  chain: '56',  contract: '',                                             decimals: 18 },
+];
+
 async function loadTokenPricesAndBalances() {
     if (!walletData) return;
-    await Promise.allSettled([loadHTokenPrice(), loadOKBPrice(), loadUSDTPrice(), loadBNBPrice()]);
-    await loadAllBalances();
+    try {
+        // 一次性调用 /balances 接口，同时获取余额和价格
+        const addr = walletData.address || '0x0000000000000000000000000000000000000001';
+        const tokenContractAddresses = TOKEN_CONFIG.map(t => ({
+            chainIndex: t.chain,
+            tokenContractAddress: t.contract
+        }));
+        const resp = await fetch(EDGE_PROXY + '/balances', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ address: addr, tokenContractAddresses })
+        });
+        const d = await resp.json();
+        if (d.code === '0' && Array.isArray(d.data)) {
+            for (const item of d.data) {
+                for (const asset of (item.tokenAssets || [])) {
+                    const sym = asset.symbol;
+                    if (tokenPrices[sym] === undefined || tokenPrices[sym] === 0) {
+                        tokenPrices[sym] = parseFloat(asset.tokenPrice) || 0;
+                    }
+                    // 如果有真实地址（非零地址），更新余额
+                    if (walletData.address && asset.balance !== undefined) {
+                        tokenBalances[sym] = parseFloat(asset.balance) || 0;
+                    }
+                    // 更新 H 代币实时价格
+                    if (sym === 'H') { liveHPrice = tokenPrices['H']; }
+                }
+            }
+        }
+    } catch(e) {
+        console.warn('loadTokenPricesAndBalances via API failed:', e.message);
+        // 降级到直连 RPC
+        await loadAllBalancesFallback();
+    }
+    // 如果价格还是 0，补充默认备用价格
+    if (!tokenPrices['USDT']) tokenPrices['USDT'] = 1.0;
+    if (!tokenPrices['OKB'])  tokenPrices['OKB']  = 86.0;
+    if (!tokenPrices['BNB'])  tokenPrices['BNB']  = 640.0;
+    updateSwapRate();
     renderTokenList();
     updateTotalBalance();
 }
 
-async function fetchPrice(chainIndex, contractAddress) {
-    const resp = await fetch(EDGE_PROXY + '/price', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chainIndex, tokenContractAddress: contractAddress })
-    });
-    const d = await resp.json();
-    if (d.code === '0' && d.data && d.data[0]) return parseFloat(d.data[0].price);
-    return null;
-}
-
-async function loadHTokenPrice() {
-    try {
-        const p = await fetchPrice('196', '0x867fdd2eef548f80808d0c9065cd55f57e207777');
-        if (p !== null) { tokenPrices['H'] = p; liveHPrice = p; updateSwapRate(); }
-    } catch(e) {}
-}
-
-async function loadOKBPrice() {
-    try {
-        const p = await fetchPrice('196', '0x3f4b6664338f23d2397c953f2ab4ce8031663f80');
-        if (p !== null) tokenPrices['OKB'] = p;
-        else tokenPrices['OKB'] = tokenPrices['OKB'] || 45.0;
-    } catch(e) { tokenPrices['OKB'] = tokenPrices['OKB'] || 45.0; }
-}
-
-async function loadUSDTPrice() { tokenPrices['USDT'] = 1.0; }
-
-async function loadBNBPrice() {
-    try {
-        const p = await fetchPrice('56', '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c');
-        if (p !== null) tokenPrices['BNB'] = p;
-        else tokenPrices['BNB'] = tokenPrices['BNB'] || 600.0;
-    } catch(e) { tokenPrices['BNB'] = tokenPrices['BNB'] || 600.0; }
-}
-
-// ============================================================
-// 链上余额查询
-// ============================================================
-async function loadAllBalances() {
+// 降级方案：直连 RPC查询余额
+async function loadAllBalancesFallback() {
     if (!walletData || !walletData.address) return;
     await Promise.allSettled([loadXLayerBalances(walletData.address), loadBNBBalances(walletData.address)]);
 }
