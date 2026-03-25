@@ -861,19 +861,47 @@ async function loadTokenList() {
             }
             data = results;
         } else if (currentTab === 'hot') {
-            // 热门：v6 hot-token API（真实热门，支持链筛选）
-            data = await OKX_API.getRealHotTokens({
-                rankingType: '4',
-                rankingTimeFrame: '4',
-                chainIndex: chainIndex
-            });
+            // 热门：分别请求 X Layer(196) 和 BNB(56)，合并后只展示这两条链
+            if (currentChain === 'all') {
+                const [d196, d56] = await Promise.all([
+                    OKX_API.getRealHotTokens({ rankingType: '4', rankingTimeFrame: '4', chainIndex: '196' }),
+                    OKX_API.getRealHotTokens({ rankingType: '4', rankingTimeFrame: '4', chainIndex: '56' })
+                ]);
+                const list196 = (d196 || []).slice(0, 10);
+                const list56  = (d56  || []).slice(0, 10);
+                // 交叉合并：196 和 56 各取前10，交替排列
+                data = [];
+                const maxLen = Math.max(list196.length, list56.length);
+                for (let i = 0; i < maxLen; i++) {
+                    if (i < list196.length) data.push(list196[i]);
+                    if (i < list56.length)  data.push(list56[i]);
+                }
+            } else {
+                // 单链筛选：只请求该链
+                data = await OKX_API.getRealHotTokens({
+                    rankingType: '4', rankingTimeFrame: '4', chainIndex
+                });
+            }
         } else if (currentTab === 'new') {
-            // 新币：v6 hot-token API，5m 时间窗口
-            data = await OKX_API.getRealHotTokens({
-                rankingType: '4',
-                rankingTimeFrame: '1',
-                chainIndex: chainIndex
-            });
+            // 新币：分别请求 X Layer(196) 和 BNB(56)，合并后只展示这两条链
+            if (currentChain === 'all') {
+                const [d196, d56] = await Promise.all([
+                    OKX_API.getRealHotTokens({ rankingType: '4', rankingTimeFrame: '1', chainIndex: '196' }),
+                    OKX_API.getRealHotTokens({ rankingType: '4', rankingTimeFrame: '1', chainIndex: '56' })
+                ]);
+                const list196 = (d196 || []).slice(0, 10);
+                const list56  = (d56  || []).slice(0, 10);
+                data = [];
+                const maxLen = Math.max(list196.length, list56.length);
+                for (let i = 0; i < maxLen; i++) {
+                    if (i < list196.length) data.push(list196[i]);
+                    if (i < list56.length)  data.push(list56[i]);
+                }
+            } else {
+                data = await OKX_API.getRealHotTokens({
+                    rankingType: '4', rankingTimeFrame: '1', chainIndex
+                });
+            }
         } else if (currentTab === 'gainers') {
             data = await OKX_API.getToplist({ chains, sortBy: '2', timeFrame: '4' });
         } else if (currentTab === 'losers') {
@@ -882,7 +910,16 @@ async function loadTokenList() {
         } else if (currentTab === 'volume') {
             data = await OKX_API.getToplist({ chains, sortBy: '5', timeFrame: '4' });
         } else {
-            data = await OKX_API.getRealHotTokens({ rankingType: '4', rankingTimeFrame: '4', chainIndex });
+            // 兜底：同样只取 196 和 56
+            if (currentChain === 'all') {
+                const [d196, d56] = await Promise.all([
+                    OKX_API.getRealHotTokens({ rankingType: '4', rankingTimeFrame: '4', chainIndex: '196' }),
+                    OKX_API.getRealHotTokens({ rankingType: '4', rankingTimeFrame: '4', chainIndex: '56' })
+                ]);
+                data = [...(d196||[]).slice(0,10), ...(d56||[]).slice(0,10)];
+            } else {
+                data = await OKX_API.getRealHotTokens({ rankingType: '4', rankingTimeFrame: '4', chainIndex });
+            }
         }
 
         if (!data || data.length === 0) {
