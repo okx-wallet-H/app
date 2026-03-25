@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>海豚社区 - 注册</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body { padding: 0; min-height: 100vh; }
+
+        /* ── 顶部 Hero ── */
+        .auth-hero {
+            background: linear-gradient(145deg, #2D1B69 0%, #4C1D95 55%, #7C3AED 100%);
+            padding: 56px 24px 48px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .auth-hero::before {
+            content: '';
+            position: absolute;
+            top: -70px; left: -70px;
+            width: 240px; height: 240px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 50%;
+        }
+        .auth-hero::after {
+            content: '';
+            position: absolute;
+            bottom: -50px; right: -50px;
+            width: 200px; height: 200px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 50%;
+        }
+        .hero-logo-wrap {
+            position: relative; z-index: 1;
+            margin-bottom: 14px;
+        }
+        .hero-logo-icon {
+            width: 72px; height: 72px;
+            background: rgba(255,255,255,0.15);
+            border: 1.5px solid rgba(255,255,255,0.3);
+            border-radius: 24px;
+            display: inline-flex;
+            align-items: center; justify-content: center;
+            font-size: 2.2rem;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+        .hero-brand-name {
+            position: relative; z-index: 1;
+            font-size: 1.55rem; font-weight: 800;
+            color: white; letter-spacing: -0.5px;
+        }
+        .hero-brand-sub {
+            position: relative; z-index: 1;
+            font-size: 0.82rem; color: rgba(255,255,255,0.65);
+            margin-top: 4px;
+        }
+
+        /* ── 表单卡片 ── */
+        .auth-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: 32px 32px 0 0;
+            padding: 28px 20px 40px;
+            margin-top: -20px;
+            min-height: calc(100vh - 230px);
+            box-shadow: 0 -8px 40px rgba(45,27,105,0.08);
+        }
+        .auth-card-title {
+            font-size: 1.35rem; font-weight: 800;
+            color: #2D1B69; margin-bottom: 4px;
+        }
+        .auth-card-sub {
+            font-size: 0.82rem; color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+
+        /* ── 输入框 ── */
+        .field { margin-bottom: 14px; }
+        .field-label {
+            font-size: 0.75rem; font-weight: 700;
+            color: #2D1B69; margin-bottom: 7px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .field-optional {
+            font-size: 0.68rem; color: var(--text-muted);
+            font-weight: 500; background: rgba(124,58,237,0.08);
+            padding: 2px 7px; border-radius: 20px;
+        }
+        .field-wrap {
+            position: relative; display: flex; align-items: center;
+        }
+        .field-icon {
+            position: absolute; left: 14px;
+            font-size: 0.95rem; pointer-events: none; z-index: 1;
+        }
+        .field-input {
+            width: 100%;
+            background: rgba(124,58,237,0.05);
+            border: 1.5px solid rgba(124,58,237,0.12);
+            border-radius: 16px;
+            padding: 13px 14px 13px 42px;
+            font-size: 0.92rem;
+            font-family: inherit;
+            color: var(--text-main);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+            -webkit-appearance: none;
+        }
+        .field-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(124,58,237,0.1);
+            background: white;
+        }
+        .field-input::placeholder { color: #C4C4D4; }
+        .field-input.is-error {
+            border-color: var(--danger);
+            box-shadow: 0 0 0 3px rgba(239,68,68,0.08);
+        }
+        .field-error {
+            font-size: 0.72rem; color: var(--danger);
+            margin-top: 5px; padding-left: 2px;
+            display: none;
+        }
+        .field-error.show { display: block; }
+
+        /* 密码可见切换 */
+        .pw-toggle {
+            position: absolute; right: 12px;
+            background: none; border: none;
+            cursor: pointer; font-size: 0.95rem;
+            color: var(--text-muted); padding: 4px; z-index: 1;
+        }
+
+        /* ── 全局提示 ── */
+        .alert-box {
+            border-radius: 16px; padding: 13px 15px;
+            margin-bottom: 14px; font-size: 0.82rem;
+            font-weight: 600; display: none;
+            align-items: flex-start; gap: 9px;
+        }
+        .alert-box.show { display: flex; }
+        .alert-error {
+            background: rgba(239,68,68,0.08);
+            border: 1px solid rgba(239,68,68,0.18);
+            color: #DC2626;
+        }
+        .alert-success {
+            background: rgba(16,185,129,0.08);
+            border: 1px solid rgba(16,185,129,0.18);
+            color: #059669;
+        }
+        .alert-icon { font-size: 0.95rem; flex-shrink: 0; margin-top: 1px; }
+
+        /* ── 注册按钮 ── */
+        .btn-submit {
+            background: linear-gradient(135deg, #2D1B69, var(--primary), var(--primary-light));
+            border: none; border-radius: 60px;
+            padding: 15px; font-weight: 800;
+            color: white; width: 100%;
+            font-size: 0.98rem; cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 8px 24px rgba(124,58,237,0.3);
+            margin-top: 6px; letter-spacing: 0.2px;
+            position: relative; overflow: hidden;
+        }
+        .btn-submit:active { transform: scale(0.98); }
+        .btn-submit:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
+        .btn-submit .btn-text { transition: opacity 0.2s; }
+        .btn-submit .btn-spinner {
+            display: none; position: absolute; inset: 0;
+            align-items: center; justify-content: center;
+        }
+        .btn-submit.loading .btn-text { opacity: 0; }
+        .btn-submit.loading .btn-spinner { display: flex; }
+        .spinner {
+            width: 20px; height: 20px;
+            border: 2.5px solid rgba(255,255,255,0.35);
+            border-top-color: white; border-radius: 50%;
+            animation: spin 0.65s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── 底部链接 ── */
+        .auth-switch {
+            text-align: center; margin-top: 20px;
+            font-size: 0.83rem; color: var(--text-muted);
+        }
+        .auth-switch a {
+            color: var(--primary); font-weight: 700;
+            text-decoration: none;
+        }
+        .auth-switch a:active { opacity: 0.7; }
+
+        /* ── 服务条款 ── */
+        .terms-note {
+            font-size: 0.7rem; color: var(--text-muted);
+            text-align: center; margin-top: 14px; line-height: 1.5;
+        }
+        .terms-note a { color: var(--primary); text-decoration: none; }
+
+        /* ── 分隔线 ── */
+        .divider {
+            display: flex; align-items: center;
+            gap: 10px; margin: 18px 0 14px;
+        }
+        .divider::before, .divider::after {
+            content: ''; flex: 1; height: 1px;
+            background: rgba(124,58,237,0.1);
+        }
+        .divider span { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; }
+
+        /* ── 成功界面 ── */
+        .success-view {
+            display: none; text-align: center; padding: 32px 16px;
+        }
+        .success-view.show { display: block; }
+        .success-anim {
+            width: 80px; height: 80px;
+            background: rgba(16,185,129,0.1);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 18px; font-size: 2.4rem;
+            animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        @keyframes popIn {
+            from { transform: scale(0); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .success-title {
+            font-size: 1.25rem; font-weight: 800;
+            color: #2D1B69; margin-bottom: 8px;
+        }
+        .success-desc {
+            font-size: 0.85rem; color: var(--text-muted);
+            line-height: 1.6; margin-bottom: 26px;
+        }
+    </style>
+</head>
+<body>
+<div class="ambient-bg"></div>
+
+<!-- 顶部 Hero -->
+<div class="auth-hero">
+    <div class="hero-logo-wrap">
+        <div class="hero-logo-icon">🐬</div>
+    </div>
+    <div class="hero-brand-name">海豚社区</div>
+    <div class="hero-brand-sub">Web3 社区 · H 代币生态</div>
+</div>
+
+<!-- 表单卡片 -->
+<div class="auth-card">
+
+    <!-- 注册表单 -->
+    <div id="formView">
+        <div class="auth-card-title">创建账户</div>
+        <div class="auth-card-sub">加入海豚社区，开启 H 代币质押之旅</div>
+
+        <!-- 全局错误 -->
+        <div class="alert-box alert-error" id="globalErr">
+            <span class="alert-icon">⚠️</span>
+            <span id="globalErrText"></span>
+        </div>
+
+        <!-- 昵称 -->
+        <div class="field">
+            <div class="field-label">昵称</div>
+            <div class="field-wrap">
+                <span class="field-icon">😊</span>
+                <input class="field-input" type="text" id="nickname"
+                    placeholder="给自己起个好听的名字" maxlength="12" autocomplete="nickname">
+            </div>
+            <div class="field-error" id="err-nickname">昵称不能为空</div>
+        </div>
+
+        <!-- 邮箱 -->
+        <div class="field">
+            <div class="field-label">邮箱地址</div>
+            <div class="field-wrap">
+                <span class="field-icon">✉️</span>
+                <input class="field-input" type="email" id="email"
+                    placeholder="请输入您的邮箱" autocomplete="email">
+            </div>
+            <div class="field-error" id="err-email">请输入有效的邮箱地址</div>
+        </div>
+
+        <!-- 密码 -->
+        <div class="field">
+            <div class="field-label">设置密码</div>
+            <div class="field-wrap">
+                <span class="field-icon">🔒</span>
+                <input class="field-input" type="password" id="password"
+                    placeholder="至少 8 位，包含字母和数字" autocomplete="new-password">
+                <button class="pw-toggle" type="button" onclick="togglePw('password',this)">👁️</button>
+            </div>
+            <div class="field-error" id="err-password">密码至少 8 位，需包含字母和数字</div>
+        </div>
+
+        <!-- 确认密码 -->
+        <div class="field">
+            <div class="field-label">确认密码</div>
+            <div class="field-wrap">
+                <span class="field-icon">🔐</span>
+                <input class="field-input" type="password" id="confirmPw"
+                    placeholder="再次输入密码" autocomplete="new-password">
+                <button class="pw-toggle" type="button" onclick="togglePw('confirmPw',this)">👁️</button>
+            </div>
+            <div class="field-error" id="err-confirmPw">两次密码输入不一致</div>
+        </div>
+
+        <!-- 邀请码 -->
+        <div class="field">
+            <div class="field-label">
+                邀请码
+                <span class="field-optional">选填</span>
+            </div>
+            <div class="field-wrap">
+                <span class="field-icon">🎁</span>
+                <input class="field-input" type="text" id="referrerCode"
+                    placeholder="填写邀请人的 6 位邀请码" maxlength="6"
+                    style="text-transform:uppercase;" autocomplete="off">
+            </div>
+            <div class="field-error" id="err-referrer">邀请码格式不正确（6 位字母或数字）</div>
+        </div>
+
+        <!-- 注册按钮 -->
+        <button class="btn-submit" id="submitBtn" onclick="doRegister()">
+            <span class="btn-text">🚀 立即注册</span>
+            <span class="btn-spinner"><div class="spinner"></div></span>
+        </button>
+
+        <div class="terms-note">
+            注册即表示您同意
+            <a href="#">服务条款</a> 与 <a href="#">隐私政策</a>
+        </div>
+
+        <div class="divider"><span>已有账户</span></div>
+        <div class="auth-switch">已有账户？<a href="login.html">立即登录</a></div>
+    </div>
+
+    <!-- 注册成功 -->
+    <div class="success-view" id="successView">
+        <div class="success-anim">✅</div>
+        <div class="success-title">注册成功！</div>
+        <div class="success-desc">
+            欢迎加入海豚社区 🐬<br>
+            我们已向您的邮箱发送了验证邮件，<br>
+            请点击邮件中的链接完成验证后登录。
+        </div>
+        <button class="btn-gradient" onclick="location.href='login.html'">前往登录</button>
+        <div style="margin-top:12px;">
+            <a href="index.html" style="font-size:0.8rem;color:var(--text-muted);text-decoration:none;">
+                直接进入首页 →
+            </a>
+        </div>
+    </div>
+
+</div><!-- /auth-card -->
+
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL  = 'https://pheeyaobcvdlujmrzouj.supabase.co';
+const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoZWV5YW9iY3ZkbHVqbXJ6b3VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzY2OTYsImV4cCI6MjA4OTk1MjY5Nn0.xl2S2EQfTmTT10hCiB5YqCQJ2aYXCD1BL7A7jRfNsz8';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* 密码可见切换 */
+function togglePw(id, btn) {
+    const el = document.getElementById(id);
+    el.type = el.type === 'password' ? 'text' : 'password';
+    btn.textContent = el.type === 'password' ? '👁️' : '🙈';
+}
+
+/* 邀请码自动大写 */
+document.getElementById('referrerCode').addEventListener('input', function(){
+    this.value = this.value.toUpperCase();
+});
+
+/* 字段错误控制 */
+function setErr(fieldId, errId, hasErr) {
+    document.getElementById(fieldId).classList.toggle('is-error', hasErr);
+    document.getElementById(errId).classList.toggle('show', hasErr);
+    return !hasErr;
+}
+
+/* 表单验证 */
+function validate() {
+    const nick = document.getElementById('nickname').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const pw = document.getElementById('password').value;
+    const cpw = document.getElementById('confirmPw').value;
+    const ref = document.getElementById('referrerCode').value.trim();
+    let ok = true;
+    ok = setErr('nickname','err-nickname', nick.length === 0) && ok;
+    ok = setErr('email','err-email', !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) && ok;
+    ok = setErr('password','err-password', pw.length < 8 || !/[a-zA-Z]/.test(pw) || !/\d/.test(pw)) && ok;
+    ok = setErr('confirmPw','err-confirmPw', pw !== cpw) && ok;
+    if (ref.length > 0) ok = setErr('referrerCode','err-referrer', !/^[A-Z0-9]{6}$/.test(ref)) && ok;
+    else setErr('referrerCode','err-referrer', false);
+    return ok;
+}
+
+/* 实时清除错误 */
+['nickname','email','password','confirmPw','referrerCode'].forEach(id => {
+    document.getElementById(id).addEventListener('input', function(){
+        this.classList.remove('is-error');
+        const e = document.getElementById('err-' + (id === 'confirmPw' ? 'confirmPw' : id));
+        if (e) e.classList.remove('show');
+    });
+});
+
+/* 注册 */
+async function doRegister() {
+    document.getElementById('globalErr').classList.remove('show');
+    if (!validate()) return;
+
+    const nick  = document.getElementById('nickname').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const pw    = document.getElementById('password').value;
+    const ref   = document.getElementById('referrerCode').value.trim();
+
+    const btn = document.getElementById('submitBtn');
+    btn.classList.add('loading'); btn.disabled = true;
+
+    try {
+        const { error } = await sb.auth.signUp({
+            email,
+            password: pw,
+            options: { data: { nickname: nick, referrer_code: ref || null } }
+        });
+        if (error) throw error;
+
+        document.getElementById('formView').style.display = 'none';
+        document.getElementById('successView').classList.add('show');
+
+    } catch (err) {
+        let msg = '注册失败，请稍后重试';
+        if (err.message) {
+            if (/already registered|already been registered/i.test(err.message)) msg = '该邮箱已被注册，请直接登录';
+            else if (/invalid email/i.test(err.message)) msg = '邮箱格式不正确';
+            else if (/password/i.test(err.message)) msg = '密码强度不足，请使用更复杂的密码';
+            else msg = err.message;
+        }
+        document.getElementById('globalErrText').textContent = msg;
+        document.getElementById('globalErr').classList.add('show');
+        document.getElementById('globalErr').scrollIntoView({ behavior:'smooth', block:'center' });
+    } finally {
+        btn.classList.remove('loading'); btn.disabled = false;
+    }
+}
+
+/* Enter 提交 */
+document.addEventListener('keydown', e => { if (e.key === 'Enter') doRegister(); });
+</script>
+</body>
+</html>

@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>海豚社区 - 登录</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body { padding: 0; min-height: 100vh; }
+
+        /* ── 顶部 Hero ── */
+        .auth-hero {
+            background: linear-gradient(145deg, #2D1B69 0%, #4C1D95 55%, #7C3AED 100%);
+            padding: 64px 24px 52px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .auth-hero::before {
+            content: '';
+            position: absolute;
+            top: -70px; left: -70px;
+            width: 240px; height: 240px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 50%;
+        }
+        .auth-hero::after {
+            content: '';
+            position: absolute;
+            bottom: -50px; right: -50px;
+            width: 200px; height: 200px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 50%;
+        }
+        .hero-logo-wrap {
+            position: relative; z-index: 1;
+            margin-bottom: 14px;
+        }
+        .hero-logo-icon {
+            width: 80px; height: 80px;
+            background: rgba(255,255,255,0.15);
+            border: 1.5px solid rgba(255,255,255,0.3);
+            border-radius: 28px;
+            display: inline-flex;
+            align-items: center; justify-content: center;
+            font-size: 2.5rem;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            animation: logoFloat 3s ease-in-out infinite alternate;
+        }
+        @keyframes logoFloat {
+            from { transform: translateY(0); }
+            to   { transform: translateY(-6px); }
+        }
+        .hero-brand-name {
+            position: relative; z-index: 1;
+            font-size: 1.65rem; font-weight: 800;
+            color: white; letter-spacing: -0.5px;
+        }
+        .hero-brand-sub {
+            position: relative; z-index: 1;
+            font-size: 0.82rem; color: rgba(255,255,255,0.65);
+            margin-top: 4px;
+        }
+        /* 统计数字 */
+        .hero-stats {
+            display: flex; justify-content: center;
+            gap: 28px; margin-top: 22px;
+            position: relative; z-index: 1;
+        }
+        .stat-item { text-align: center; }
+        .stat-val {
+            font-size: 1.05rem; font-weight: 800; color: white;
+        }
+        .stat-lbl {
+            font-size: 0.66rem; color: rgba(255,255,255,0.6); margin-top: 2px;
+        }
+
+        /* ── 表单卡片 ── */
+        .auth-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: 32px 32px 0 0;
+            padding: 28px 20px 40px;
+            margin-top: -20px;
+            min-height: calc(100vh - 280px);
+            box-shadow: 0 -8px 40px rgba(45,27,105,0.08);
+        }
+        .auth-card-title {
+            font-size: 1.35rem; font-weight: 800;
+            color: #2D1B69; margin-bottom: 4px;
+        }
+        .auth-card-sub {
+            font-size: 0.82rem; color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+
+        /* ── 输入框 ── */
+        .field { margin-bottom: 14px; }
+        .field-label {
+            font-size: 0.75rem; font-weight: 700;
+            color: #2D1B69; margin-bottom: 7px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .forgot-link {
+            font-size: 0.75rem; color: var(--primary);
+            font-weight: 600; cursor: pointer; text-decoration: none;
+        }
+        .forgot-link:active { opacity: 0.7; }
+        .field-wrap {
+            position: relative; display: flex; align-items: center;
+        }
+        .field-icon {
+            position: absolute; left: 14px;
+            font-size: 0.95rem; pointer-events: none; z-index: 1;
+        }
+        .field-input {
+            width: 100%;
+            background: rgba(124,58,237,0.05);
+            border: 1.5px solid rgba(124,58,237,0.12);
+            border-radius: 16px;
+            padding: 13px 14px 13px 42px;
+            font-size: 0.92rem;
+            font-family: inherit;
+            color: var(--text-main);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+            -webkit-appearance: none;
+        }
+        .field-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(124,58,237,0.1);
+            background: white;
+        }
+        .field-input::placeholder { color: #C4C4D4; }
+        .field-input.is-error {
+            border-color: var(--danger);
+            box-shadow: 0 0 0 3px rgba(239,68,68,0.08);
+        }
+        .field-error {
+            font-size: 0.72rem; color: var(--danger);
+            margin-top: 5px; padding-left: 2px; display: none;
+        }
+        .field-error.show { display: block; }
+
+        /* 密码可见切换 */
+        .pw-toggle {
+            position: absolute; right: 12px;
+            background: none; border: none;
+            cursor: pointer; font-size: 0.95rem;
+            color: var(--text-muted); padding: 4px; z-index: 1;
+        }
+
+        /* ── 记住我 ── */
+        .remember-row {
+            display: flex; align-items: center;
+            gap: 10px; margin-bottom: 18px; cursor: pointer;
+        }
+        .checkbox-custom {
+            width: 20px; height: 20px;
+            border: 2px solid rgba(124,58,237,0.25);
+            border-radius: 6px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+            background: rgba(124,58,237,0.05);
+        }
+        .checkbox-custom.checked {
+            background: var(--primary); border-color: var(--primary);
+        }
+        .checkbox-custom.checked::after {
+            content: '✓'; color: white;
+            font-size: 0.72rem; font-weight: 800;
+        }
+        .remember-label {
+            font-size: 0.82rem; color: #2D1B69;
+            font-weight: 600; user-select: none;
+        }
+
+        /* ── 全局提示 ── */
+        .alert-box {
+            border-radius: 16px; padding: 13px 15px;
+            margin-bottom: 14px; font-size: 0.82rem;
+            font-weight: 600; display: none;
+            align-items: flex-start; gap: 9px;
+        }
+        .alert-box.show { display: flex; }
+        .alert-error {
+            background: rgba(239,68,68,0.08);
+            border: 1px solid rgba(239,68,68,0.18);
+            color: #DC2626;
+        }
+        .alert-success {
+            background: rgba(16,185,129,0.08);
+            border: 1px solid rgba(16,185,129,0.18);
+            color: #059669;
+        }
+        .alert-icon { font-size: 0.95rem; flex-shrink: 0; margin-top: 1px; }
+
+        /* ── 登录按钮 ── */
+        .btn-submit {
+            background: linear-gradient(135deg, #2D1B69, var(--primary), var(--primary-light));
+            border: none; border-radius: 60px;
+            padding: 15px; font-weight: 800;
+            color: white; width: 100%;
+            font-size: 0.98rem; cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 8px 24px rgba(124,58,237,0.3);
+            letter-spacing: 0.2px;
+            position: relative; overflow: hidden;
+        }
+        .btn-submit:active { transform: scale(0.98); }
+        .btn-submit:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
+        .btn-submit .btn-text { transition: opacity 0.2s; }
+        .btn-submit .btn-spinner {
+            display: none; position: absolute; inset: 0;
+            align-items: center; justify-content: center;
+        }
+        .btn-submit.loading .btn-text { opacity: 0; }
+        .btn-submit.loading .btn-spinner { display: flex; }
+        .spinner {
+            width: 20px; height: 20px;
+            border: 2.5px solid rgba(255,255,255,0.35);
+            border-top-color: white; border-radius: 50%;
+            animation: spin 0.65s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── 分隔线 & 底部 ── */
+        .divider {
+            display: flex; align-items: center;
+            gap: 10px; margin: 18px 0 14px;
+        }
+        .divider::before, .divider::after {
+            content: ''; flex: 1; height: 1px;
+            background: rgba(124,58,237,0.1);
+        }
+        .divider span { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; }
+        .auth-switch {
+            text-align: center; font-size: 0.83rem; color: var(--text-muted);
+        }
+        .auth-switch a {
+            color: var(--primary); font-weight: 700; text-decoration: none;
+        }
+
+        /* ── 忘记密码弹层 ── */
+        .modal-mask {
+            position: fixed; inset: 0;
+            background: rgba(15,10,40,0.45);
+            backdrop-filter: blur(8px);
+            z-index: 500;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.3s;
+            display: flex; align-items: flex-end; justify-content: center;
+        }
+        .modal-mask.open { opacity: 1; pointer-events: auto; }
+        .modal-box {
+            background: white;
+            border-radius: 32px 32px 0 0;
+            padding: 24px 20px 44px;
+            width: 100%; max-width: 500px;
+            transform: translateY(100%);
+            transition: transform 0.38s cubic-bezier(0.32,0.72,0,1);
+        }
+        .modal-mask.open .modal-box { transform: translateY(0); }
+        .modal-handle {
+            width: 40px; height: 4px;
+            background: rgba(0,0,0,0.1); border-radius: 2px;
+            margin: 0 auto 20px;
+        }
+        .modal-title {
+            font-size: 1.1rem; font-weight: 800;
+            color: #2D1B69; margin-bottom: 7px;
+        }
+        .modal-desc {
+            font-size: 0.83rem; color: var(--text-muted);
+            margin-bottom: 18px; line-height: 1.55;
+        }
+        .modal-input {
+            width: 100%;
+            background: rgba(124,58,237,0.05);
+            border: 1.5px solid rgba(124,58,237,0.12);
+            border-radius: 16px;
+            padding: 13px 14px;
+            font-size: 0.92rem; font-family: inherit;
+            color: var(--text-main); outline: none;
+            margin-bottom: 12px;
+        }
+        .modal-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(124,58,237,0.1);
+        }
+    </style>
+</head>
+<body>
+<div class="ambient-bg"></div>
+
+<!-- 顶部 Hero -->
+<div class="auth-hero">
+    <div class="hero-logo-wrap">
+        <div class="hero-logo-icon">🐬</div>
+    </div>
+    <div class="hero-brand-name">海豚社区</div>
+    <div class="hero-brand-sub">Web3 社区 · H 代币生态</div>
+    <div class="hero-stats">
+        <div class="stat-item">
+            <div class="stat-val">10亿</div>
+            <div class="stat-lbl">H 代币总量</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-val">1.0%</div>
+            <div class="stat-lbl">最高日收益率</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-val">USDT</div>
+            <div class="stat-lbl">收益结算</div>
+        </div>
+    </div>
+</div>
+
+<!-- 表单卡片 -->
+<div class="auth-card">
+    <div class="auth-card-title">欢迎回来 👋</div>
+    <div class="auth-card-sub">登录您的账户，继续质押赚 U</div>
+
+    <!-- 全局错误 -->
+    <div class="alert-box alert-error" id="globalErr">
+        <span class="alert-icon">⚠️</span>
+        <span id="globalErrText"></span>
+    </div>
+    <!-- 全局成功 -->
+    <div class="alert-box alert-success" id="globalOk">
+        <span class="alert-icon">✅</span>
+        <span id="globalOkText"></span>
+    </div>
+
+    <!-- 邮箱 -->
+    <div class="field">
+        <div class="field-label">邮箱地址</div>
+        <div class="field-wrap">
+            <span class="field-icon">✉️</span>
+            <input class="field-input" type="email" id="email"
+                placeholder="请输入您的邮箱" autocomplete="email">
+        </div>
+        <div class="field-error" id="err-email">请输入有效的邮箱地址</div>
+    </div>
+
+    <!-- 密码 -->
+    <div class="field">
+        <div class="field-label">
+            <span>密码</span>
+            <span class="forgot-link" onclick="openReset()">忘记密码？</span>
+        </div>
+        <div class="field-wrap">
+            <span class="field-icon">🔒</span>
+            <input class="field-input" type="password" id="password"
+                placeholder="请输入密码" autocomplete="current-password">
+            <button class="pw-toggle" type="button" onclick="togglePw('password',this)">👁️</button>
+        </div>
+        <div class="field-error" id="err-password">请输入密码</div>
+    </div>
+
+    <!-- 记住我 -->
+    <div class="remember-row" onclick="toggleRemember()">
+        <div class="checkbox-custom" id="rememberBox"></div>
+        <span class="remember-label">记住我（7 天免登录）</span>
+    </div>
+
+    <!-- 登录按钮 -->
+    <button class="btn-submit" id="submitBtn" onclick="doLogin()">
+        <span class="btn-text">🔑 立即登录</span>
+        <span class="btn-spinner"><div class="spinner"></div></span>
+    </button>
+
+    <div class="divider"><span>还没有账户</span></div>
+    <div class="auth-switch">还没有账户？<a href="register.html">立即注册</a></div>
+</div>
+
+<!-- 忘记密码弹层 -->
+<div class="modal-mask" id="resetModal" onclick="closeReset(event)">
+    <div class="modal-box">
+        <div class="modal-handle"></div>
+        <div class="modal-title">🔑 重置密码</div>
+        <div class="modal-desc">
+            请输入您注册时使用的邮箱，<br>
+            我们将向您发送密码重置链接。
+        </div>
+        <input type="email" class="modal-input" id="resetEmail" placeholder="请输入您的邮箱">
+        <div class="alert-box alert-error" id="resetErr" style="margin-bottom:10px;">
+            <span class="alert-icon">⚠️</span>
+            <span id="resetErrText"></span>
+        </div>
+        <div class="alert-box alert-success" id="resetOk" style="margin-bottom:10px;">
+            <span class="alert-icon">✅</span>
+            <span id="resetOkText"></span>
+        </div>
+        <button class="btn-gradient" id="resetBtn" onclick="doReset()">发送重置邮件</button>
+        <button class="btn-outline" style="width:100%;margin-top:10px;padding:12px;"
+            onclick="closeReset()">取消</button>
+    </div>
+</div>
+
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = 'https://pheeyaobcvdlujmrzouj.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoZWV5YW9iY3ZkbHVqbXJ6b3VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzY2OTYsImV4cCI6MjA4OTk1MjY5Nn0.xl2S2EQfTmTT10hCiB5YqCQJ2aYXCD1BL7A7jRfNsz8';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ── 密码可见切换 ── */
+function togglePw(id, btn) {
+    const el = document.getElementById(id);
+    el.type = el.type === 'password' ? 'text' : 'password';
+    btn.textContent = el.type === 'password' ? '👁️' : '🙈';
+}
+
+/* ── 记住我 ── */
+let rememberMe = false;
+function toggleRemember() {
+    rememberMe = !rememberMe;
+    document.getElementById('rememberBox').classList.toggle('checked', rememberMe);
+}
+
+/* ── 字段错误 ── */
+function setErr(fid, eid, hasErr) {
+    document.getElementById(fid).classList.toggle('is-error', hasErr);
+    document.getElementById(eid).classList.toggle('show', hasErr);
+    return !hasErr;
+}
+
+/* ── 实时清除错误 ── */
+['email','password'].forEach(id => {
+    document.getElementById(id).addEventListener('input', function(){
+        this.classList.remove('is-error');
+        const e = document.getElementById('err-' + id);
+        if (e) e.classList.remove('show');
+    });
+});
+
+/* ── 登录 ── */
+async function doLogin() {
+    document.getElementById('globalErr').classList.remove('show');
+    document.getElementById('globalOk').classList.remove('show');
+
+    const email = document.getElementById('email').value.trim();
+    const pw    = document.getElementById('password').value;
+    let ok = true;
+    ok = setErr('email','err-email', !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) && ok;
+    ok = setErr('password','err-password', pw.length === 0) && ok;
+    if (!ok) return;
+
+    const btn = document.getElementById('submitBtn');
+    btn.classList.add('loading'); btn.disabled = true;
+
+    try {
+        const { error } = await sb.auth.signInWithPassword({ email, password: pw });
+        if (error) throw error;
+
+        if (rememberMe) {
+            localStorage.setItem('sb_remember','1');
+            localStorage.setItem('sb_email', email);
+        } else {
+            localStorage.removeItem('sb_remember');
+            localStorage.removeItem('sb_email');
+        }
+
+        document.getElementById('globalOkText').textContent = '登录成功，正在跳转...';
+        document.getElementById('globalOk').classList.add('show');
+        setTimeout(() => { location.href = 'index.html'; }, 800);
+
+    } catch (err) {
+        let msg = '登录失败，请稍后重试';
+        if (err.message) {
+            if (/invalid login credentials|invalid_credentials/i.test(err.message)) msg = '邮箱或密码错误，请重新输入';
+            else if (/email not confirmed/i.test(err.message)) msg = '邮箱尚未验证，请查收验证邮件后再登录';
+            else if (/too many requests/i.test(err.message)) msg = '登录尝试过于频繁，请稍后再试';
+            else msg = err.message;
+        }
+        document.getElementById('globalErrText').textContent = msg;
+        document.getElementById('globalErr').classList.add('show');
+    } finally {
+        btn.classList.remove('loading'); btn.disabled = false;
+    }
+}
+
+/* ── 忘记密码弹层 ── */
+function openReset() {
+    const email = document.getElementById('email').value.trim();
+    if (email) document.getElementById('resetEmail').value = email;
+    document.getElementById('resetErr').classList.remove('show');
+    document.getElementById('resetOk').classList.remove('show');
+    document.getElementById('resetModal').classList.add('open');
+}
+function closeReset(e) {
+    if (!e || e.target === document.getElementById('resetModal')) {
+        document.getElementById('resetModal').classList.remove('open');
+    }
+}
+async function doReset() {
+    const email = document.getElementById('resetEmail').value.trim();
+    document.getElementById('resetErr').classList.remove('show');
+    document.getElementById('resetOk').classList.remove('show');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        document.getElementById('resetErrText').textContent = '请输入有效的邮箱地址';
+        document.getElementById('resetErr').classList.add('show');
+        return;
+    }
+    const btn = document.getElementById('resetBtn');
+    btn.textContent = '发送中...'; btn.disabled = true;
+    try {
+        const { error } = await sb.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.origin + '/password.html'
+        });
+        if (error) throw error;
+        document.getElementById('resetOkText').textContent = '重置邮件已发送，请查收邮箱';
+        document.getElementById('resetOk').classList.add('show');
+        btn.textContent = '已发送 ✓';
+        setTimeout(() => closeReset(), 2500);
+    } catch (err) {
+        document.getElementById('resetErrText').textContent = err.message || '发送失败，请稍后重试';
+        document.getElementById('resetErr').classList.add('show');
+        btn.textContent = '发送重置邮件'; btn.disabled = false;
+    }
+}
+
+/* ── Enter 提交 ── */
+document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !document.getElementById('resetModal').classList.contains('open')) doLogin();
+});
+
+/* ── 自动填充记住的邮箱 ── */
+(function autoFill() {
+    if (localStorage.getItem('sb_remember') === '1') {
+        const saved = localStorage.getItem('sb_email');
+        if (saved) { document.getElementById('email').value = saved; toggleRemember(); }
+    }
+})();
+
+/* ── 已登录则跳转 ── */
+(async function checkSession() {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) location.href = 'index.html';
+})();
+</script>
+</body>
+</html>
