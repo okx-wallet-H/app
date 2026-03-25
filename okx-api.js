@@ -1,6 +1,7 @@
 // ============================================================
-// 海豚社区 - okx-api.js
+// 海豚社区 - okx-api.js  v3.0
 // OKX Web3 API 前端调用封装（通过 Supabase Edge Function 代理）
+// 新增: /price-info, /hot-tokens, /toplist, /token-basic
 // ============================================================
 
 const OKX_API = {
@@ -58,15 +59,63 @@ const OKX_API = {
     },
 
     // ============================================================
-    // 热门代币（调用 /trending 接口）
-    // rankingType: 1=涨幅, 2=跌幅, 3=新币, 4=热门（此处用 trending）
+    // 通用 GET 请求（到 Edge Function）
+    // ============================================================
+    async getEdge(route, params = {}) {
+        const qs = Object.entries(params)
+            .filter(([, v]) => v !== undefined && v !== null && v !== '')
+            .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+            .join('&');
+        const url = this.edgeProxy + route + (qs ? '?' + qs : '');
+        const cacheKey = url;
+
+        if (this._cache[cacheKey] && this._cacheExpiry[cacheKey] > Date.now()) {
+            return this._cache[cacheKey];
+        }
+        if (this._pending[cacheKey]) {
+            return this._pending[cacheKey];
+        }
+
+        const doFetch = async () => {
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 15000);
+                const resp = await fetch(url, {
+                    method: 'GET',
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                const data = await resp.json();
+                if (data.code === '0' && data.data !== undefined) {
+                    this._cache[cacheKey] = data.data;
+                    this._cacheExpiry[cacheKey] = Date.now() + 60000;
+                    return data.data;
+                }
+                console.warn(`OKX Edge GET ${route} 返回:`, data.code, data.msg);
+                return null;
+            } catch (e) {
+                console.error(`OKX Edge GET ${route} 请求失败:`, e.message);
+                return null;
+            } finally {
+                delete this._pending[cacheKey];
+            }
+        };
+
+        this._pending[cacheKey] = doFetch();
+        return this._pending[cacheKey];
+    },
+
+    // ============================================================
+    // 热门代币 - 固定列表（X Layer + BSC）含实时价格和24h涨跌幅
+    // 调用 /trending 接口（内部使用 price-info v6 API）
+    // options.chainIndex: '196' | '56' | 'all'
+    // options.rankingType: 忽略（固定列表模式）
     // ============================================================
     async getHotTokens(options = {}) {
         const chainIndex = options.chainIndex || 'all';
         const raw = await this.postEdge('/trending', { chainIndex });
         if (!raw || !Array.isArray(raw)) return null;
 
-        // 转换为 market.html 期望的格式
         return raw.map(t => ({
             tokenSymbol: t.symbol,
             tokenName: t.name,
@@ -83,11 +132,84 @@ const OKX_API = {
     },
 
     // ============================================================
+    // 真实热门代币榜单（v6 hot-token API）
+    // rankingType: '4'=Trending(token score), '5'=Xmentioned(Twitter)
+    // rankingTimeFrame: '1'=5m, '2'=1h, '3'=4h, '4'=24h
+    // rankBy: '2'=价格变化, '5'=交易额, '6'=市值, '12'=社媒分数
+    // ============================================================
+    async getRealHotTokens(options = {}) {
+        const params = {
+            rankingType: options.rankingType || '4',
+            rankingTimeFrame: options.rankingTimeFrame || '4',
+        };
+        if (options.chainIndex) params.chainIndex = options.chainIndex;
+        if (options.rankBy) params.rankBy = options.rankBy;
+        if (options.limit) params.limit = options.limit;
+
+        const raw = await this.getEdge('/hot-tokens', params);
+        if (!raw || !Array.isArray(raw)) return null;
+
+        return raw.map(t => ({
+            tokenSymbol: t.tokenSymbol,
+            tokenName: t.tokenSymbol,
+            tokenFullName: t.tokenSymbol,
+            tokenLogoUrl: t.tokenLogoUrl || '',
+            tokenContractAddress: t.tokenContractAddress || '',
+            chainIndex: t.chainIndex || '196',
+            price: t.price || '0',
+            change: t.change || '0',
+            volume24H: t.volume || '0',
+            volume: t.volume || '0',
+            marketCap: t.marketCap || '0',
+            holders: t.holders || '0',
+            txs: t.txs || '0',
+            txsBuy: t.txsBuy || '0',
+            txsSell: t.txsSell || '0',
+            liquidity: t.liquidity || '0',
+            inflowUsd: t.inflowUsd || '0',
+        }));
+    },
+
+    // ============================================================
+    // 代币榜单（v6 toplist API）
+    // sortBy: '2'=涨跌幅, '5'=成交量, '6'=市值
+    // timeFrame: '1'=5m, '2'=1h, '3'=4h, '4'=24h
+    // chains: '196,56' 逗号分隔
+    // ============================================================
+    async getToplist(options = {}) {
+        const params = {
+            chains: options.chains || '196,56',
+            sortBy: options.sortBy || '2',
+            timeFrame: options.timeFrame || '4',
+        };
+
+        const raw = await this.getEdge('/toplist', params);
+        if (!raw || !Array.isArray(raw)) return null;
+
+        return raw.map(t => ({
+            tokenSymbol: t.tokenSymbol,
+            tokenName: t.tokenSymbol,
+            tokenFullName: t.tokenSymbol,
+            tokenLogoUrl: t.tokenLogoUrl || '',
+            tokenContractAddress: t.tokenContractAddress || '',
+            chainIndex: t.chainIndex || '196',
+            price: t.price || '0',
+            change: t.change || '0',
+            volume24H: t.volume || '0',
+            volume: t.volume || '0',
+            marketCap: t.marketCap || '0',
+            holders: t.holders || '0',
+            txs: t.txs || '0',
+            txsBuy: t.txsBuy || '0',
+            txsSell: t.txsSell || '0',
+        }));
+    },
+
+    // ============================================================
     // 代币搜索（调用 /search 接口）
     // ============================================================
     async searchTokens(keyword, chains = 'all') {
         if (!keyword || keyword.trim().length === 0) return null;
-        // chains 参数可能是 '196,1,56' 格式，取第一个或 'all'
         const chainIndex = chains === 'all' || chains.includes(',') ? 'all' : chains;
         const raw = await this.postEdge('/search', {
             keyword: keyword.trim(),
@@ -95,45 +217,73 @@ const OKX_API = {
         });
         if (!raw || !Array.isArray(raw)) return null;
 
-        // 转换为 market.html 期望的格式
         return raw.map(t => ({
             tokenSymbol: t.symbol,
             tokenName: t.name,
             tokenFullName: t.name,
             tokenLogoUrl: t.logoUrl || '',
-            tokenContractAddress: t.contract || t.tokenContractAddress || '',
-            chainIndex: t.chain || t.chainIndex || '196',
+            tokenContractAddress: t.tokenContractAddress || '',
+            chainIndex: t.chainIndex || '196',
             price: t.price || '0',
             change: t.priceChange24h || '0',
-            volume24H: '0',
-            volume: '0',
-            marketCap: '0',
+            volume24H: t.volume24H || '0',
+            volume: t.volume24H || '0',
+            marketCap: t.marketCap || '0',
         }));
     },
 
     // ============================================================
-    // 代币基础信息（暂时返回 null，等待后续扩展）
-    // ============================================================
-    async getTokenBasicInfo(address, chainIndex = '196') {
-        return null;
-    },
-
-    // ============================================================
-    // 代币交易信息（暂时返回 null）
+    // 代币交易信息（price-info，含24h涨跌幅、成交量等）
+    // 返回: { price, priceChange24H, priceChange1H, volume24H,
+    //         marketCap, holders, liquidity, ... }
     // ============================================================
     async getTokenPriceInfo(address, chainIndex = '196') {
-        return null;
+        if (!address) return null;
+        const raw = await this.postEdge('/price-info', [{ chainIndex, tokenContractAddress: address }]);
+        if (!raw || !Array.isArray(raw) || raw.length === 0) return null;
+        const d = raw[0];
+        return {
+            price: d.price || '0',
+            priceChange5M: d.priceChange5M || '0',
+            priceChange1H: d.priceChange1H || '0',
+            priceChange4H: d.priceChange4H || '0',
+            priceChange24H: d.priceChange24H || '0',
+            volume5M: d.volume5M || '0',
+            volume1H: d.volume1H || '0',
+            volume4H: d.volume4H || '0',
+            volume24H: d.volume24H || '0',
+            txs5M: d.txs5M || '0',
+            txs1H: d.txs1H || '0',
+            txs4H: d.txs4H || '0',
+            txs24H: d.txs24H || '0',
+            maxPrice: d.maxPrice || '0',
+            minPrice: d.minPrice || '0',
+            marketCap: d.marketCap || '0',
+            circSupply: d.circSupply || '0',
+            liquidity: d.liquidity || '0',
+            holders: d.holders || '0',
+        };
     },
 
     // ============================================================
-    // 代币交易活动（暂时返回 null）
+    // 代币基础信息
+    // ============================================================
+    async getTokenBasicInfo(address, chainIndex = '196') {
+        if (!address) return null;
+        const raw = await this.postEdge('/token-basic', [{ chainIndex, tokenContractAddress: address }]);
+        if (!raw || !Array.isArray(raw) || raw.length === 0) return null;
+        return raw[0];
+    },
+
+    // ============================================================
+    // 代币交易活动（暂时返回 null，等待后续扩展）
     // ============================================================
     async getTokenTrades(address, chainIndex = '196', limit = 50) {
         return null;
     },
 
     // ============================================================
-    // 代币持有者信息（暂时返回 null）
+    // 代币持有者信息（暂时返回 null，等待后续扩展）
     // ============================================================
     async getTokenHolders(address, chainIndex = '196') {
         return null;

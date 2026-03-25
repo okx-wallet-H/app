@@ -522,7 +522,8 @@ function fillOverviewFromData(data) {
 // 异步加载真实的涨幅/跌幅/新币数据替换概览卡片
 async function loadOverviewCards() {
     try {
-        const gainers = await OKX_API.getHotTokens({ rankingType: '1', rankingTimeFrame: '4' });
+        // 涨幅榜：使用 toplist API 按涨跌幅排序
+        const gainers = await OKX_API.getToplist({ chains: '196,56', sortBy: '2', timeFrame: '4' });
         if (gainers && gainers.length > 0) {
             document.getElementById('ovGainerName').textContent = gainers[0].tokenSymbol || '--';
             const gc = OKX_API.formatChange(gainers[0].change);
@@ -532,17 +533,21 @@ async function loadOverviewCards() {
     } catch(e) {}
 
     try {
-        const losers = await OKX_API.getHotTokens({ rankingType: '2', rankingTimeFrame: '4' });
-        if (losers && losers.length > 0) {
-            document.getElementById('ovLoserName').textContent = losers[0].tokenSymbol || '--';
-            const lc = OKX_API.formatChange(losers[0].change);
+        // 跌幅榜：使用 toplist API 按涨跌幅排序，取末尾
+        const topData = await OKX_API.getToplist({ chains: '196,56', sortBy: '2', timeFrame: '4' });
+        if (topData && topData.length > 0) {
+            const sorted = [...topData].sort((a, b) => parseFloat(a.change || 0) - parseFloat(b.change || 0));
+            const loser = sorted[0];
+            document.getElementById('ovLoserName').textContent = loser.tokenSymbol || '--';
+            const lc = OKX_API.formatChange(loser.change);
             document.getElementById('ovLoserChange').textContent = lc.text;
             document.getElementById('ovLoserChange').className = 'overview-change negative';
         }
     } catch(e) {}
 
     try {
-        const newTokens = await OKX_API.getHotTokens({ rankingType: '3', rankingTimeFrame: '4' });
+        // 新币：使用 hot-token API Trending 排序
+        const newTokens = await OKX_API.getRealHotTokens({ rankingType: '4', rankingTimeFrame: '1', chainIndex: '56' });
         if (newTokens && newTokens.length > 0) {
             document.getElementById('ovNewName').textContent = newTokens[0].tokenSymbol || '--';
             const nc = OKX_API.formatChange(newTokens[0].change);
@@ -566,9 +571,9 @@ async function loadGainers() {
         renderGainerCards(container, sorted.slice(0, 8));
     }
 
-    // 异步尝试获取真实涨幅榜数据替换
+    // 异步尝试获取真实涨幅榜数据替换（使用 toplist API）
     try {
-        const data = await OKX_API.getHotTokens({ rankingType: '1', rankingTimeFrame: '4' });
+        const data = await OKX_API.getToplist({ chains: '196,56', sortBy: '2', timeFrame: '4' });
         if (data && data.length > 0) {
             renderGainerCards(container, data.slice(0, 8));
         }
@@ -617,16 +622,26 @@ async function loadTokenList() {
             }
             data = results;
         } else {
-            // 映射 tab 到 API 参数
-            const tabMap = {
-                'hot': { rankingType: '4' },
-                'gainers': { rankingType: '1' },
-                'losers': { rankingType: '2' },
-                'new': { rankingType: '3' },
-                'volume': { rankingType: '4' }  // 热门通常按交易量排
-            };
-            const params = tabMap[currentTab] || tabMap['hot'];
-            data = await OKX_API.getHotTokens({ ...params, rankingTimeFrame: '4' });
+            // 映射 tab 到 API 调用
+            if (currentTab === 'hot') {
+                // 热门：固定列表（X Layer + BSC）含实时价格和24h涨跌幅
+                data = await OKX_API.getHotTokens({ chainIndex: 'all' });
+            } else if (currentTab === 'gainers') {
+                // 涨幅榜：v6 toplist API，按涨跌幅排序
+                data = await OKX_API.getToplist({ chains: '196,56', sortBy: '2', timeFrame: '4' });
+            } else if (currentTab === 'losers') {
+                // 跌幅榜：v6 toplist API，按涨跌幅排序（取末尾）
+                const topData = await OKX_API.getToplist({ chains: '196,56', sortBy: '2', timeFrame: '4' });
+                data = topData ? [...topData].sort((a, b) => parseFloat(a.change || 0) - parseFloat(b.change || 0)) : null;
+            } else if (currentTab === 'volume') {
+                // 成交量榜：v6 toplist API，按成交量排序
+                data = await OKX_API.getToplist({ chains: '196,56', sortBy: '5', timeFrame: '4' });
+            } else if (currentTab === 'new') {
+                // 新币榜：v6 hot-token API，Trending 排序
+                data = await OKX_API.getRealHotTokens({ rankingType: '4', rankingTimeFrame: '4', chainIndex: '56' });
+            } else {
+                data = await OKX_API.getHotTokens({ chainIndex: 'all' });
+            }
         }
 
         if (!data || data.length === 0) {
@@ -813,15 +828,15 @@ async function loadDetailData(addr, chain) {
             OKX_API.getTokenTrades(addr, chain, 20)
         ]);
 
-        // 更新交易信息
-        if (priceInfo && priceInfo.length > 0) {
-            const pi = priceInfo[0];
+        // 更新交易信息（priceInfo 现在直接返回对象而非数组）
+        if (priceInfo) {
+            const pi = priceInfo;
             document.getElementById('detailPrice').innerHTML = OKX_API.formatPriceHtml(pi.price);
             document.getElementById('detailVol').textContent = OKX_API.formatVolume(pi.volume24H || '0');
             document.getElementById('detailMcap').textContent = OKX_API.formatMarketCap(pi.marketCap || '0');
             document.getElementById('detailHolders').textContent = OKX_API.formatHolders(pi.holders || '0');
-            document.getElementById('detailHigh').textContent = OKX_API.formatPrice(pi.high24H || '0');
-            document.getElementById('detailLow').textContent = OKX_API.formatPrice(pi.low24H || '0');
+            document.getElementById('detailHigh').textContent = OKX_API.formatPrice(pi.maxPrice || '0');
+            document.getElementById('detailLow').textContent = OKX_API.formatPrice(pi.minPrice || '0');
 
             const change24 = OKX_API.formatChange(pi.priceChange24H);
             const chgEl = document.getElementById('detailChange');
