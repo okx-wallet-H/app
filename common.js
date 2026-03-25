@@ -1,20 +1,14 @@
 // ============================================================
 // 海豚社区 - common.js
-// 对接 X Layer 链上真实数据（H Token 实时价格 + 迷你 K 线）
+// 对接 OKX DEX API 获取 H Token 实时价格 + 迷你 K 线
 // ============================================================
 
 const CONFIG = {
-    // 双 RPC 节点：优先私有节点，失败自动回退公共节点
-    rpcUrls: [
-        'https://shy-shy-surf.xlayer-mainnet.quiknode.pro/fa135d65d86e5cf4688019042067d4449f1235c5',
-        'https://rpc.xlayer.tech'
-    ],
-    // H/WOKB 交易对（Uniswap V2 风格）
-    hWokbPair: '0x0ee271b597dcc9f0006d7819a13ea0e0ab7fa2fc',
-    // WOKB/USDT 交易对
-    wokbUsdtPair: '0xc71f9e1de80eb505c0cb3bbf90ae6593130e5d25',
-    updateInterval: 15000,
-    klineInterval: 60000
+    // H 代币合约地址（X Layer，chainIndex: 196）
+    hTokenAddress: '0x867fdd2eef548f80808d0c9065cd55f57e207777',
+    chainIndex: '196',
+    updateInterval: 15000,   // 价格轮询间隔（毫秒）
+    klineInterval: 60000     // K 线蜡烛间隔（毫秒，保留用于本地蜡烛合并）
 };
 
 // ============================================================
@@ -24,83 +18,117 @@ let priceHistory = [];
 const MAX_HISTORY_POINTS = 30;
 let currentCandle = null;
 let lastFetchSuccess = false;
-let activeRpcIndex = 0;
+let klineInitialized = false;  // 是否已从 OKX 加载历史 K 线
 
 // 涨跌幅追踪
 let previousPrice = null;   // 上一次的价格（用于闪烁方向）
 let firstPrice = null;      // 本次会话第一次获取到的价格（用于计算涨跌幅）
 
 // ============================================================
-// RPC 调用（带自动回退）
+// 通用代理请求（调用 server.js 代理）
 // ============================================================
-async function rpcCall(method, params) {
-    const urls = [CONFIG.rpcUrls[activeRpcIndex], ...CONFIG.rpcUrls.filter((_, i) => i !== activeRpcIndex)];
-    for (let i = 0; i < urls.length; i++) {
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 8000);
-            const response = await fetch(urls[i], {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ jsonrpc: '2.0', method, params, id: 1 }),
-                signal: controller.signal
-            });
-            clearTimeout(timeoutId);
-            const data = await response.json();
-            if (data.result) {
-                activeRpcIndex = CONFIG.rpcUrls.indexOf(urls[i]);
-                return data.result;
-            }
-        } catch (e) {
-            console.warn(`RPC ${urls[i].substring(0, 40)}... 失败:`, e.message);
+async function proxyRequest(endpoint, params = {}) {
+    const qs = Object.entries(params)
+        .filter(([_, v]) => v !== undefined && v !== null && v !== '')
+        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+        .join('&');
+    const url = `/api/${endpoint}${qs ? '?' + qs : ''}`;
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
+        const resp = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        const data = await resp.json();
+        if (data && data.code === '0' && data.data) {
+            return data.data;
         }
+        console.warn(`代理请求 ${endpoint} 返回:`, data && data.code, data && data.msg);
+        return null;
+    } catch (e) {
+        console.error(`代理请求 ${endpoint} 失败:`, e.message);
+        return null;
     }
-    return null;
-}
-
-async function ethCall(to, data) {
-    return rpcCall('eth_call', [{ to, data }, 'latest']);
 }
 
 // ============================================================
-// 链上价格获取：H → WOKB → USDT 两跳定价
+// 初始化历史 K 线（从 OKX API 获取最近 40 根 1 分钟蜡烛）
+// ============================================================
+async function initHistoricalKline() {
+    if (klineInitialized) return;
+    console.log('正在从 OKX API 加载历史 K 线...');
+    try {
+        const data = await proxyRequest('h-token-candles', {
+            chainIndex: CONFIG.chainIndex,
+            tokenContractAddress: CONFIG.hTokenAddress,
+            bar: '1m',
+            limit: '40'
+        });
+        if (!data || !Array.isArray(data) || data.length === 0) {
+            console.warn('历史 K 线数据为空，将从实时价格逐步构建');
+            return;
+        }
+        // OKX candles 格式：[timestamp, open, high, low, close, volume, ...]
+        // 数据按时间倒序排列（最新在前），需要反转
+        const candles = [...data].reverse();
+        priceHistory = candles.map(c => ({
+            open:  parseFloat(c[1]),
+            high:  parseFloat(c[2]),
+            low:   parseFloat(c[3]),
+            close: parseFloat(c[4])
+        })).filter(c => c.open > 0);
+
+        if (priceHistory.length > MAX_HISTORY_POINTS) {
+            priceHistory = priceHistory.slice(-MAX_HISTORY_POINTS);
+        }
+
+        klineInitialized = true;
+        console.log(`历史 K 线加载完成，共 ${priceHistory.length} 根蜡烛`);
+
+        // 立即用历史数据绘制 K 线
+        const canvas = document.getElementById('priceKline');
+        if (canvas && priceHistory.length > 0) {
+            drawKlineFromData(canvas, priceHistory);
+        }
+    } catch (e) {
+        console.error('历史 K 线加载失败:', e.message);
+    }
+}
+
+// ============================================================
+// OKX DEX API 价格获取（替换原链上 RPC 方式）
 // ============================================================
 async function fetchOnChainPrice() {
-    console.log('正在获取 H Token 链上实时价格...');
+    console.log('正在通过 OKX DEX API 获取 H Token 实时价格...');
     try {
-        const hWokbReserves = await ethCall(CONFIG.hWokbPair, '0x0902f1ac');
-        if (!hWokbReserves) throw new Error('H/WOKB getReserves 失败');
+        const data = await proxyRequest('h-token-price', {
+            chainIndex: CONFIG.chainIndex,
+            tokenContractAddress: CONFIG.hTokenAddress
+        });
 
-        const hex1 = hWokbReserves.slice(2);
-        const hReserveRaw = BigInt('0x' + hex1.slice(0, 64));
-        const wokbReserveRaw = BigInt('0x' + hex1.slice(64, 128));
+        if (!data) throw new Error('OKX API 返回空数据');
 
-        const wokbUsdtReserves = await ethCall(CONFIG.wokbUsdtPair, '0x0902f1ac');
-        if (!wokbUsdtReserves) throw new Error('WOKB/USDT getReserves 失败');
+        // OKX price 接口返回格式：{ price: "0.00xxx", ... } 或数组
+        let priceStr;
+        if (Array.isArray(data)) {
+            // 部分版本返回数组
+            priceStr = data[0] && (data[0].price || data[0].tokenPrice);
+        } else {
+            priceStr = data.price || data.tokenPrice;
+        }
 
-        const hex2 = wokbUsdtReserves.slice(2);
-        const usdtReserveRaw = BigInt('0x' + hex2.slice(0, 64));
-        const wokbReserveRaw2 = BigInt('0x' + hex2.slice(64, 128));
+        if (!priceStr) throw new Error('价格字段为空');
 
-        const hReserve = Number(hReserveRaw) / 1e18;
-        const wokbReserve = Number(wokbReserveRaw) / 1e18;
-        const usdtReserve = Number(usdtReserveRaw) / 1e6;
-        const wokbReserve2 = Number(wokbReserveRaw2) / 1e18;
+        const hPriceInUsdt = parseFloat(priceStr);
+        if (isNaN(hPriceInUsdt) || hPriceInUsdt <= 0) throw new Error(`无效价格: ${priceStr}`);
 
-        if (hReserve <= 0 || wokbReserve2 <= 0) throw new Error('储备量为零');
-
-        const hPriceInWokb = wokbReserve / hReserve;
-        const wokbPriceInUsdt = usdtReserve / wokbReserve2;
-        const hPriceInUsdt = hPriceInWokb * wokbPriceInUsdt;
-
-        console.log(`H 价格: ${hPriceInUsdt.toFixed(10)} USDT`);
+        console.log(`H 价格 (OKX): ${hPriceInUsdt.toFixed(10)} USDT`);
 
         lastFetchSuccess = true;
         updatePriceUI(hPriceInUsdt);
         recordPricePoint(hPriceInUsdt);
 
     } catch (error) {
-        console.error('链上数据获取失败:', error);
+        console.error('OKX API 价格获取失败:', error.message);
         lastFetchSuccess = false;
         const priceEl = document.getElementById('hTokenPrice');
         if (priceEl && !previousPrice) {
@@ -521,9 +549,13 @@ document.addEventListener('DOMContentLoaded', () => {
     generateTools();
     highlightCurrentNav();
 
-    // 首页：启动价格轮询
+    // 首页：启动 OKX DEX API 价格轮询（先加载历史 K 线，再启动实时轮询）
     if (document.getElementById('hTokenPrice')) {
-        fetchOnChainPrice();
+        // 先加载历史 K 线，然后立即获取实时价格
+        initHistoricalKline().then(() => {
+            fetchOnChainPrice();
+        });
+        // 15 秒轮询实时价格
         setInterval(fetchOnChainPrice, CONFIG.updateInterval);
     }
 

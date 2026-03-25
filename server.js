@@ -51,7 +51,8 @@ function getOkxHeaders(method, requestPath, body = '') {
 // ============================================================
 function okxRequest(method, apiPath, body = null) {
     return new Promise((resolve, reject) => {
-        const bodyStr = body ? JSON.stringify(body) : '';
+        // body 可能是对象或已序列化的字符串
+        const bodyStr = body ? (typeof body === 'string' ? body : JSON.stringify(body)) : '';
         const headers = getOkxHeaders(method, apiPath, method === 'POST' ? bodyStr : '');
 
         const options = {
@@ -239,6 +240,28 @@ async function handleApiRequest(pathname, query, req, res) {
                 }
                 let apiPath = `/api/v6/dex/market/token/holder?chainIndex=${chainIndex}&tokenContractAddress=${encodeURIComponent(address)}`;
                 if (tagFilter) apiPath += `&tagFilter=${tagFilter}`;
+                result = await okxRequest('GET', apiPath);
+                break;
+            }
+
+            // H 代币实时价格 (POST) - /api/v6/dex/market/price
+            case '/api/h-token-price': {
+                const chainIndex = query.chainIndex || '196';
+                const address = query.tokenContractAddress || '0x867fdd2eef548f80808d0c9065cd55f57e207777';
+                const priceBody = JSON.stringify([{ chainIndex, tokenContractAddress: address }]);
+                result = await okxRequest('POST', '/api/v6/dex/market/price', priceBody);
+                break;
+            }
+
+            // H 代币 K 线数据 (GET) - /api/v6/dex/market/candles
+            case '/api/h-token-candles': {
+                const chainIndex = query.chainIndex || '196';
+                const address = query.tokenContractAddress || '0x867fdd2eef548f80808d0c9065cd55f57e207777';
+                const bar = query.bar || '1m';
+                const limit = query.limit || '40';
+                let apiPath = `/api/v6/dex/market/candles?chainIndex=${chainIndex}&tokenContractAddress=${encodeURIComponent(address)}&bar=${bar}&limit=${limit}`;
+                if (query.after) apiPath += `&after=${query.after}`;
+                if (query.before) apiPath += `&before=${query.before}`;
                 result = await okxRequest('GET', apiPath);
                 break;
             }
