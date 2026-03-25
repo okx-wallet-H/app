@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>交易记录 - H Token</title>
+<link rel="stylesheet" href="styles.css?v=20260326">
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg-color); color: var(--text-main); font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif; min-height: 100vh; padding-bottom: 80px; }
+
+    /* 顶部 Header */
+    .tx-header {
+        position: sticky; top: 0; z-index: 100;
+        background: var(--bg-color);
+        border-bottom: 1px solid var(--glass-border);
+        padding: 16px 20px 14px;
+        display: flex; align-items: center; gap: 12px;
+    }
+    .tx-back-btn {
+        width: 36px; height: 36px;
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; flex-shrink: 0;
+    }
+    .tx-back-btn svg { width: 18px; height: 18px; stroke: var(--text-main); }
+    .tx-header-title { font-size: 1.05rem; font-weight: 800; color: var(--text-main); flex: 1; }
+
+    /* 筛选 Tabs */
+    .tx-filter-bar {
+        display: flex; gap: 8px;
+        padding: 14px 20px 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+    .tx-filter-bar::-webkit-scrollbar { display: none; }
+    .tx-filter-tab {
+        padding: 7px 16px; border-radius: 20px;
+        font-size: 0.8rem; font-weight: 700;
+        color: var(--text-muted);
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        cursor: pointer; transition: all 0.2s;
+        white-space: nowrap; flex-shrink: 0;
+    }
+    .tx-filter-tab.active {
+        background: linear-gradient(135deg, #7C3AED, #9B4DFF);
+        color: white; border-color: transparent;
+        box-shadow: 0 4px 12px rgba(124,58,237,0.3);
+    }
+
+    /* 网络选择 */
+    .tx-network-bar {
+        display: flex; gap: 8px;
+        padding: 10px 20px 0;
+    }
+    .tx-net-btn {
+        display: flex; align-items: center; gap: 6px;
+        padding: 6px 12px; border-radius: 20px;
+        font-size: 0.75rem; font-weight: 700;
+        color: var(--text-muted);
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        cursor: pointer; transition: all 0.2s;
+    }
+    .tx-net-btn.active { color: #7C3AED; border-color: rgba(124,58,237,0.4); background: rgba(124,58,237,0.08); }
+    .tx-net-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+    /* 地址显示 */
+    .tx-address-bar {
+        margin: 12px 20px 0;
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 14px;
+        padding: 12px 16px;
+        display: flex; align-items: center; gap: 10px;
+    }
+    .tx-address-label { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); flex-shrink: 0; }
+    .tx-address-text { font-size: 0.78rem; color: var(--text-main); font-family: 'SF Mono', monospace; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tx-address-copy { font-size: 0.72rem; font-weight: 700; color: #7C3AED; cursor: pointer; flex-shrink: 0; }
+
+    /* 交易列表 */
+    .tx-list-container { padding: 16px 20px 0; }
+    .tx-date-group { margin-bottom: 20px; }
+    .tx-date-label { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .tx-item {
+        display: flex; align-items: center; gap: 14px;
+        padding: 14px 16px;
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 18px;
+        margin-bottom: 8px;
+        cursor: pointer; transition: all 0.15s;
+    }
+    .tx-item:active { transform: scale(0.99); }
+    .tx-icon-wrap {
+        width: 44px; height: 44px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0; position: relative;
+    }
+    .tx-icon-wrap svg { width: 20px; height: 20px; }
+    .tx-icon-badge {
+        position: absolute; bottom: -2px; right: -2px;
+        width: 18px; height: 18px; border-radius: 50%;
+        border: 2px solid var(--bg-color);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.55rem; font-weight: 900;
+    }
+    .tx-info { flex: 1; min-width: 0; }
+    .tx-type { font-size: 0.88rem; font-weight: 700; color: var(--text-main); }
+    .tx-token { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+    .tx-hash { font-size: 0.68rem; color: var(--text-muted); font-family: 'SF Mono', monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 120px; margin-top: 2px; }
+    .tx-right { text-align: right; flex-shrink: 0; }
+    .tx-amount { font-size: 0.9rem; font-weight: 800; }
+    .tx-amount.in { color: #10B981; }
+    .tx-amount.out { color: var(--text-main); }
+    .tx-time { font-size: 0.7rem; color: var(--text-muted); margin-top: 3px; }
+    .tx-status { font-size: 0.65rem; font-weight: 700; margin-top: 3px; }
+    .tx-status.confirmed { color: #10B981; }
+    .tx-status.pending { color: #F59E0B; }
+    .tx-status.failed { color: #EF4444; }
+
+    /* 空状态 */
+    .tx-empty {
+        text-align: center; padding: 60px 20px;
+    }
+    .tx-empty-icon { font-size: 3rem; margin-bottom: 16px; }
+    .tx-empty-title { font-size: 1rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px; }
+    .tx-empty-desc { font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; }
+
+    /* 加载状态 */
+    .tx-loading { text-align: center; padding: 40px 20px; }
+    .tx-spinner {
+        width: 32px; height: 32px; border: 3px solid var(--glass-border);
+        border-top-color: #7C3AED; border-radius: 50%;
+        animation: spin 0.8s linear infinite; margin: 0 auto 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .tx-loading-text { font-size: 0.82rem; color: var(--text-muted); }
+
+    /* 无钱包提示 */
+    .tx-no-wallet {
+        text-align: center; padding: 60px 20px;
+    }
+    .tx-no-wallet-icon {
+        width: 72px; height: 72px; border-radius: 50%;
+        background: linear-gradient(135deg, rgba(124,58,237,0.15), rgba(155,77,255,0.15));
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 20px;
+    }
+    .tx-no-wallet-icon svg { width: 32px; height: 32px; stroke: #7C3AED; }
+    .tx-no-wallet-title { font-size: 1rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px; }
+    .tx-no-wallet-desc { font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 20px; }
+    .tx-no-wallet-btn {
+        display: inline-block; padding: 12px 28px;
+        background: linear-gradient(135deg, #7C3AED, #9B4DFF);
+        color: white; border-radius: 14px;
+        font-size: 0.88rem; font-weight: 700;
+        text-decoration: none; cursor: pointer;
+        box-shadow: 0 4px 16px rgba(124,58,237,0.3);
+    }
+
+    /* Toast */
+    .tx-toast {
+        position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px);
+        background: rgba(28,28,40,0.95); color: white;
+        padding: 10px 20px; border-radius: 20px;
+        font-size: 0.82rem; font-weight: 600;
+        opacity: 0; transition: all 0.3s; z-index: 9999;
+        white-space: nowrap; pointer-events: none;
+    }
+    .tx-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- 顶部 Header -->
+<div class="tx-header">
+    <div class="tx-back-btn" onclick="history.back()">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 12H5M12 5l-7 7 7 7"/>
+        </svg>
+    </div>
+    <div class="tx-header-title">交易记录</div>
+    <div style="width:36px;"></div>
+</div>
+
+<!-- 主体内容 -->
+<div id="txMain">
+    <!-- 加载中 -->
+    <div class="tx-loading" id="txLoading">
+        <div class="tx-spinner"></div>
+        <div class="tx-loading-text">正在加载...</div>
+    </div>
+</div>
+
+<!-- 底部导航 -->
+<nav class="bottom-nav" id="bottomNav"></nav>
+
+<!-- Toast -->
+<div class="tx-toast" id="txToast"></div>
+
+<script src="nav.js?v=20260326"></script>
+<script>
+const WALLET_KEY = 'haitun_wallet_v1';
+const XLAYER_RPC = 'https://shy-shy-surf.xlayer-mainnet.quiknode.pro/fa135d65d86e5cf4688019042067d4449f1235c5';
+const BNB_RPC = 'https://bsc-dataseed.binance.org/';
+const XLAYER_EXPLORER = 'https://www.okx.com/explorer/xlayer/tx/';
+const BNB_EXPLORER = 'https://bscscan.com/tx/';
+
+// 代币合约地址
+const TOKEN_CONTRACTS = {
+    xlayer: {
+        H: '0x867fdd2eef548f80808d0c9065cd55f57e207777',
+        OKB: null // 原生代币
+    },
+    bnb: {
+        BNB: null, // 原生代币
+        USDT: '0x55d398326f99059fF775485246999027B3197955'
+    }
+};
+
+let walletData = null;
+let currentNetwork = 'xlayer';
+let currentFilter = 'all';
+let allTxs = [];
+let toastTimer;
+
+// ============================================================
+// 初始化
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+    walletData = JSON.parse(localStorage.getItem(WALLET_KEY) || 'null');
+    if (!walletData || !walletData.address) {
+        showNoWallet();
+        return;
+    }
+    renderPage();
+    loadTransactions();
+});
+
+function renderPage() {
+    const main = document.getElementById('txMain');
+    main.innerHTML = `
+        <!-- 筛选 Tabs -->
+        <div class="tx-filter-bar">
+            <div class="tx-filter-tab active" id="filterAll" onclick="setFilter('all')">全部</div>
+            <div class="tx-filter-tab" id="filterIn" onclick="setFilter('in')">转入</div>
+            <div class="tx-filter-tab" id="filterOut" onclick="setFilter('out')">转出</div>
+        </div>
+
+        <!-- 网络选择 -->
+        <div class="tx-network-bar">
+            <div class="tx-net-btn active" id="netXLayer" onclick="switchNetwork('xlayer')">
+                <div class="tx-net-dot" style="background:#7C3AED;"></div>
+                X Layer
+            </div>
+            <div class="tx-net-btn" id="netBNB" onclick="switchNetwork('bnb')">
+                <div class="tx-net-dot" style="background:#F0B90B;"></div>
+                BNB Chain
+            </div>
+        </div>
+
+        <!-- 地址栏 -->
+        <div class="tx-address-bar">
+            <div class="tx-address-label">地址</div>
+            <div class="tx-address-text" id="txAddrText">${walletData.address}</div>
+            <div class="tx-address-copy" onclick="copyAddress()">复制</div>
+        </div>
+
+        <!-- 交易列表 -->
+        <div class="tx-list-container" id="txListContainer">
+            <div class="tx-loading">
+                <div class="tx-spinner"></div>
+                <div class="tx-loading-text">正在查询链上数据...</div>
+            </div>
+        </div>
+    `;
+}
+
+function showNoWallet() {
+    document.getElementById('txMain').innerHTML = `
+        <div class="tx-no-wallet">
+            <div class="tx-no-wallet-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                    <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/>
+                </svg>
+            </div>
+            <div class="tx-no-wallet-title">尚未创建钱包</div>
+            <div class="tx-no-wallet-desc">创建或导入钱包后，可在此查看链上交易记录</div>
+            <div class="tx-no-wallet-btn" onclick="location.href='wallet.html'">前往创建钱包</div>
+        </div>
+    `;
+}
+
+// ============================================================
+// 网络 & 筛选切换
+// ============================================================
+function switchNetwork(net) {
+    currentNetwork = net;
+    document.getElementById('netXLayer').classList.toggle('active', net === 'xlayer');
+    document.getElementById('netBNB').classList.toggle('active', net === 'bnb');
+    renderTxList();
+    loadTransactions();
+}
+
+function setFilter(f) {
+    currentFilter = f;
+    ['All','In','Out'].forEach(t => {
+        const el = document.getElementById('filter' + t);
+        if (el) el.classList.toggle('active', t.toLowerCase() === f);
+    });
+    renderTxList();
+}
+
+// ============================================================
+// 加载交易记录（通过 RPC eth_getTransactionCount + 区块扫描）
+// ============================================================
+async function loadTransactions() {
+    const container = document.getElementById('txListContainer');
+    if (!container) return;
+    container.innerHTML = `<div class="tx-loading"><div class="tx-spinner"></div><div class="tx-loading-text">正在查询链上数据...</div></div>`;
+
+    try {
+        const rpc = currentNetwork === 'xlayer' ? XLAYER_RPC : BNB_RPC;
+        const addr = walletData.address.toLowerCase();
+
+        // 获取最新区块号
+        const blockResp = await rpcCall(rpc, 'eth_blockNumber', []);
+        const latestBlock = parseInt(blockResp.result, 16);
+
+        // 扫描最近 2000 个区块
+        const fromBlock = Math.max(0, latestBlock - 2000);
+        const txs = await scanTransactions(rpc, addr, fromBlock, latestBlock);
+
+        allTxs = txs;
+        renderTxList();
+    } catch(e) {
+        console.warn('加载交易记录失败:', e);
+        // 显示空状态（可能是 RPC 限制）
+        allTxs = [];
+        renderTxList();
+    }
+}
+
+async function scanTransactions(rpc, addr, fromBlock, toBlock) {
+    const txs = [];
+    try {
+        // 使用 eth_getLogs 查询 ERC20 Transfer 事件（更高效）
+        const transferTopic = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+        const addrPadded = '0x000000000000000000000000' + addr.slice(2);
+
+        // 查询转入
+        const inLogs = await rpcCall(rpc, 'eth_getLogs', [{
+            fromBlock: '0x' + fromBlock.toString(16),
+            toBlock: '0x' + toBlock.toString(16),
+            topics: [transferTopic, null, addrPadded]
+        }]);
+
+        // 查询转出
+        const outLogs = await rpcCall(rpc, 'eth_getLogs', [{
+            fromBlock: '0x' + fromBlock.toString(16),
+            toBlock: '0x' + toBlock.toString(16),
+            topics: [transferTopic, addrPadded, null]
+        }]);
+
+        const processLog = (log, direction) => {
+            const value = BigInt(log.data);
+            const amountEth = Number(value) / 1e18;
+            const token = getTokenByContract(log.address);
+            return {
+                hash: log.transactionHash,
+                blockNumber: parseInt(log.blockNumber, 16),
+                direction,
+                token: token || 'TOKEN',
+                amount: amountEth,
+                from: '0x' + log.topics[1].slice(26),
+                to: '0x' + log.topics[2].slice(26),
+                timestamp: null, // 需要额外查询
+                status: 'confirmed',
+                type: 'erc20'
+            };
+        };
+
+        if (inLogs.result) inLogs.result.forEach(log => txs.push(processLog(log, 'in')));
+        if (outLogs.result) outLogs.result.forEach(log => txs.push(processLog(log, 'out')));
+
+        // 按区块号降序排列
+        txs.sort((a, b) => b.blockNumber - a.blockNumber);
+
+        // 批量获取时间戳（最多获取 10 个区块）
+        const uniqueBlocks = [...new Set(txs.slice(0, 20).map(t => t.blockNumber))];
+        const blockTimes = {};
+        await Promise.allSettled(uniqueBlocks.map(async bn => {
+            const r = await rpcCall(rpc, 'eth_getBlockByNumber', ['0x' + bn.toString(16), false]);
+            if (r.result) blockTimes[bn] = parseInt(r.result.timestamp, 16) * 1000;
+        }));
+        txs.forEach(t => { if (blockTimes[t.blockNumber]) t.timestamp = blockTimes[t.blockNumber]; });
+
+    } catch(e) {
+        console.warn('扫描交易失败:', e);
+    }
+    return txs;
+}
+
+function getTokenByContract(contractAddr) {
+    const contracts = TOKEN_CONTRACTS[currentNetwork] || {};
+    for (const [symbol, addr] of Object.entries(contracts)) {
+        if (addr && addr.toLowerCase() === contractAddr.toLowerCase()) return symbol;
+    }
+    return null;
+}
+
+async function rpcCall(rpc, method, params) {
+    const resp = await fetch(rpc, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params })
+    });
+    return resp.json();
+}
+
+// ============================================================
+// 渲染交易列表
+// ============================================================
+function renderTxList() {
+    const container = document.getElementById('txListContainer');
+    if (!container) return;
+
+    let filtered = allTxs;
+    if (currentFilter === 'in') filtered = allTxs.filter(t => t.direction === 'in');
+    if (currentFilter === 'out') filtered = allTxs.filter(t => t.direction === 'out');
+
+    if (filtered.length === 0) {
+        container.innerHTML = `
+            <div class="tx-empty">
+                <div class="tx-empty-icon">📋</div>
+                <div class="tx-empty-title">暂无交易记录</div>
+                <div class="tx-empty-desc">该地址在 ${currentNetwork === 'xlayer' ? 'X Layer' : 'BNB Chain'} 上<br>最近 2000 个区块内暂无交易记录</div>
+            </div>`;
+        return;
+    }
+
+    // 按日期分组
+    const groups = {};
+    filtered.forEach(tx => {
+        const dateKey = tx.timestamp ? formatDate(tx.timestamp) : '未知日期';
+        if (!groups[dateKey]) groups[dateKey] = [];
+        groups[dateKey].push(tx);
+    });
+
+    const explorer = currentNetwork === 'xlayer' ? XLAYER_EXPLORER : BNB_EXPLORER;
+
+    container.innerHTML = Object.entries(groups).map(([date, txList]) => `
+        <div class="tx-date-group">
+            <div class="tx-date-label">${date}</div>
+            ${txList.map(tx => renderTxItem(tx, explorer)).join('')}
+        </div>
+    `).join('');
+}
+
+function renderTxItem(tx, explorer) {
+    const isIn = tx.direction === 'in';
+    const iconBg = isIn ? 'rgba(16,185,129,0.12)' : 'rgba(124,58,237,0.12)';
+    const iconColor = isIn ? '#10B981' : '#7C3AED';
+    const amountStr = formatAmount(tx.amount, tx.token);
+    const timeStr = tx.timestamp ? formatTime(tx.timestamp) : '';
+    const shortHash = tx.hash ? tx.hash.slice(0, 8) + '...' + tx.hash.slice(-6) : '';
+    const counterpart = isIn ? tx.from : tx.to;
+    const shortAddr = counterpart ? counterpart.slice(0, 6) + '...' + counterpart.slice(-4) : '';
+
+    const inIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v14M5 9l7 7 7-7"/></svg>`;
+    const outIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22V8M5 15l7-7 7 7"/></svg>`;
+
+    return `<div class="tx-item" onclick="openExplorer('${explorer}${tx.hash}')">
+        <div class="tx-icon-wrap" style="background:${iconBg};">
+            ${isIn ? inIcon : outIcon}
+            <div class="tx-icon-badge" style="background:${iconBg};color:${iconColor};">${tx.token[0]}</div>
+        </div>
+        <div class="tx-info">
+            <div class="tx-type">${isIn ? '转入' : '转出'} ${tx.token}</div>
+            <div class="tx-token">${isIn ? '来自' : '发往'} ${shortAddr}</div>
+            <div class="tx-hash">${shortHash}</div>
+        </div>
+        <div class="tx-right">
+            <div class="tx-amount ${isIn ? 'in' : 'out'}">${isIn ? '+' : '-'}${amountStr}</div>
+            <div class="tx-time">${timeStr}</div>
+            <div class="tx-status confirmed">已确认</div>
+        </div>
+    </div>`;
+}
+
+function openExplorer(url) {
+    if (url && url.includes('0x')) window.open(url, '_blank');
+}
+
+// ============================================================
+// 工具函数
+// ============================================================
+function formatAmount(amount, symbol) {
+    if (!amount || amount === 0) return '0 ' + symbol;
+    if (amount >= 1000000) return (amount / 1000000).toFixed(2) + 'M ' + symbol;
+    if (amount >= 1000) return amount.toLocaleString('en-US', {maximumFractionDigits: 4}) + ' ' + symbol;
+    if (amount < 0.000001) return amount.toExponential(4) + ' ' + symbol;
+    return amount.toFixed(6).replace(/\.?0+$/, '') + ' ' + symbol;
+}
+
+function formatDate(ts) {
+    const d = new Date(ts);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today - 86400000);
+    const txDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    if (txDay.getTime() === today.getTime()) return '今天';
+    if (txDay.getTime() === yesterday.getTime()) return '昨天';
+    return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
+}
+
+function formatTime(ts) {
+    const d = new Date(ts);
+    return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+}
+
+function copyAddress() {
+    if (!walletData) return;
+    navigator.clipboard.writeText(walletData.address).then(() => showToast('地址已复制')).catch(() => {
+        const el = document.createElement('textarea');
+        el.value = walletData.address;
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+        showToast('地址已复制');
+    });
+}
+
+function showToast(msg) {
+    const el = document.getElementById('txToast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
