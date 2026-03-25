@@ -523,9 +523,21 @@
 <script src="common.js?v=20260325"></script>
 <script src="nav.js"></script>
 <script>
-const BALANCE = 125000;
-const FEE = 0.01;
+// 从 localStorage 读取钱包信息
+const WALLET_DATA = JSON.parse(localStorage.getItem('haitun_wallet_v1') || 'null');
+const WALLET_ADDR = localStorage.getItem('haitun_wallet_address') || '';
+// 默认使用 H Token 余额（实际应从链上查询，这里作占位符）
+const BALANCE = 0; // 新钱包默认为 0
+const FEE = 0.001;
 let currentNet = 'xlayer';
+
+// 初始化页面
+document.addEventListener('DOMContentLoaded', () => {
+    if (!WALLET_ADDR) {
+        document.getElementById('assetBalance').textContent = '--';
+        document.getElementById('assetBalanceUsd').textContent = '请先创建或导入钱包';
+    }
+});
 
 function calcFee() {
     const val = parseFloat(document.getElementById('withdrawAmount').value) || 0;

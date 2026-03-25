@@ -458,10 +458,12 @@ function drawQR(address) {
     ctx.fillText('H', cx, cy + 1);
 }
 
+// 从 localStorage 读取真实钱包地址
+const WALLET_ADDR = localStorage.getItem('haitun_wallet_address') || '';
 const ADDRESSES = {
-    H:    '0x742d35Cc6634C0532925a3b8D4C9B7e5f3d8A1b2',
-    USDT: '0x742d35Cc6634C0532925a3b8D4C9B7e5f3d8A1b2',
-    BNB:  '0x742d35Cc6634C0532925a3b8D4C9B7e5f3d8A1b2',
+    H:    WALLET_ADDR,
+    USDT: WALLET_ADDR,
+    BNB:  WALLET_ADDR,
 };
 
 let selectedToken = 'H';
@@ -523,8 +525,25 @@ function showToast(msg) {
     setTimeout(() => t.classList.remove('show'), 2200);
 }
 
-// 初始化 QR
-drawQR(ADDRESSES['H']);
+// 初始化：使用真实钱包地址
+const initAddr = ADDRESSES['H'];
+if (initAddr) {
+    document.getElementById('depositAddress').textContent = initAddr;
+    drawQR(initAddr);
+} else {
+    document.getElementById('depositAddress').textContent = '请先创建或导入钱包';
+    // 绘制空白 QR
+    const canvas = document.getElementById('qrCanvas');
+    if (canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#f8f9fa';
+        ctx.fillRect(0, 0, 200, 200);
+        ctx.fillStyle = '#94A3B8';
+        ctx.font = '14px Inter, system-ui';
+        ctx.textAlign = 'center';
+        ctx.fillText('请先创建钱包', 100, 100);
+    }
+}
 </script>
 </body>
 </html>
