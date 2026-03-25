@@ -25,18 +25,40 @@ let previousPrice = null;   // 上一次的价格（用于闪烁方向）
 let firstPrice = null;      // 本次会话第一次获取到的价格（用于计算涨跌幅）
 
 // ============================================================
-// 通用代理请求（调用 server.js 代理）
+// 通用代理请求（调用 Supabase Edge Function 代理）
 // ============================================================
+const EDGE_FUNCTION_BASE = 'https://pheeyaobcvdlujmrzouj.supabase.co/functions/v1/okx-proxy';
+
 async function proxyRequest(endpoint, params = {}) {
-    const qs = Object.entries(params)
-        .filter(([_, v]) => v !== undefined && v !== null && v !== '')
-        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
-        .join('&');
-    const url = `/api/${endpoint}${qs ? '?' + qs : ''}`;
+    // 将旧路由名映射到 Edge Function 路由
+    const routeMap = {
+        'h-token-price':   'price',
+        'h-token-candles': 'candles',
+    };
+    const route = routeMap[endpoint] || endpoint;
+    const edgeUrl = `${EDGE_FUNCTION_BASE}/${route}`;
+
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 12000);
-        const resp = await fetch(url, { signal: controller.signal });
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+        let resp;
+        if (route === 'price') {
+            // 价格接口使用 POST
+            resp = await fetch(edgeUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(params),
+                signal: controller.signal
+            });
+        } else {
+            // K 线等接口使用 GET + 查询参数
+            const qs = Object.entries(params)
+                .filter(([_, v]) => v !== undefined && v !== null && v !== '')
+                .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+                .join('&');
+            const url = `${edgeUrl}${qs ? '?' + qs : ''}`;
+            resp = await fetch(url, { signal: controller.signal });
+        }
         clearTimeout(timeoutId);
         const data = await resp.json();
         if (data && data.code === '0' && data.data) {
