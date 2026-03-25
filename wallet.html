@@ -1132,22 +1132,16 @@ function updateTotalBalance() {
 // ============================================================
 // 价格加载
 // ============================================================
-// 代币配置（地址、链、符号映射）
-const TOKEN_CONFIG = [
-    { symbol: 'H',    chain: '196', contract: '0x867fdd2eef548f80808d0c9065cd55f57e207777', decimals: 18 },
-    { symbol: 'OKB',  chain: '196', contract: '',                                             decimals: 18 },
-    { symbol: 'USDT', chain: '56',  contract: '0x55d398326f99059fF775485246999027B3197955', decimals: 18 },
-    { symbol: 'BNB',  chain: '56',  contract: '',                                             decimals: 18 },
-];
-
+// TOKEN_CONFIG 已在上方定义（行 924），此处直接使用
+// 为兼容 /balances 接口，将 TOKEN_CONFIG 映射为 chainIndex/contract 格式
 async function loadTokenPricesAndBalances() {
     if (!walletData) return;
     try {
         // 一次性调用 /balances 接口，同时获取余额和价格
         const addr = walletData.address || '0x0000000000000000000000000000000000000001';
         const tokenContractAddresses = TOKEN_CONFIG.map(t => ({
-            chainIndex: t.chain,
-            tokenContractAddress: t.contract
+            chainIndex: t.chainIndex,
+            tokenContractAddress: t.contract || ''
         }));
         const resp = await fetch(EDGE_PROXY + '/balances', {
             method: 'POST',
