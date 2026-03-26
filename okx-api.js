@@ -5,7 +5,7 @@
 const OKX_API = {
     // Supabase Edge Function 配置
     _config: {
-        baseUrl: 'https://brydhwbiypnnktuwawpq.supabase.co/functions/v1/okx-proxy'
+        baseUrl: 'https://pheeyaobcvdlujmrzouj.supabase.co/functions/v1/okx-proxy'
     },
 
     // 缓存
