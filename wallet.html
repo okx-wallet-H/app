@@ -906,7 +906,7 @@
 
 <!-- ethers.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.1/ethers.umd.min.js"></script>
-<script src="common.js?v=20260325"></script>
+<script src="common.js?v=20260327"></script>
 <script src="nav.js"></script>
 <script>
 // ============================================================
@@ -1137,36 +1137,28 @@ function updateTotalBalance() {
 async function loadTokenPricesAndBalances() {
     if (!walletData) return;
     try {
-        // 一次性调用 /balances 接口，同时获取余额和价格
-        const addr = walletData.address || '0x0000000000000000000000000000000000000001';
-        const tokenContractAddresses = TOKEN_CONFIG.map(t => ({
-            chainIndex: t.chainIndex,
-            tokenContractAddress: t.contract || ''
-        }));
-        const resp = await fetch(EDGE_PROXY + '/balances', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ address: addr, tokenContractAddresses })
+        // 用 wallet-assets 接口获取价格和余额（GET 方式）
+        const addr = walletData.address;
+        const resp = await fetch(EDGE_PROXY + '?action=wallet-assets&address=' + addr + '&chains=196,56', {
+            method: 'GET'
         });
         const d = await resp.json();
         if (d.code === '0' && Array.isArray(d.data)) {
-            for (const item of d.data) {
-                for (const asset of (item.tokenAssets || [])) {
+            for (const chain of d.data) {
+                for (const asset of (chain.tokenAssets || [])) {
                     const sym = asset.symbol;
-                    if (tokenPrices[sym] === undefined || tokenPrices[sym] === 0) {
+                    if (sym && (tokenPrices[sym] === undefined || tokenPrices[sym] === 0)) {
                         tokenPrices[sym] = parseFloat(asset.tokenPrice) || 0;
                     }
-                    // 如果有真实地址（非零地址），更新余额
-                    if (walletData.address && asset.balance !== undefined) {
+                    if (sym && asset.balance !== undefined) {
                         tokenBalances[sym] = parseFloat(asset.balance) || 0;
                     }
-                    // 更新 H 代币实时价格
                     if (sym === 'H') { liveHPrice = tokenPrices['H']; }
                 }
             }
         }
     } catch(e) {
-        console.warn('loadTokenPricesAndBalances via API failed:', e.message);
+        console.warn('loadTokenPricesAndBalances via wallet-assets failed:', e.message);
         // 降级到直连 RPC
         await loadAllBalancesFallback();
     }
