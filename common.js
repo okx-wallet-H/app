@@ -28,50 +28,60 @@ let firstPrice = null;      // 本次会话第一次获取到的价格（用于�
 // 通用代理请求（调用 Supabase Edge Function 代理）
 // ============================================================
 const EDGE_FUNCTION_BASE = 'https://pheeyaobcvdlujmrzouj.supabase.co/functions/v1/okx-proxy';
-
+// H Token 合约地址（X Layer chainIndex=196）
+const H_TOKEN_CONTRACT = '0x867fdd2eef548f80808d0c9065cd55f57e207777';
 async function proxyRequest(endpoint, params = {}) {
-    // 将旧路由名映射到 Edge Function 路由
-    const routeMap = {
-        'h-token-price':   'price',
-        'h-token-candles': 'candles',
-    };
-    const route = routeMap[endpoint] || endpoint;
-    const edgeUrl = `${EDGE_FUNCTION_BASE}/${route}`;
-
+    // 修复：/price 和 /candles 接口不可用，改用 wallet-assets 获取 H 价格
+    if (endpoint === 'h-token-price') {
+        try {
+            const qs = 'action=wallet-assets&address=' + H_TOKEN_CONTRACT + '&chains=' + (params.chainIndex || '196');
+            const url = EDGE_FUNCTION_BASE + '?' + qs;
+            const ctrl = new AbortController();
+            const tid = setTimeout(() => ctrl.abort(), 15000);
+            const resp = await fetch(url, { signal: ctrl.signal });
+            clearTimeout(tid);
+            const data = await resp.json();
+            if (data && data.code === '0' && Array.isArray(data.data)) {
+                for (const chain of data.data) {
+                    for (const asset of (chain.tokenAssets || [])) {
+                        if ((asset.tokenContractAddress || '').toLowerCase() === H_TOKEN_CONTRACT.toLowerCase()) {
+                            return { price: asset.tokenPrice || '0' };
+                        }
+                    }
+                    if (chain.tokenAssets && chain.tokenAssets[0]) {
+                        return { price: chain.tokenAssets[0].tokenPrice || '0' };
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('proxyRequest h-token-price 失败:', e.message);
+        }
+        return null;
+    }
+    // h-token-candles 接口不可用，返回 null（K线将从实时价格逐步构建）
+    if (endpoint === 'h-token-candles') {
+        return null;
+    }
+    // 其他接口：用 action 参数方式调用
     try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000);
-        let resp;
-        if (route === 'price') {
-            // 价格接口使用 POST
-            resp = await fetch(edgeUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(params),
-                signal: controller.signal
-            });
-        } else {
-            // K 线等接口使用 GET + 查询参数
-            const qs = Object.entries(params)
-                .filter(([_, v]) => v !== undefined && v !== null && v !== '')
-                .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
-                .join('&');
-            const url = `${edgeUrl}${qs ? '?' + qs : ''}`;
-            resp = await fetch(url, { signal: controller.signal });
-        }
-        clearTimeout(timeoutId);
+        const qs = Object.entries({ action: endpoint, ...params })
+            .filter(([, v]) => v !== undefined && v !== null && v !== '')
+            .map(([k, v]) => encodeURIComponent(k) + '=' + encodeURIComponent(v))
+            .join('&');
+        const url = EDGE_FUNCTION_BASE + '?' + qs;
+        const ctrl = new AbortController();
+        const tid = setTimeout(() => ctrl.abort(), 15000);
+        const resp = await fetch(url, { signal: ctrl.signal });
+        clearTimeout(tid);
         const data = await resp.json();
-        if (data && data.code === '0' && data.data) {
-            return data.data;
-        }
-        console.warn(`代理请求 ${endpoint} 返回:`, data && data.code, data && data.msg);
+        if (data && data.code === '0' && data.data) return data.data;
+        console.warn('代理请求', endpoint, '返回:', data && data.code, data && data.msg);
         return null;
     } catch (e) {
-        console.error(`代理请求 ${endpoint} 失败:`, e.message);
+        console.error('代理请求', endpoint, '失败:', e.message);
         return null;
     }
 }
-
 // ============================================================
 // 初始化历史 K 线（从 OKX API 获取最近 40 根 1 分钟蜡烛）
 // ============================================================
