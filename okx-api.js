@@ -1,220 +1,299 @@
-// OKX Web3 API 前端直连（使用 Web Crypto API 签名）
-// 支持 GitHub Pages 纯静态部署，无需后端代理
 // ============================================================
-
+// 海豚社区 - okx-api.js  v4.0
+// OKX Web3 API 前端调用封装（通过 Supabase Edge Function 代理）
+// 修复：getRealHotTokens / getToplist / searchTokens / formatChange 等
+// ============================================================
 const OKX_API = {
-    // Supabase Edge Function 配置
-    _config: {
-        baseUrl: 'https://pheeyaobcvdlujmrzouj.supabase.co/functions/v1/okx-proxy'
-    },
-
-    // 缓存
+    // Supabase Edge Function 代理地址
+    edgeProxy: 'https://pheeyaobcvdlujmrzouj.supabase.co/functions/v1/okx-proxy',
+    // 缓存（60秒有效）
     _cache: {},
     _cacheExpiry: {},
     _pending: {},
-
     // ============================================================
-    // 通用请求（通过 Supabase 代理）
+    // 通用 GET 请求（到 Edge Function，使用 ?action= 参数）
     // ============================================================
-    async _request(apiPath, method = 'GET', body = null) {
-        // 提取 action
-        let action = '';
-        if (apiPath.includes('/hot-token')) action = 'hot-tokens';
-        else if (apiPath.includes('/toplist')) action = 'token-toplist';
-        else if (apiPath.includes('/search')) action = 'token-search';
-        else if (apiPath.includes('/basic-info')) action = 'token-basic-info';
-        else if (apiPath.includes('/price-info')) action = 'token-price-info';
-        else if (apiPath.includes('/trades')) action = 'token-trades';
-        else if (apiPath.includes('/holder')) action = 'token-holders';
-        else if (apiPath.includes('/total-value-by-address')) action = 'wallet-total-value';
-        else if (apiPath.includes('/all-token-balances-by-address')) action = 'wallet-assets';
-        else if (apiPath.includes('/token-balance-by-address')) action = 'wallet-token-balance';
-
-        // 提取参数
-        const urlObj = new URL('https://dummy.com' + apiPath);
-        const params = new URLSearchParams(urlObj.search);
-        params.set('action', action);
-
-        const finalUrl = `${this._config.baseUrl}?${params.toString()}`;
-        const cacheKey = finalUrl + (body ? JSON.stringify(body) : '');
-
+    async getEdge(action, params = {}) {
+        const qs = Object.entries({ action, ...params })
+            .filter(([, v]) => v !== undefined && v !== null && v !== '')
+            .map(([k, v]) => encodeURIComponent(k) + '=' + encodeURIComponent(v))
+            .join('&');
+        const url = this.edgeProxy + '?' + qs;
+        const cacheKey = url;
         if (this._cache[cacheKey] && this._cacheExpiry[cacheKey] > Date.now()) {
             return this._cache[cacheKey];
         }
-
-        if (this._pending[cacheKey]) {
-            return this._pending[cacheKey];
-        }
-
+        if (this._pending[cacheKey]) return this._pending[cacheKey];
         const doFetch = async () => {
             try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 15000);
-
-                const resp = await fetch(finalUrl, {
-                    method: 'GET', // Edge Function 统一用 GET 接收 action 参数
-                    signal: controller.signal
-                });
-                clearTimeout(timeoutId);
-
+                const ctrl = new AbortController();
+                const tid = setTimeout(() => ctrl.abort(), 15000);
+                const resp = await fetch(url, { method: 'GET', signal: ctrl.signal });
+                clearTimeout(tid);
                 const data = await resp.json();
-                if (data.code === '0' && data.data) {
+                if (data.code === '0' && data.data !== undefined) {
                     this._cache[cacheKey] = data.data;
-                    this._cacheExpiry[cacheKey] = Date.now() + 30000;
+                    this._cacheExpiry[cacheKey] = Date.now() + 60000;
                     return data.data;
                 }
+                console.warn('OKX Edge GET', action, data.code, data.msg);
                 return null;
             } catch (e) {
-                console.error('OKX API Proxy Error:', e.message);
+                console.error('OKX Edge GET', action, e.message);
                 return null;
-            } finally {
-                delete this._pending[cacheKey];
-            }
+            } finally { delete this._pending[cacheKey]; }
         };
-
         this._pending[cacheKey] = doFetch();
         return this._pending[cacheKey];
     },
-
-    // 映射方法
-    async _get(apiPath) { return this._request(apiPath, 'GET'); },
-    async _post(apiPath, body) { return this._request(apiPath, 'POST', body); },
-
     // ============================================================
-    // 兼容旧的 request 方法（供 common.js 中的 renderHotTokens 调用）
+    // 热门代币（真实 hot-tokens 接口）
+    // options: { chainIndex, rankingType, rankingTimeFrame, rankBy, limit }
     // ============================================================
-    async request(apiPath) {
-        return this._get(apiPath);
+    async getRealHotTokens(options = {}) {
+        const params = {
+            rankingType: options.rankingType || '4',
+            rankingTimeFrame: options.rankingTimeFrame || '4',
+        };
+        if (options.chainIndex) params.chainIndex = options.chainIndex;
+        if (options.rankBy) params.rankBy = options.rankBy;
+        if (options.limit) params.limit = options.limit;
+        const raw = await this.getEdge('hot-tokens', params);
+        if (!raw || !Array.isArray(raw)) return null;
+        return raw.map(t => ({
+            tokenSymbol: t.tokenSymbol,
+            tokenName: t.tokenSymbol,
+            tokenFullName: t.tokenSymbol,
+            tokenLogoUrl: t.tokenLogoUrl || '',
+            tokenContractAddress: t.tokenContractAddress || '',
+            chainIndex: t.chainIndex || '196',
+            price: t.price || '0',
+            change: t.change || '0',
+            volume24H: t.volume || '0',
+            volume: t.volume || '0',
+            marketCap: t.marketCap || '0',
+            holders: t.holders || '0',
+            txs: t.txs || '0',
+            txsBuy: t.txsBuy || '0',
+            txsSell: t.txsSell || '0',
+            liquidity: t.liquidity || '0',
+            inflowUsd: t.inflowUsd || '0',
+        }));
     },
-
     // ============================================================
-    // 热门代币 API
+    // 兼容旧方法
     // ============================================================
-    async getHotTokens(rankingType = '4') {
-        // rankingType: 1=涨幅榜, 2=跌幅榜, 3=新上线, 4=热门
-        return this._get(`/api/v6/dex/market/token/hot-token?rankingType=${rankingType}`);
+    async getHotTokens(options = {}) { return this.getRealHotTokens(options); },
+    // ============================================================
+    // 代币榜单（用 hot-tokens 替代，因 token-toplist 接口有问题）
+    // options: { chains, sortBy, timeFrame }
+    // sortBy: '2'=涨跌幅, '5'=成交量, '6'=市值
+    // ============================================================
+    async getToplist(options = {}) {
+        const sortBy = options.sortBy || '2';
+        const timeFrame = options.timeFrame || '4';
+        const chains = options.chains || '196,56';
+        const rankByMap = { '2': '2', '5': '5', '6': '6' };
+        const rankBy = rankByMap[sortBy] || '2';
+        const chainList = chains.split(',').map(c => c.trim()).filter(Boolean);
+        const allResults = [];
+        for (const chainIndex of chainList) {
+            const raw = await this.getEdge('hot-tokens', { rankingType: '4', rankingTimeFrame: timeFrame, rankBy, chainIndex });
+            if (raw && Array.isArray(raw)) allResults.push(...raw);
+        }
+        if (allResults.length === 0) return null;
+        if (sortBy === '2') allResults.sort((a, b) => parseFloat(b.change || 0) - parseFloat(a.change || 0));
+        else if (sortBy === '5') allResults.sort((a, b) => parseFloat(b.volume || 0) - parseFloat(a.volume || 0));
+        else if (sortBy === '6') allResults.sort((a, b) => parseFloat(b.marketCap || 0) - parseFloat(a.marketCap || 0));
+        return allResults.map(t => ({
+            tokenSymbol: t.tokenSymbol,
+            tokenName: t.tokenSymbol,
+            tokenFullName: t.tokenSymbol,
+            tokenLogoUrl: t.tokenLogoUrl || '',
+            tokenContractAddress: t.tokenContractAddress || '',
+            chainIndex: t.chainIndex || '196',
+            price: t.price || '0',
+            change: t.change || '0',
+            volume24H: t.volume || '0',
+            volume: t.volume || '0',
+            marketCap: t.marketCap || '0',
+            holders: t.holders || '0',
+        }));
     },
-
     // ============================================================
-    // 代币榜单 API
+    // 代币搜索（用 hot-tokens 过滤，因 token-search 接口有问题）
     // ============================================================
-    async getTokenTopList(rankingType = '1', chainIndex = '196') {
-        return this._get(`/api/v6/dex/market/token/toplist?rankingType=${rankingType}&chainIndex=${chainIndex}`);
+    async searchTokens(keyword, chains) {
+        if (!keyword || !keyword.trim()) return null;
+        const kw = keyword.trim().toUpperCase();
+        const chainList = (!chains || chains === 'all') ? ['196', '56', '1'] : chains.split(',').map(c => c.trim());
+        const allResults = [];
+        for (const chainIndex of chainList) {
+            const raw = await this.getEdge('hot-tokens', { rankingType: '4', rankingTimeFrame: '4', chainIndex });
+            if (raw && Array.isArray(raw)) {
+                const matched = raw.filter(t =>
+                    (t.tokenSymbol || '').toUpperCase().includes(kw) ||
+                    (t.tokenContractAddress || '').toLowerCase().includes(keyword.toLowerCase())
+                );
+                allResults.push(...matched);
+            }
+        }
+        if (allResults.length === 0) return null;
+        return allResults.map(t => ({
+            tokenSymbol: t.tokenSymbol,
+            tokenName: t.tokenSymbol,
+            tokenFullName: t.tokenSymbol,
+            tokenLogoUrl: t.tokenLogoUrl || '',
+            tokenContractAddress: t.tokenContractAddress || '',
+            chainIndex: t.chainIndex || '196',
+            price: t.price || '0',
+            change: t.change || '0',
+            volume24H: t.volume || '0',
+            volume: t.volume || '0',
+            marketCap: t.marketCap || '0',
+        }));
     },
-
     // ============================================================
-    // 代币搜索 API
+    // 代币价格/交易信息（用 wallet-assets + hot-tokens 组合替代）
     // ============================================================
-    async searchToken(keyword, chainIndex = '196') {
-        if (!keyword) return null;
-        return this._get(`/api/v6/dex/market/token/search?keyword=${encodeURIComponent(keyword)}&chainIndex=${chainIndex}`);
-    },
-
-    // ============================================================
-    // 代币基础信息
-    // ============================================================
-    async getTokenBasicInfo(address, chainIndex = '196') {
+    async getTokenPriceInfo(address, chainIndex) {
         if (!address) return null;
-        return this._get(`/api/v6/dex/market/token/basic-info?chainIndex=${chainIndex}&tokenContractAddress=${encodeURIComponent(address)}`);
+        chainIndex = chainIndex || '196';
+        let price = '0', change = '0', volume = '0', marketCap = '0', holders = '0', liquidity = '0';
+        try {
+            // 1. 用 wallet-assets 获取价格
+            const assetsRaw = await this.getEdge('wallet-assets', { address, chains: chainIndex });
+            if (assetsRaw && Array.isArray(assetsRaw)) {
+                for (const chain of assetsRaw) {
+                    for (const asset of (chain.tokenAssets || [])) {
+                        if ((asset.tokenContractAddress || '').toLowerCase() === address.toLowerCase()) {
+                            price = asset.tokenPrice || '0';
+                        }
+                    }
+                }
+                if (price === '0' && assetsRaw[0] && assetsRaw[0].tokenAssets && assetsRaw[0].tokenAssets[0]) {
+                    price = assetsRaw[0].tokenAssets[0].tokenPrice || '0';
+                }
+            }
+            // 2. 用 hot-tokens 获取涨跌幅、成交量等
+            const hotRaw = await this.getEdge('hot-tokens', { rankingType: '4', rankingTimeFrame: '4', chainIndex });
+            if (hotRaw && Array.isArray(hotRaw)) {
+                const found = hotRaw.find(t => (t.tokenContractAddress || '').toLowerCase() === address.toLowerCase());
+                if (found) {
+                    if (price === '0') price = found.price || '0';
+                    change = found.change || '0';
+                    volume = found.volume || '0';
+                    marketCap = found.marketCap || '0';
+                    holders = found.holders || '0';
+                    liquidity = found.liquidity || '0';
+                }
+            }
+            // 3. 用 token-holders 获取持有者数量
+            if (holders === '0') {
+                const holdersRaw = await this.getEdge('token-holders', { chainIndex, tokenContractAddress: address });
+                if (holdersRaw && Array.isArray(holdersRaw)) holders = String(holdersRaw.length);
+            }
+        } catch (e) {
+            console.error('getTokenPriceInfo 失败:', e.message);
+        }
+        return {
+            price, priceChange5M: '0', priceChange1H: '0', priceChange4H: '0', priceChange24H: change,
+            volume5M: '0', volume1H: '0', volume4H: '0', volume24H: volume,
+            txs5M: '0', txs1H: '0', txs4H: '0', txs24H: '0',
+            maxPrice: '0', minPrice: '0', marketCap, circSupply: '0', liquidity, holders,
+        };
     },
-
     // ============================================================
-    // 代币价格/交易信息
+    // 代币持有者信息（用 token-holders 接口）
     // ============================================================
-    async getTokenPriceInfo(address, chainIndex = '196') {
+    async getTokenHolders(address, chainIndex) {
         if (!address) return null;
-        return this._get(`/api/v6/dex/market/token/price-info?chainIndex=${chainIndex}&tokenContractAddress=${encodeURIComponent(address)}`);
+        chainIndex = chainIndex || '196';
+        return this.getEdge('token-holders', { chainIndex, tokenContractAddress: address });
     },
-
     // ============================================================
-    // 代币交易活动
+    // 代币基础信息（接口不可用，返回 null）
     // ============================================================
-    async getTokenTrades(address, chainIndex = '196', limit = 20) {
+    async getTokenBasicInfo(address, chainIndex) { return null; },
+    // ============================================================
+    // 代币交易活动（接口不可用，返回 null）
+    // ============================================================
+    async getTokenTrades(address, chainIndex, limit) { return null; },
+    // ============================================================
+    // 钱包资产
+    // ============================================================
+    async getWalletAssets(address, chains) {
         if (!address) return null;
-        return this._get(`/api/v6/dex/market/token/trades?chainIndex=${chainIndex}&tokenContractAddress=${encodeURIComponent(address)}&limit=${limit}`);
+        return this.getEdge('wallet-assets', { address, chains: chains || '196,56' });
     },
-
-    // ============================================================
-    // 代币持有者信息
-    // ============================================================
-    async getTokenHolders(address, chainIndex = '196') {
+    async getWalletTotalValue(address, chains) {
         if (!address) return null;
-        return this._get(`/api/v6/dex/market/token/holder?chainIndex=${chainIndex}&tokenContractAddress=${encodeURIComponent(address)}`);
+        return this.getEdge('wallet-total-value', { address, chains: chains || '196,56' });
     },
-
-    // ============================================================
-    // 钱包余额 API
-    // ============================================================
-
-    // 获取总估值
-    async getWalletTotalValue(address, chains = '1,56,137,196,8453,42161') {
-        if (!address) return null;
-        return this._get(`/api/v6/dex/balance/total-value-by-address?address=${address}&chains=${chains}`);
-    },
-
-    // 获取资产明细 (所有代币余额)
-    async getWalletAssets(address, chains = '1,56,137,196,8453,42161') {
-        if (!address) return null;
-        return this._get(`/api/v6/dex/balance/all-token-balances-by-address?address=${address}&chains=${chains}`);
-    },
-
-    // 获取特定代币余额
-    async getWalletTokenBalance(address, chainIndex, tokenContractAddress) {
-        if (!address || !tokenContractAddress) return null;
-        return this._get(`/api/v6/dex/balance/token-balance-by-address?address=${address}&chainIndex=${chainIndex}&tokenContractAddress=${tokenContractAddress}`);
-    },
-
     // ============================================================
     // 工具函数
     // ============================================================
-
-    // 获取链名称
-    getChainName(chainIndex) {
-        const chains = {
-            '1': 'Ethereum',
-            '56': 'BNB Chain',
-            '137': 'Polygon',
-            '196': 'X Layer',
-            '8453': 'Base',
-            '42161': 'Arbitrum One',
-            '10': 'Optimism',
-            '43114': 'Avalanche',
-            '250': 'Fantom',
-            '324': 'zkSync Era'
-        };
-        return chains[chainIndex] || `Chain ${chainIndex}`;
-    },
-
-    // 缩短地址
-    shortAddress(addr) {
-        if (!addr) return '';
-        if (addr.length <= 10) return addr;
-        return addr.slice(0, 6) + '...' + addr.slice(-4);
-    },
-
-    // 格式化价格（省略零格式）
     formatPrice(price) {
         const p = parseFloat(price);
         if (isNaN(p) || p === 0) return '--';
         if (p >= 1000) return '$' + p.toLocaleString('en-US', { maximumFractionDigits: 2 });
         if (p >= 1) return '$' + p.toFixed(4);
         if (p >= 0.01) return '$' + p.toFixed(6);
-
-        // 处理极小价格，使用下标零格式
         const str = p.toFixed(20);
-        const match = str.match(/^0\.0+(?=[1-9])/);
+        const match = str.match(/^0\.(0+)/);
         if (match) {
-            const zeros = match[0].length - 2;
+            const zeros = match[1].length;
             if (zeros >= 4) {
-                const subDigits = ['₀', '₁', '₂', '₃', '₄', '₅', '₆', '₇', '₈', '₉'];
-                const subStr = zeros.toString().split('').map(d => subDigits[parseInt(d)]).join('');
-                const remain = str.slice(match[0].length, match[0].length + 4);
-                return `$0.0${subStr}${remain}`;
+                const subDigits = ['₀','₁','₂','₃','₄','₅','₆','₇','₈','₉'];
+                const subStr = zeros.toString().split('').map(d => subDigits[+d]).join('');
+                const remain = str.slice(2 + zeros, 2 + zeros + 4);
+                return '$0.0' + subStr + remain;
             }
         }
         return '$' + p.toFixed(8);
+    },
+    formatChange(change) {
+        const c = parseFloat(change);
+        if (isNaN(c)) return { text: '--', class: 'flat' };
+        const sign = c >= 0 ? '+' : '';
+        return { text: sign + c.toFixed(2) + '%', class: c > 0 ? 'up' : c < 0 ? 'down' : 'flat' };
+    },
+    formatVolume(vol) {
+        const v = parseFloat(vol);
+        if (isNaN(v) || v === 0) return '--';
+        if (v >= 1e9) return '$' + (v / 1e9).toFixed(2) + 'B';
+        if (v >= 1e6) return '$' + (v / 1e6).toFixed(2) + 'M';
+        if (v >= 1e3) return '$' + (v / 1e3).toFixed(2) + 'K';
+        return '$' + v.toFixed(2);
+    },
+    formatMarketCap(mcap) { return this.formatVolume(mcap); },
+    formatHolders(count) {
+        const n = parseInt(count);
+        if (isNaN(n)) return '--';
+        if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+        if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+        return n.toLocaleString();
+    },
+    shortAddress(addr) {
+        if (!addr || addr.length < 12) return addr || '--';
+        return addr.slice(0, 6) + '...' + addr.slice(-4);
+    },
+    formatTime(timestamp) {
+        if (!timestamp) return '--';
+        const d = new Date(parseInt(timestamp));
+        const diff = (Date.now() - d) / 1000;
+        if (diff < 60) return '刚刚';
+        if (diff < 3600) return Math.floor(diff / 60) + '分钟前';
+        if (diff < 86400) return Math.floor(diff / 3600) + '小时前';
+        return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+    },
+    getChainName(chainIndex) {
+        const chains = {
+            '1': 'Ethereum', '56': 'BSC', '137': 'Polygon', '196': 'X Layer',
+            '42161': 'Arbitrum', '10': 'Optimism', '43114': 'Avalanche', '8453': 'Base',
+            '324': 'zkSync', '501': 'Solana', '195': 'X Layer Testnet'
+        };
+        return chains[String(chainIndex)] || 'Chain ' + chainIndex;
     }
 };
-
-// 导出到全局
 window.OKX_API = OKX_API;
